@@ -198,8 +198,8 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
                                     {form.watch("type") === "gas" && (
                                         <Popover>
                                             <PopoverTrigger asChild>
-                                                <Button variant="outline" size="icon" className="shrink-0 h-10 w-10">
-                                                    <Info className="h-4 w-4" />
+                                                <Button variant="ghost" size="icon">
+                                                    <Info />
                                                 </Button>
                                             </PopoverTrigger>
                                             <PopoverContent className="w-80" side="right" align="start">
