@@ -3,10 +3,22 @@ import { ProjectionResult } from "@/lib/calculations"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { Plus, Zap, Flame, AlertTriangle, CheckCircle, MoreHorizontal, Trash } from "lucide-react"
+import { Plus, Zap, Flame, AlertTriangle, CheckCircle, MoreHorizontal, Trash, Pencil } from "lucide-react"
 import Link from "next/link"
 import { ReadingDialog } from "./reading-dialog"
 import { ContractChart } from "./contract-chart"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { createClient } from "@/lib/supabase/client"
+import { useState } from "react"
 
 interface ContractCardProps {
     contract: Contract
@@ -22,6 +34,22 @@ export function ContractCard({ contract, readings, currentPayment, projection, o
     const Icon = isGas ? Flame : Zap
     const diff = projection ? projection.difference : 0
     const isGood = diff >= 0
+
+    const [isRenaming, setIsRenaming] = useState(false)
+    const [newName, setNewName] = useState(contract.name)
+    const supabase = createClient()
+
+    const handleRename = async () => {
+        const { error } = await supabase
+            .from('contracts')
+            .update({ name: newName })
+            .eq('id', contract.id)
+
+        if (!error) {
+            onUpdate()
+            setIsRenaming(false)
+        }
+    }
 
     return (
         <Card className="flex flex-col">
@@ -42,12 +70,50 @@ export function ContractCard({ contract, readings, currentPayment, projection, o
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => {
+                            setNewName(contract.name)
+                            setIsRenaming(true)
+                        }}>
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Rename
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => onDelete(contract.id)} className="text-red-600">
                             <Trash className="mr-2 h-4 w-4" />
                             Delete
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
+
+                <Dialog open={isRenaming} onOpenChange={setIsRenaming}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Rename Contract</DialogTitle>
+                            <DialogDescription>
+                                Enter a new name for your contract.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="name" className="text-right">
+                                    Name
+                                </Label>
+                                <Input
+                                    id="name"
+                                    value={newName}
+                                    onChange={(e) => setNewName(e.target.value)}
+                                    className="col-span-3"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') handleRename()
+                                    }}
+                                />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsRenaming(false)}>Cancel</Button>
+                            <Button onClick={handleRename}>Save</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </CardHeader>
             <CardContent className="flex-1">
                 <div className="text-2xl font-bold">

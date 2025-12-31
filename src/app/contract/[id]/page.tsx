@@ -30,6 +30,8 @@ export default function ContractDetailPage() {
     const [loading, setLoading] = useState(true)
     const [isEditing, setIsEditing] = useState(false)
     const [editForm, setEditForm] = useState({ provider: '', start_date: '' })
+    const [isEditingName, setIsEditingName] = useState(false)
+    const [nameForm, setNameForm] = useState('')
 
     const handleSave = async () => {
         if (!contract) return
@@ -45,6 +47,20 @@ export default function ContractDetailPage() {
         if (!error) {
             setContract({ ...contract, provider: editForm.provider, start_date: editForm.start_date })
             setIsEditing(false)
+        }
+    }
+
+    const handleSaveName = async () => {
+        if (!contract) return
+
+        const { error } = await supabase
+            .from('contracts')
+            .update({ name: nameForm })
+            .eq('id', contract.id)
+
+        if (!error) {
+            setContract({ ...contract, name: nameForm })
+            setIsEditingName(false)
         }
     }
 
@@ -83,7 +99,35 @@ export default function ContractDetailPage() {
                 <Button variant="ghost" size="icon-sm" onClick={() => router.back()}>
                     <ArrowLeft />
                 </Button>
-                <h1 className="text-3xl font-bold">{contract.name}</h1>
+                {isEditingName ? (
+                    <div className="flex items-center gap-2">
+                        <Input
+                            value={nameForm}
+                            onChange={(e) => setNameForm(e.target.value)}
+                            className="text-2xl font-bold h-10 w-fit min-w-[300px]"
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleSaveName()
+                            }}
+                            autoFocus
+                        />
+                        <Button size="icon-sm" variant="ghost" className="text-green-500" onClick={handleSaveName}>
+                            <Check className="h-4 w-4" />
+                        </Button>
+                        <Button size="icon-sm" variant="ghost" className="text-red-500" onClick={() => setIsEditingName(false)}>
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </div>
+                ) : (
+                    <h1
+                        className="text-3xl font-bold cursor-pointer hover:underline decoration-dashed decoration-muted-foreground/50 underline-offset-4"
+                        onClick={() => {
+                            setNameForm(contract.name)
+                            setIsEditingName(true)
+                        }}
+                    >
+                        {contract.name}
+                    </h1>
+                )}
             </div>
 
             <Tabs defaultValue="overview" className="w-full">
