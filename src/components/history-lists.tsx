@@ -1,5 +1,7 @@
 "use client"
 
+import { formatDate } from "@/lib/date-utils"
+
 import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { ContractPrice, ContractPayment } from "@/lib/types"
@@ -83,7 +85,7 @@ export function PriceHistory({ contractId, initialData }: { contractId: string, 
                 <TableBody>
                     {prices.map((price) => (
                         <TableRow key={price.id}>
-                            <TableCell>{price.valid_from}</TableCell>
+                            <TableCell>{formatDate(price.valid_from)}</TableCell>
                             <TableCell>{price.base_price_monthly.toFixed(2)} €</TableCell>
                             <TableCell>{price.energy_price_cents_per_kwh.toFixed(2)} ct</TableCell>
                             <TableCell>
@@ -157,7 +159,7 @@ export function PaymentHistory({ contractId, initialData }: { contractId: string
                 <TableBody>
                     {payments.map((payment) => (
                         <TableRow key={payment.id}>
-                            <TableCell>{payment.valid_from}</TableCell>
+                            <TableCell>{formatDate(payment.valid_from)}</TableCell>
                             <TableCell>{payment.monthly_payment.toFixed(2)} €</TableCell>
                             <TableCell>
                                 <Button variant="ghost" size="icon" onClick={() => handleDelete(payment.id)}>

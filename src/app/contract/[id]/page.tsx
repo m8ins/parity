@@ -1,5 +1,7 @@
 "use client"
 
+import { formatDate } from "@/lib/date-utils"
+
 import { useEffect, useState, useMemo } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
@@ -209,7 +211,7 @@ export default function ContractDetailPage() {
                                                 className="h-8"
                                             />
                                         ) : (
-                                            contract.start_date
+                                            formatDate(contract.start_date)
                                         )}
                                     </dd>
                                 </div>
@@ -290,7 +292,7 @@ export default function ContractDetailPage() {
                                     <TableBody>
                                         {readings.map(r => (
                                             <TableRow key={r.id}>
-                                                <TableCell>{r.date}</TableCell>
+                                                <TableCell>{formatDate(r.date)}</TableCell>
                                                 <TableCell>{r.value}</TableCell>
                                                 <TableCell>
                                                     <Button variant="ghost" size="icon" onClick={() => handleDeleteReading(r.id)}>
