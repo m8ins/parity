@@ -28,7 +28,7 @@ export function ContractChart({ data, unit, className }: ContractChartProps) {
     const lastActualPoint = [...data].reverse().find(p => p.actual !== null)
     const isGood = lastActualPoint ? (lastActualPoint.actual! <= lastActualPoint.projected) : true
 
-    const actualColor = isGood ? "#22c55e" : "#ef4444" // green-500 : red-500
+    const actualColor = isGood ? "oklch(0.696 0.17 142.5)" : "oklch(0.627 0.258 29.234)" // green-500 : red-500
     // Use CSS variables for better theme support if possible, but hex is safe for recharts
 
     return (
@@ -41,10 +41,10 @@ export function ContractChart({ data, unit, className }: ContractChartProps) {
                             <stop offset="95%" stopColor={actualColor} stopOpacity={0} />
                         </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#888888" opacity={0.2} />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="oklch(0.588 0 0)" opacity={0.2} />
                     <XAxis
                         dataKey="formattedDate"
-                        stroke="#888888"
+                        stroke="oklch(0.588 0 0)"
                         fontSize={12}
                         tickLine={false}
                         axisLine={false}
@@ -52,15 +52,15 @@ export function ContractChart({ data, unit, className }: ContractChartProps) {
                         minTickGap={30}
                     />
                     <YAxis
-                        stroke="#888888"
+                        stroke="oklch(0.588 0 0)"
                         fontSize={12}
                         tickLine={false}
                         axisLine={false}
                         tickFormatter={(value) => `${value}`}
                     />
                     <Tooltip
-                        contentStyle={{ backgroundColor: 'white', borderColor: '#e2e8f0', borderRadius: '6px', color: 'black' }}
-                        itemStyle={{ color: 'black' }}
+                        contentStyle={{ backgroundColor: 'oklch(1 0 0)', borderColor: 'oklch(0.922 0.004 264.542)', borderRadius: '6px', color: 'oklch(0 0 0)' }}
+                        itemStyle={{ color: 'oklch(0 0 0)' }}
                         formatter={(value, name) => {
                             const numValue = typeof value === 'number' ? value : 0
                             return [
@@ -72,7 +72,7 @@ export function ContractChart({ data, unit, className }: ContractChartProps) {
                     <Area
                         type="monotone"
                         dataKey="projected"
-                        stroke="#94a3b8"
+                        stroke="oklch(0.682 0.017 251.165)"
                         strokeDasharray="5 5"
                         fill="none"
                         strokeWidth={2}
