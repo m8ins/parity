@@ -23,6 +23,12 @@ import {
     FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupText,
+    InputGroupInput,
+} from "@/components/ui/input-group"
 import { useRouter } from "next/navigation"
 
 const formSchema = z.object({
@@ -113,10 +119,15 @@ export function ReadingDialog({ contractId, lastReadingValue, children, onSucces
                             name="value"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Reading Value (kWh)</FormLabel>
-                                    <FormControl>
-                                        <Input type="number" step="0.01" {...field} />
-                                    </FormControl>
+                                    <FormLabel>Reading Value</FormLabel>
+                                    <InputGroup>
+                                        <FormControl>
+                                            <InputGroupInput type="number" step="0.01" {...field} />
+                                        </FormControl>
+                                        <InputGroupAddon align="inline-end">
+                                            <InputGroupText>kWh</InputGroupText>
+                                        </InputGroupAddon>
+                                    </InputGroup>
                                     <FormMessage />
                                 </FormItem>
                             )}
