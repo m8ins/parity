@@ -71,10 +71,17 @@ export function ContractCard({ contract, readings, currentPayment, projection, o
                     </div>
                 )}
 
+                {projection && (
+                    <div className="mt-2 text-xs text-muted-foreground flex justify-between">
+                        <span>Paid Goal: {Math.round(projection.paidUsage)} kWh</span>
+                    </div>
+                )}
+
                 {projection && projection.chartData && (
                     <ContractChart
                         data={projection.chartData}
                         unit="kWh"
+                        goal={projection.paidUsage}
                         className="mt-4"
                     />
                 )}
@@ -84,7 +91,7 @@ export function ContractCard({ contract, readings, currentPayment, projection, o
                 </div>
             </CardContent>
             <CardFooter className="flex gap-2">
-                <ReadingDialog contractId={contract.id} onSuccess={onUpdate}>
+                <ReadingDialog contractId={contract.id} lastReadingValue={readings[readings.length - 1]?.value} onSuccess={onUpdate}>
                     <Button variant="outline" className="flex-1">
                         <Plus className="mr-2 h-4 w-4" /> Reading
                     </Button>

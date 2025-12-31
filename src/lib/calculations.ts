@@ -9,7 +9,9 @@ export interface ProjectionResult {
     daysTracked: number;
     billingPeriodStart: Date;
     billingPeriodEnd: Date;
+
     chartData: ChartDataPoint[];
+    paidUsage: number; // kWh
 }
 
 export interface ChartDataPoint {
@@ -108,6 +110,10 @@ export function calculateProjection(
     // 3. Time-Slice Cost Calculation over the Billing Year
     let projectedYearlyCost = 0;
     let expectedYearlyPayment = 0;
+
+    // Accumulators for goal calculation
+    let totalBasePrice = 0;
+    let totalWeightedEnergyPrice = 0; // Sum of (Price/100 * Weight)
 
     // Chart Data Prep
     const chartData: ChartDataPoint[] = [];
@@ -248,10 +254,12 @@ export function calculateProjection(
             const year = calcDate.getFullYear();
             const daysInYear = 365 + (isLeapYear(year) ? 1 : 0);
             const dailyBasePrice = (activePrice.base_price_monthly * 12) / daysInYear;
-
             const dailyEnergyCost = (dailyConsumption * activePrice.energy_price_cents_per_kwh) / 100;
 
             projectedYearlyCost += dailyBasePrice + dailyEnergyCost;
+
+            totalBasePrice += dailyBasePrice;
+            totalWeightedEnergyPrice += (activePrice.energy_price_cents_per_kwh / 100) * dayWeight;
         }
 
         if (activePayment) {
@@ -288,12 +296,21 @@ export function calculateProjection(
     const difference = expectedYearlyPayment - projectedYearlyCost;
     const recommendedMonthlyPayment = projectedYearlyCost / 12; // Average needed
 
+    // Calculate Paid Usage (Goal)
+    // Formula: TotalPayment = TotalBase + (PaidUsage * WeightedPriceFactor)
+    // PaidUsage = (TotalPayment - TotalBase) / WeightedPriceFactor
+    let paidUsage = 0;
+    if (totalWeightedEnergyPrice > 0) {
+        paidUsage = (expectedYearlyPayment - totalBasePrice) / totalWeightedEnergyPrice;
+    }
+
     return {
         projectedYearlyConsumption,
         projectedYearlyCost,
         currentYearlyPayment: expectedYearlyPayment,
         difference,
         recommendedMonthlyPayment,
+        paidUsage,
         daysTracked,
         billingPeriodStart: billingYearStart,
         billingPeriodEnd: billingYearEnd,

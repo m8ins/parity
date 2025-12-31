@@ -1,15 +1,17 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Contract, ContractPrice, ContractPayment, Reading } from "@/lib/types"
+import { calculateProjection } from "@/lib/calculations"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ArrowLeft, Trash2, Building2, Calendar, Zap, Flame, Gauge, Pencil, Check, X } from "lucide-react"
+import { ArrowLeft, Trash2, Building2, Calendar, Zap, Flame, Gauge, Pencil, Check, X, Plus } from "lucide-react"
 import { PriceHistory, PaymentHistory } from "@/components/history-lists"
+import { ReadingDialog } from "@/components/reading-dialog"
 import {
     Table,
     TableBody,
@@ -48,26 +50,33 @@ export default function ContractDetailPage() {
         }
     }
 
+    const fetchData = async () => {
+        if (!id) return
+        const { data: c } = await supabase.from('contracts').select('*').eq('id', id).single()
+        if (c) setContract(c as Contract)
+
+        const [pRes, payRes, rRes] = await Promise.all([
+            supabase.from('contract_prices').select('*').eq('contract_id', id).order('valid_from', { ascending: true }),
+            supabase.from('contract_payments').select('*').eq('contract_id', id).order('valid_from', { ascending: true }),
+            supabase.from('readings').select('*').eq('contract_id', id).order('date', { ascending: false }) // Desc for list
+        ])
+
+        if (pRes.data) setPrices(pRes.data as ContractPrice[])
+        if (payRes.data) setPayments(payRes.data as ContractPayment[])
+        if (rRes.data) setReadings(rRes.data as Reading[])
+
+        setLoading(false)
+    }
+
     useEffect(() => {
-        const fetch = async () => {
-            if (!id) return
-            const { data: c } = await supabase.from('contracts').select('*').eq('id', id).single()
-            if (c) setContract(c as Contract)
-
-            const [pRes, payRes, rRes] = await Promise.all([
-                supabase.from('contract_prices').select('*').eq('contract_id', id).order('valid_from', { ascending: true }),
-                supabase.from('contract_payments').select('*').eq('contract_id', id).order('valid_from', { ascending: true }),
-                supabase.from('readings').select('*').eq('contract_id', id).order('date', { ascending: false }) // Desc for list
-            ])
-
-            if (pRes.data) setPrices(pRes.data as ContractPrice[])
-            if (payRes.data) setPayments(payRes.data as ContractPayment[])
-            if (rRes.data) setReadings(rRes.data as Reading[])
-
-            setLoading(false)
-        }
-        fetch()
+        fetchData()
     }, [id])
+
+    // Calculate projection (Memoize?)
+    const projection = useMemo(() => {
+        if (!contract || readings.length < 2) return null
+        return calculateProjection(contract, readings, prices, payments)
+    }, [contract, readings, prices, payments])
 
     if (loading) return <div className="p-8">Loading...</div>
     if (!contract) return <div className="p-8">Contract not found</div>
@@ -217,7 +226,14 @@ export default function ContractDetailPage() {
                 <TabsContent value="readings">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Readings</CardTitle>
+                            <div className="flex flex-row items-center justify-between">
+                                <CardTitle>Readings</CardTitle>
+                                <ReadingDialog contractId={contract.id} lastReadingValue={readings[0]?.value} onSuccess={fetchData}>
+                                    <Button variant="outline" size="sm">
+                                        <Plus className="mr-2 h-4 w-4" /> Add Reading
+                                    </Button>
+                                </ReadingDialog>
+                            </div>
                         </CardHeader>
                         <CardContent>
                             <div className="border rounded-md">

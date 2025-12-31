@@ -1,16 +1,17 @@
 "use client"
 
 import { useMemo } from "react"
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts"
+import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, ReferenceLine } from "recharts"
 import { ChartDataPoint } from "@/lib/calculations"
 
 interface ContractChartProps {
     data: ChartDataPoint[]
     unit: string
+    goal?: number
     className?: string
 }
 
-export function ContractChart({ data, unit, className }: ContractChartProps) {
+export function ContractChart({ data, unit, goal, className }: ContractChartProps) {
     // Format data for display
     const formattedData = useMemo(() => {
         return data.map(point => ({
@@ -30,6 +31,11 @@ export function ContractChart({ data, unit, className }: ContractChartProps) {
 
     const actualColor = isGood ? "oklch(0.696 0.17 142.5)" : "oklch(0.627 0.258 29.234)" // green-500 : red-500
     // Use CSS variables for better theme support if possible, but hex is safe for recharts
+
+    const domainMax = Math.max(
+        ...formattedData.flatMap(d => [d.projected, d.actual ?? 0]),
+        goal ?? 0
+    ) * 1.1 // Add 10% padding
 
     return (
         <div className={`h-[200px] w-full ${className}`}>
@@ -57,6 +63,7 @@ export function ContractChart({ data, unit, className }: ContractChartProps) {
                         tickLine={false}
                         axisLine={false}
                         tickFormatter={(value) => `${value}`}
+                        domain={[0, domainMax]}
                     />
                     <Tooltip
                         contentStyle={{ backgroundColor: 'oklch(1 0 0)', borderColor: 'oklch(0.922 0.004 264.542)', borderRadius: '6px', color: 'oklch(0 0 0)' }}
@@ -87,6 +94,14 @@ export function ContractChart({ data, unit, className }: ContractChartProps) {
                         name="actual"
                         connectNulls
                     />
+                    {goal && (
+                        <ReferenceLine
+                            y={goal}
+                            stroke="oklch(0.623 0.214 163.725)" // Green-ish 
+                            strokeDasharray="3 3"
+                            label={{ position: 'right', value: 'Goal', fill: 'oklch(0.623 0.214 163.725)', fontSize: 12 }}
+                        />
+                    )}
                 </AreaChart>
             </ResponsiveContainer>
         </div>
