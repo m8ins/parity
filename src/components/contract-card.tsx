@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Plus, Zap, Flame, AlertTriangle, CheckCircle, MoreHorizontal, Trash } from "lucide-react"
 import Link from "next/link"
 import { ReadingDialog } from "./reading-dialog"
+import { ContractChart } from "./contract-chart"
 
 interface ContractCardProps {
     contract: Contract
@@ -68,6 +69,14 @@ export function ContractCard({ contract, readings, currentPayment, projection, o
                             )}
                         </div>
                     </div>
+                )}
+
+                {projection && projection.chartData && (
+                    <ContractChart
+                        data={projection.chartData}
+                        unit="kWh"
+                        className="mt-4"
+                    />
                 )}
 
                 <div className="mt-4 flex justify-between items-center text-xs text-muted-foreground">
