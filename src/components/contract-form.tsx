@@ -23,6 +23,12 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupText,
+    InputGroupInput,
+} from "@/components/ui/input-group"
+import {
     Select,
     SelectContent,
     SelectItem,
@@ -284,10 +290,15 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
                         name="base_price_monthly"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Base Price (€/mo)</FormLabel>
-                                <FormControl>
-                                    <Input type="number" step="0.01" {...field} />
-                                </FormControl>
+                                <FormLabel>Base Price</FormLabel>
+                                <InputGroup>
+                                    <FormControl>
+                                        <InputGroupInput type="number" step="0.01" {...field} />
+                                    </FormControl>
+                                    <InputGroupAddon align="inline-end">
+                                        <InputGroupText>€/mo</InputGroupText>
+                                    </InputGroupAddon>
+                                </InputGroup>
                                 <FormMessage />
                             </FormItem>
                         )}
@@ -298,10 +309,15 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
                         name="energy_price_cents_per_kwh"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Price (Cent/kWh)</FormLabel>
-                                <FormControl>
-                                    <Input type="number" step="0.01" {...field} />
-                                </FormControl>
+                                <FormLabel>Price</FormLabel>
+                                <InputGroup>
+                                    <FormControl>
+                                        <InputGroupInput type="number" step="0.01" {...field} />
+                                    </FormControl>
+                                    <InputGroupAddon align="inline-end">
+                                        <InputGroupText>ct/kWh</InputGroupText>
+                                    </InputGroupAddon>
+                                </InputGroup>
                                 <FormMessage />
                             </FormItem>
                         )}
@@ -313,10 +329,15 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
                     name="monthly_payment"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Monthly Payment (Abschlag €)</FormLabel>
-                            <FormControl>
-                                <Input type="number" step="0.01" {...field} />
-                            </FormControl>
+                            <FormLabel>Monthly Payment (Abschlag)</FormLabel>
+                            <InputGroup>
+                                <FormControl>
+                                    <InputGroupInput type="number" step="0.01" {...field} />
+                                </FormControl>
+                                <InputGroupAddon align="inline-end">
+                                    <InputGroupText>€</InputGroupText>
+                                </InputGroupAddon>
+                            </InputGroup>
                             <FormMessage />
                         </FormItem>
                     )}
@@ -328,17 +349,22 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
                         name="conversion_factor_m3_to_kwh"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Gas Conversion Factor (m³ to kWh)</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        type="number"
-                                        step="0.01"
-                                        {...field}
-                                        onChange={(e) => {
-                                            field.onChange(e);
-                                        }}
-                                    />
-                                </FormControl>
+                                <FormLabel>Gas Conversion Factor</FormLabel>
+                                <InputGroup>
+                                    <FormControl>
+                                        <InputGroupInput
+                                            type="number"
+                                            step="0.01"
+                                            {...field}
+                                            onChange={(e) => {
+                                                field.onChange(e);
+                                            }}
+                                        />
+                                    </FormControl>
+                                    <InputGroupAddon align="inline-end">
+                                        <InputGroupText>m³ -&gt; kWh</InputGroupText>
+                                    </InputGroupAddon>
+                                </InputGroup>
                                 <FormDescription>Standard is ~10. Check your bill.</FormDescription>
                                 <FormMessage />
                             </FormItem>
