@@ -32,6 +32,22 @@ export default function ContractDetailPage() {
     const [loading, setLoading] = useState(true)
     const [isEditing, setIsEditing] = useState(false)
     const [editForm, setEditForm] = useState({ provider: '', start_date: '' })
+    const [isRenaming, setIsRenaming] = useState(false)
+    const [newName, setNewName] = useState('')
+
+    const handleRename = async () => {
+        if (!contract || !newName.trim()) return
+
+        const { error } = await supabase
+            .from('contracts')
+            .update({ name: newName })
+            .eq('id', contract.id)
+
+        if (!error) {
+            setContract({ ...contract, name: newName })
+            setIsRenaming(false)
+        }
+    }
 
     const handleSave = async () => {
         if (!contract) return
@@ -92,7 +108,33 @@ export default function ContractDetailPage() {
                 <Button variant="ghost" size="icon-sm" onClick={() => router.back()}>
                     <ArrowLeft />
                 </Button>
-                <h1 className="text-3xl font-bold">{contract.name}</h1>
+                {isRenaming ? (
+                    <div className="flex items-center gap-2">
+                        <Input
+                            value={newName}
+                            onChange={(e) => setNewName(e.target.value)}
+                            className="h-9 text-2xl font-bold w-64"
+                            autoFocus
+                        />
+                        <Button variant="ghost" size="icon-sm" className="text-green-500 hover:text-green-600" onClick={handleRename}>
+                            <Check className="h-5 w-5" />
+                        </Button>
+                        <Button variant="ghost" size="icon-sm" className="text-gray-500 hover:text-gray-600" onClick={() => setIsRenaming(false)}>
+                            <X className="h-5 w-5" />
+                        </Button>
+                    </div>
+                ) : (
+                    <h1
+                        className="text-3xl font-bold cursor-pointer hover:outline hover:outline-2 hover:outline-muted-foreground/20 hover:rounded-sm px-1 -mx-1 select-none"
+                        onClick={() => {
+                            setNewName(contract.name)
+                            setIsRenaming(true)
+                        }}
+                        title="Click to rename"
+                    >
+                        {contract.name}
+                    </h1>
+                )}
             </div>
 
             <Tabs defaultValue="overview" className="w-full">

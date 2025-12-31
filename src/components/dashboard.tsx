@@ -35,7 +35,7 @@ export function Dashboard({ user }: { user: any }) {
         const { data: contractsData } = await supabase
             .from('contracts')
             .select('*')
-            .order('created_at', { ascending: false })
+            .order('created_at', { ascending: true })
 
         if (contractsData) {
             setContracts(contractsData as Contract[])

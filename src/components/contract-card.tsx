@@ -1,9 +1,13 @@
+import { useState } from "react"
+import { createClient } from "@/lib/supabase/client"
 import { Contract, Reading } from "@/lib/types"
 import { ProjectionResult } from "@/lib/calculations"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { Plus, Zap, Flame, AlertTriangle, CheckCircle, MoreHorizontal, Trash } from "lucide-react"
+import { Plus, Zap, Flame, AlertTriangle, CheckCircle, MoreHorizontal, Trash, Pencil } from "lucide-react"
 import Link from "next/link"
 import { ReadingDialog } from "./reading-dialog"
 import { ContractChart } from "./contract-chart"
@@ -23,82 +27,125 @@ export function ContractCard({ contract, readings, currentPayment, projection, o
     const diff = projection ? projection.difference : 0
     const isGood = diff >= 0
 
+    const [isRenaming, setIsRenaming] = useState(false)
+    const [newName, setNewName] = useState('')
+    const supabase = createClient()
+
+    const handleRename = async () => {
+        if (!newName.trim()) return
+        const { error } = await supabase.from('contracts').update({ name: newName }).eq('id', contract.id)
+        if (!error) {
+            setIsRenaming(false)
+            onUpdate()
+        }
+    }
+
     return (
-        <Card className="flex flex-col">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                <div className="flex flex-row items-center gap-2">
+        <>
+            <Dialog open={isRenaming} onOpenChange={setIsRenaming}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Rename Contract</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <Input
+                            id="name"
+                            value={newName}
+                            onChange={(e) => setNewName(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleRename()
+                            }}
+                        />
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsRenaming(false)}>Cancel</Button>
+                        <Button onClick={handleRename}>Save</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+            <Card className="flex flex-col">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                    <div className="flex flex-row items-center gap-2">
 
-                    <Icon className={`h-4 w-4 ${isGas ? "text-orange-500" : "text-yellow-500"}`} />
-                    <CardTitle className="font-medium">
-                        <Link href={`/contract/${contract.id}`} className="hover:underline">
-                            {contract.name}
-                        </Link>
-                    </CardTitle>
-                </div>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon-sm">
-                            <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onDelete(contract.id)} className="text-red-600">
-                            <Trash className="mr-2 h-4 w-4" />
-                            Delete
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </CardHeader>
-            <CardContent className="flex-1">
-                <div className="text-2xl font-bold">
-                    {projection ? `${projection.projectedYearlyCost.toFixed(2)} €` : "No Data"}
-                    {projection && <span className="text-xs font-normal text-muted-foreground ml-2">est. / year</span>}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                    Current Pay: {(currentPayment * 12).toFixed(2)} € / year
-                </p>
+                        <Icon className={`h-4 w-4 ${isGas ? "text-orange-500" : "text-yellow-500"}`} />
+                        <CardTitle className="font-medium">
+                            <Link href={`/contract/${contract.id}`} className="hover:underline">
+                                {contract.name}
+                            </Link>
+                        </CardTitle>
+                    </div>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon-sm">
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onSelect={() => {
+                                setNewName(contract.name)
+                                setIsRenaming(true)
+                            }}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Rename
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onDelete(contract.id)} className="text-red-600">
+                                <Trash className="mr-2 h-4 w-4" />
+                                Delete
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </CardHeader>
+                <CardContent className="flex-1">
+                    <div className="text-2xl font-bold">
+                        {projection ? `${projection.projectedYearlyCost.toFixed(2)} €` : "No Data"}
+                        {projection && <span className="text-xs font-normal text-muted-foreground ml-2">est. / year</span>}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                        Current Pay: {(currentPayment * 12).toFixed(2)} € / year
+                    </p>
 
-                {projection && (
-                    <div className={`mt-4 rounded-md p-2 flex items-center gap-2 text-sm ${isGood ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"}`}>
-                        {isGood ? <CheckCircle className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
-                        <div>
-                            {isGood ? (
-                                <span>Safe! Refund: <strong>{diff.toFixed(2)} €</strong></span>
-                            ) : (
-                                <span>Backpayment: <strong>{Math.abs(diff).toFixed(2)} €</strong></span>
-                            )}
+                    {projection && (
+                        <div className={`mt-4 rounded-md p-2 flex items-center gap-2 text-sm ${isGood ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"}`}>
+                            {isGood ? <CheckCircle className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
+                            <div>
+                                {isGood ? (
+                                    <span>Safe! Refund: <strong>{diff.toFixed(2)} €</strong></span>
+                                ) : (
+                                    <span>Backpayment: <strong>{Math.abs(diff).toFixed(2)} €</strong></span>
+                                )}
+                            </div>
                         </div>
+                    )}
+
+                    {projection && (
+                        <div className="mt-2 text-xs text-muted-foreground flex justify-between">
+                            <span>Paid Goal: {Math.round(projection.paidUsage)} kWh</span>
+                        </div>
+                    )}
+
+                    {projection && projection.chartData && (
+                        <ContractChart
+                            data={projection.chartData}
+                            unit="kWh"
+                            goal={projection.paidUsage}
+                            className="mt-4"
+                        />
+                    )}
+
+                    <div className="mt-4 flex justify-between items-center text-xs text-muted-foreground">
+                        <span>{readings.length} readings</span>
                     </div>
-                )}
-
-                {projection && (
-                    <div className="mt-2 text-xs text-muted-foreground flex justify-between">
-                        <span>Paid Goal: {Math.round(projection.paidUsage)} kWh</span>
-                    </div>
-                )}
-
-                {projection && projection.chartData && (
-                    <ContractChart
-                        data={projection.chartData}
-                        unit="kWh"
-                        goal={projection.paidUsage}
-                        className="mt-4"
-                    />
-                )}
-
-                <div className="mt-4 flex justify-between items-center text-xs text-muted-foreground">
-                    <span>{readings.length} readings</span>
-                </div>
-            </CardContent>
-            <CardFooter className="flex gap-2">
-                <ReadingDialog contractId={contract.id} lastReadingValue={readings[readings.length - 1]?.value} onSuccess={onUpdate}>
-                    <Button variant="outline" className="flex-1">
-                        <Plus className="mr-2 h-4 w-4" /> Reading
-                    </Button>
-                </ReadingDialog>
+                </CardContent>
+                <CardFooter className="flex gap-2">
+                    <ReadingDialog contractId={contract.id} lastReadingValue={readings[readings.length - 1]?.value} onSuccess={onUpdate}>
+                        <Button variant="outline" className="flex-1">
+                            <Plus className="mr-2 h-4 w-4" /> Reading
+                        </Button>
+                    </ReadingDialog>
 
 
-            </CardFooter>
-        </Card>
+                </CardFooter>
+            </Card>
+        </>
     )
 }
