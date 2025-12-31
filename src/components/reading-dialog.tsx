@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -32,7 +32,7 @@ const formSchema = z.object({
     value: z.coerce.number().min(0),
 })
 
-export function ReadingDialog({ contractId, children, onSuccess }: { contractId: string, children: React.ReactNode, onSuccess?: () => void }) {
+export function ReadingDialog({ contractId, lastReadingValue, children, onSuccess }: { contractId: string, lastReadingValue?: number, children: React.ReactNode, onSuccess?: () => void }) {
     const [open, setOpen] = useState(false)
     const supabase = createClient()
     const router = useRouter()
@@ -42,9 +42,18 @@ export function ReadingDialog({ contractId, children, onSuccess }: { contractId:
         resolver: zodResolver(formSchema) as any,
         defaultValues: {
             date: new Date().toISOString().split('T')[0],
-            value: 0,
+            value: lastReadingValue ?? 0,
         },
     })
+
+    useEffect(() => {
+        if (open) {
+            form.reset({
+                date: new Date().toISOString().split('T')[0],
+                value: lastReadingValue ?? 0
+            })
+        }
+    }, [open, lastReadingValue, form])
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setLoading(true)
