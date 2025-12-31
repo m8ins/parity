@@ -58,10 +58,10 @@ export default function ContractDetailPage() {
     }
 
     return (
-        <div className="container mx-auto p-4 space-y-6">
-            <div className="flex items-center gap-4">
-                <Button variant="ghost" onClick={() => router.back()}>
-                    <ArrowLeft className="mr-2 h-4 w-4" /> Back
+        <div className="container mx-auto max-w-xl p-4 space-y-6">
+            <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon-sm" onClick={() => router.back()}>
+                    <ArrowLeft />
                 </Button>
                 <h1 className="text-3xl font-bold">{contract.name}</h1>
             </div>

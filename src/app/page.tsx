@@ -73,7 +73,7 @@ function AuthScreen() {
     <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-950 p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Welcome to Energy Tracker</CardTitle>
+          <CardTitle>Parity</CardTitle>
           <CardDescription>Sign in to manage your contracts.</CardDescription>
         </CardHeader>
         <CardContent>

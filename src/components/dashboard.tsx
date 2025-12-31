@@ -69,13 +69,6 @@ export function Dashboard({ user }: { user: any }) {
 
     return (
         <div className="container mx-auto p-4 space-y-8">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Energy Tracker</h1>
-                    <p className="text-muted-foreground">Manage your energy contracts and optimize costs.</p>
-                </div>
-                <Button onClick={fetchData} variant="outline" size="sm">Refresh</Button>
-            </div>
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {/* Contract List */}
