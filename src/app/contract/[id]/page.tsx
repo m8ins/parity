@@ -7,7 +7,8 @@ import { Contract, ContractPrice, ContractPayment, Reading } from "@/lib/types"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Trash2 } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { ArrowLeft, Trash2, Building2, Calendar, Zap, Flame, Gauge, Pencil, Check, X } from "lucide-react"
 import { PriceHistory, PaymentHistory } from "@/components/history-lists"
 import {
     Table,
@@ -27,6 +28,25 @@ export default function ContractDetailPage() {
     const [payments, setPayments] = useState<ContractPayment[]>([])
     const [readings, setReadings] = useState<Reading[]>([])
     const [loading, setLoading] = useState(true)
+    const [isEditing, setIsEditing] = useState(false)
+    const [editForm, setEditForm] = useState({ provider: '', start_date: '' })
+
+    const handleSave = async () => {
+        if (!contract) return
+
+        const { error } = await supabase
+            .from('contracts')
+            .update({
+                provider: editForm.provider,
+                start_date: editForm.start_date
+            })
+            .eq('id', contract.id)
+
+        if (!error) {
+            setContract({ ...contract, provider: editForm.provider, start_date: editForm.start_date })
+            setIsEditing(false)
+        }
+    }
 
     useEffect(() => {
         const fetch = async () => {
@@ -76,39 +96,96 @@ export default function ContractDetailPage() {
 
                 <TabsContent value="overview">
                     <Card>
-                        <CardHeader>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle>Details</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                            <p><strong>Provider:</strong> {contract.provider || '-'}</p>
-                            <p><strong>Type:</strong> {contract.type}</p>
-                            <p><strong>Start Date:</strong> {contract.start_date}</p>
-                            {contract.type === 'gas' && (
-                                <div className="mt-4 pt-4 border-t">
-                                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                                        Gas Conversion Factor (m³ to kWh)
-                                    </label>
-                                    <div className="flex items-center gap-2 mt-2">
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 w-[120px]"
-                                            defaultValue={contract.conversion_factor_m3_to_kwh ?? 10}
-                                            onBlur={async (e) => {
-                                                const val = parseFloat(e.target.value);
-                                                if (val > 0) {
-                                                    await supabase.from('contracts').update({ conversion_factor_m3_to_kwh: val }).eq('id', contract.id);
-                                                    setContract({ ...contract, conversion_factor_m3_to_kwh: val });
-                                                }
-                                            }}
-                                        />
-                                        <span className="text-sm text-muted-foreground">kWh/m³</span>
-                                    </div>
-                                    <p className="text-[0.8rem] text-muted-foreground mt-1">
-                                        Edit to adjust calculation. Automatically saved on blur.
-                                    </p>
+                            {!isEditing ? (
+                                <Button variant="ghost" size="icon-sm" onClick={() => {
+                                    setEditForm({
+                                        provider: contract.provider || '',
+                                        start_date: contract.start_date || ''
+                                    })
+                                    setIsEditing(true)
+                                }}>
+                                    <Pencil className="h-4 w-4" />
+                                </Button>
+                            ) : (
+                                <div className="flex gap-2">
+                                    <Button variant="ghost" size="icon-sm" className="text-red-500 hover:text-red-600" onClick={() => setIsEditing(false)}>
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                    <Button variant="ghost" size="icon-sm" className="text-green-500 hover:text-green-600" onClick={handleSave}>
+                                        <Check className="h-4 w-4" />
+                                    </Button>
                                 </div>
                             )}
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                            <dl className="space-y-0.5">
+                                <div className="flex flex-row items-center py-2 hover:bg-muted/50 rounded-sm px-2 -mx-2 transition-colors h-11">
+                                    <dt className="w-36 text-sm text-muted-foreground flex items-center gap-2 flex-shrink-0">
+                                        <Building2 className="h-4 w-4" /> Provider
+                                    </dt>
+                                    <dd className="text-sm font-medium flex-1">
+                                        {isEditing ? (
+                                            <Input
+                                                value={editForm.provider}
+                                                onChange={(e) => setEditForm(prev => ({ ...prev, provider: e.target.value }))}
+                                                className="h-8"
+                                            />
+                                        ) : (
+                                            contract.provider || '-'
+                                        )}
+                                    </dd>
+                                </div>
+                                <div className="flex flex-row items-center py-2 hover:bg-muted/50 rounded-sm px-2 -mx-2 transition-colors h-11">
+                                    <dt className="w-36 text-sm text-muted-foreground flex items-center gap-2 flex-shrink-0">
+                                        {contract.type === 'gas' ? <Flame className="h-4 w-4" /> : <Zap className="h-4 w-4" />} Type
+                                    </dt>
+                                    <dd className="text-sm font-medium capitalize flex items-center gap-2">
+                                        {contract.type}
+                                    </dd>
+                                </div>
+                                <div className="flex flex-row items-center py-2 hover:bg-muted/50 rounded-sm px-2 -mx-2 transition-colors h-11">
+                                    <dt className="w-36 text-sm text-muted-foreground flex items-center gap-2 flex-shrink-0">
+                                        <Calendar className="h-4 w-4" /> Start Date
+                                    </dt>
+                                    <dd className="text-sm font-medium flex-1">
+                                        {isEditing ? (
+                                            <Input
+                                                type="date"
+                                                value={editForm.start_date}
+                                                onChange={(e) => setEditForm(prev => ({ ...prev, start_date: e.target.value }))}
+                                                className="h-8"
+                                            />
+                                        ) : (
+                                            contract.start_date
+                                        )}
+                                    </dd>
+                                </div>
+                                {contract.type === 'gas' && (
+                                    <div className="flex flex-row items-center py-2 hover:bg-muted/50 rounded-sm px-2 -mx-2 transition-colors h-11">
+                                        <dt className="w-36 text-sm text-muted-foreground flex items-center gap-2 flex-shrink-0">
+                                            <Gauge className="h-4 w-4" /> Conversion
+                                        </dt>
+                                        <dd className="text-sm font-medium flex items-center gap-2">
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                className="h-8 w-24 rounded-md border border-input bg-background px-2 py-1 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                                defaultValue={contract.conversion_factor_m3_to_kwh ?? 10}
+                                                onBlur={async (e) => {
+                                                    const val = parseFloat(e.target.value);
+                                                    if (val > 0) {
+                                                        await supabase.from('contracts').update({ conversion_factor_m3_to_kwh: val }).eq('id', contract.id);
+                                                        setContract({ ...contract, conversion_factor_m3_to_kwh: val });
+                                                    }
+                                                }}
+                                            />
+                                            <span className="text-sm text-muted-foreground">kWh/m³</span>
+                                        </dd>
+                                    </div>
+                                )}
+                            </dl>
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -171,6 +248,6 @@ export default function ContractDetailPage() {
                     </Card>
                 </TabsContent>
             </Tabs>
-        </div>
+        </div >
     )
 }

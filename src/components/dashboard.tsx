@@ -3,14 +3,20 @@
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Contract, Reading, ContractPrice, ContractPayment } from "@/lib/types"
-import { calculateProjection, ProjectionResult } from "@/lib/calculations"
+import { calculateProjection } from "@/lib/calculations"
 import { ContractForm } from "./contract-form"
-import { ReadingDialog } from "./reading-dialog" // Still useful, but might move inside Detail
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { ContractCard } from "./contract-card"
+import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Plus, Zap, Flame, AlertTriangle, CheckCircle, ChevronRight, MoreHorizontal, Trash } from "lucide-react"
-import Link from "next/link"
+import { Plus } from "lucide-react"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
 
 export function Dashboard({ user }: { user: any }) {
     const [contracts, setContracts] = useState<Contract[]>([])
@@ -93,103 +99,36 @@ export function Dashboard({ user }: { user: any }) {
                     )
                 })}
 
-                {/* Add New Contract Card */}
+                {/* Add New Contract Dialog */}
                 <div className="md:col-span-2 lg:col-span-1">
-                    {contracts.length > 0 && !isFormExpanded ? (
-                        <Card className="h-full border-dashed flex flex-col items-center justify-center p-6 text-center hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors cursor-pointer" onClick={() => setIsFormExpanded(true)}>
-                            <div className="rounded-full bg-slate-100 p-4 dark:bg-slate-800 mb-4">
-                                <Plus className="h-6 w-6 text-slate-500" />
+                    <Dialog open={isFormExpanded} onOpenChange={setIsFormExpanded}>
+                        <DialogTrigger asChild>
+                            <Card className="h-full border-dashed flex flex-col items-center justify-center p-6 text-center hover:bg-neutral-50 dark:hover:bg-slate-900 transition-colors cursor-pointer min-h-[200px]">
+                                <div className="rounded-full bg-slate-100 p-4 dark:bg-slate-800 mb-4">
+                                    <Plus className="h-6 w-6 text-neutral-500" />
+                                </div>
+                                <h3 className="font-semibold text-lg">Add Contract</h3>
+                                <p className="text-sm text-muted-foreground mt-1">Track another electricity or gas contract</p>
+                            </Card>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                                <DialogTitle>Add Contract</DialogTitle>
+                            </DialogHeader>
+                            <div className="py-4">
+                                <ContractForm
+                                    user_id={user.id}
+                                    onSuccess={() => {
+                                        fetchData();
+                                        setIsFormExpanded(false);
+                                    }}
+                                    onCancel={() => setIsFormExpanded(false)}
+                                />
                             </div>
-                            <h3 className="font-semibold text-lg">Add Contract</h3>
-                            <p className="text-sm text-muted-foreground mt-1">Track another electricity or gas contract</p>
-                            <Button variant="ghost" className="mt-4">Add Contract</Button>
-                        </Card>
-                    ) : (
-                        <ContractForm
-                            user_id={user.id}
-                            onSuccess={() => {
-                                fetchData();
-                                setIsFormExpanded(false);
-                            }}
-                            onCancel={contracts.length > 0 ? () => setIsFormExpanded(false) : undefined}
-                        />
-                    )}
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
         </div>
-    )
-}
-
-function ContractCard({ contract, readings, currentPayment, projection, onUpdate, onDelete }: {
-    contract: Contract,
-    readings: Reading[],
-    currentPayment: number,
-    projection: ProjectionResult | null,
-    onUpdate: () => void,
-    onDelete: (id: string) => void
-}) {
-    const isGas = contract.type === 'gas'
-    const Icon = isGas ? Flame : Zap
-    const diff = projection ? projection.difference : 0
-    const isGood = diff >= 0
-
-    return (
-        <Card className="flex flex-col">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className=" font-medium">
-                    <Link href={`/contract/${contract.id}`} className="hover:underline">
-                        {contract.name}
-                    </Link>
-                </CardTitle>
-                <Icon className={`h-4 w-4 ${isGas ? "text-orange-500" : "text-yellow-500"}`} />
-            </CardHeader>
-            <CardContent className="flex-1">
-                <div className="text-2xl font-bold">
-                    {projection ? `${projection.projectedYearlyCost.toFixed(2)} €` : "No Data"}
-                    {projection && <span className="text-xs font-normal text-muted-foreground ml-2">est. / year</span>}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                    Current Pay: {(currentPayment * 12).toFixed(2)} € / year
-                </p>
-
-                {projection && (
-                    <div className={`mt-4 rounded-md p-2 flex items-center gap-2 text-sm ${isGood ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"}`}>
-                        {isGood ? <CheckCircle className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
-                        <div>
-                            {isGood ? (
-                                <span>Safe! Refund: <strong>{diff.toFixed(2)} €</strong></span>
-                            ) : (
-                                <span>Backpayment: <strong>{Math.abs(diff).toFixed(2)} €</strong></span>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                <div className="mt-4 flex justify-between items-center text-xs text-muted-foreground">
-                    <span>{readings.length} readings</span>
-                </div>
-            </CardContent>
-            <CardFooter className="flex gap-2">
-                <ReadingDialog contractId={contract.id} onSuccess={onUpdate}>
-                    <Button variant="outline" className="flex-1">
-                        <Plus className="mr-2 h-4 w-4" /> Reading
-                    </Button>
-                </ReadingDialog>
-
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onDelete(contract.id)} className="text-red-600">
-                            <Trash className="mr-2 h-4 w-4" />
-                            Delete
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </CardFooter>
-        </Card>
     )
 }

@@ -36,7 +36,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="min-h-screen bg-neutral-50 dark:bg-slate-950">
       <Dashboard user={user} />
     </div>
   )
@@ -70,7 +70,7 @@ function AuthScreen() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-950 p-4">
+    <div className="flex items-center justify-center min-h-screen bg-neutral-50 dark:bg-slate-950 p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>Parity</CardTitle>
