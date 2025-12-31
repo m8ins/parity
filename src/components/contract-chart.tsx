@@ -61,10 +61,13 @@ export function ContractChart({ data, unit, className }: ContractChartProps) {
                     <Tooltip
                         contentStyle={{ backgroundColor: 'white', borderColor: '#e2e8f0', borderRadius: '6px', color: 'black' }}
                         itemStyle={{ color: 'black' }}
-                        formatter={(value: number, name: string) => [
-                            `${value} ${unit}`,
-                            name === 'projected' ? 'Projected' : 'Actual'
-                        ]}
+                        formatter={(value, name) => {
+                            const numValue = typeof value === 'number' ? value : 0
+                            return [
+                                `${numValue} ${unit}`,
+                                name === 'projected' ? 'Projected' : 'Actual'
+                            ]
+                        }}
                     />
                     <Area
                         type="monotone"
