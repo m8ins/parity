@@ -6,6 +6,12 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
+import { Info } from "lucide-react"
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover"
 import {
     Form,
     FormControl,
@@ -20,9 +26,18 @@ import {
     Select,
     SelectContent,
     SelectItem,
+
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useRouter } from "next/navigation"
 
@@ -107,7 +122,7 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
                 type: values.type,
                 provider: values.provider,
                 start_date: values.start_date,
-                monthly_distribution: values.monthly_distribution,
+                monthly_distribution: values.type === 'gas' ? GAS_WEIGHTS : values.monthly_distribution,
                 conversion_factor_m3_to_kwh: values.type === 'gas' ? (values.conversion_factor_m3_to_kwh || 10) : 1,
             }).select().single()
 
@@ -143,37 +158,34 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
     }
 
     return (
-        <Card className="w-full max-w-md">
-            <CardHeader>
-                <CardTitle>Add Contract</CardTitle>
-                <CardDescription>Enter your contract details.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit, (errors) => console.error(errors))} className="space-y-4">
-                        <FormField
-                            control={form.control}
-                            name="name"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Name</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Home Electricity" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit, (errors) => console.error(errors))} className="space-y-4">
+                <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Name</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Home Electricity" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
 
-                        <FormField
-                            control={form.control}
-                            name="type"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Type</FormLabel>
+                <div className="flex items-center gap-2">
+                    <FormField
+                        control={form.control}
+                        name="type"
+
+                        render={({ field }) => (
+                            <FormItem className="flex-1">
+                                <FormLabel>Type</FormLabel>
+                                <div className="flex items-center gap-2">
                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                                         <FormControl>
-                                            <SelectTrigger>
+                                            <SelectTrigger className="flex-1">
                                                 <SelectValue placeholder="Select type" />
                                             </SelectTrigger>
                                         </FormControl>
@@ -182,206 +194,169 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
                                             <SelectItem value="gas">Gas</SelectItem>
                                         </SelectContent>
                                     </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <FormField
-                                control={form.control}
-                                name="provider"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Provider</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="E.ON" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="start_date"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Start Date</FormLabel>
-                                        <FormControl>
-                                            <Input type="date" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <FormField
-                                control={form.control}
-                                name="base_price_monthly"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Base Price (€/mo)</FormLabel>
-                                        <FormControl>
-                                            <Input type="number" step="0.01" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="energy_price_cents_per_kwh"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Price (Cent/kWh)</FormLabel>
-                                        <FormControl>
-                                            <Input type="number" step="0.01" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-
-                        <FormField
-                            control={form.control}
-                            name="monthly_payment"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Monthly Payment (Abschlag €)</FormLabel>
-                                    <FormControl>
-                                        <Input type="number" step="0.01" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        {form.watch("type") === "gas" && (
-                            <FormField
-                                control={form.control}
-                                name="conversion_factor_m3_to_kwh"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Gas Conversion Factor (m³ to kWh)</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                type="number"
-                                                step="0.01"
-                                                {...field}
-                                                onChange={(e) => {
-                                                    field.onChange(e);
-                                                }}
-                                            />
-                                        </FormControl>
-                                        <FormDescription>Standard is ~10. Check your bill.</FormDescription>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                                    {form.watch("type") === "gas" && (
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button variant="outline" size="icon" className="shrink-0 h-10 w-10">
+                                                    <Info className="h-4 w-4" />
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-80" side="right" align="start">
+                                                <div className="space-y-4">
+                                                    <h4 className="font-medium leading-none">Gas Usage Calculation</h4>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        Gas usage isn't linear. We use a standard load profile (Standardlastprofil) to estimate higher consumption in winter months.
+                                                    </p>
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <Table>
+                                                            <TableBody>
+                                                                {Array.from({ length: 6 }).map((_, i) => {
+                                                                    const monthName = new Date(0, i).toLocaleString('default', { month: 'short' });
+                                                                    return (
+                                                                        <TableRow key={i} className="h-6">
+                                                                            <TableCell className="py-0.5 text-xs">{monthName}</TableCell>
+                                                                            <TableCell className="py-0.5 text-xs text-right">{(GAS_WEIGHTS[i] * 100).toFixed(0)}%</TableCell>
+                                                                        </TableRow>
+                                                                    )
+                                                                })}
+                                                            </TableBody>
+                                                        </Table>
+                                                        <Table>
+                                                            <TableBody>
+                                                                {Array.from({ length: 6 }).map((_, i) => {
+                                                                    const idx = i + 6;
+                                                                    const monthName = new Date(0, idx).toLocaleString('default', { month: 'short' });
+                                                                    return (
+                                                                        <TableRow key={idx} className="h-6">
+                                                                            <TableCell className="py-0.5 text-xs">{monthName}</TableCell>
+                                                                            <TableCell className="py-0.5 text-xs text-right">{(GAS_WEIGHTS[idx] * 100).toFixed(0)}%</TableCell>
+                                                                        </TableRow>
+                                                                    )
+                                                                })}
+                                                            </TableBody>
+                                                        </Table>
+                                                    </div>
+                                                </div>
+                                            </PopoverContent>
+                                        </Popover>
+                                    )}
+                                </div>
+                                <FormMessage />
+                            </FormItem>
                         )}
+                    />
+                </div>
 
-                        <details className="group mb-4">
-                            <summary className="cursor-pointer text-sm font-medium text-gray-500 hover:text-gray-900 mb-2 select-none">
-                                Advanced Options (Monthly Weighting)
-                            </summary>
-                            <div className="p-4 border rounded-md space-y-4 bg-gray-50/50 mt-2">
-                                <div className="flex justify-between items-center">
-                                    <p className="text-sm text-gray-500">
-                                        Customize how consumption is distributed across the year (in %).
-                                    </p>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => {
-                                            const type = form.getValues("type");
-                                            const weights = type === "gas" ? GAS_WEIGHTS : ELECTRICITY_WEIGHTS;
-                                            form.setValue("monthly_distribution", weights);
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                        control={form.control}
+                        name="provider"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Provider</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="E.ON" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="start_date"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Start Date</FormLabel>
+                                <FormControl>
+                                    <Input type="date" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                        control={form.control}
+                        name="base_price_monthly"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Base Price (€/mo)</FormLabel>
+                                <FormControl>
+                                    <Input type="number" step="0.01" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="energy_price_cents_per_kwh"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Price (Cent/kWh)</FormLabel>
+                                <FormControl>
+                                    <Input type="number" step="0.01" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                <FormField
+                    control={form.control}
+                    name="monthly_payment"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Monthly Payment (Abschlag €)</FormLabel>
+                            <FormControl>
+                                <Input type="number" step="0.01" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                {form.watch("type") === "gas" && (
+                    <FormField
+                        control={form.control}
+                        name="conversion_factor_m3_to_kwh"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Gas Conversion Factor (m³ to kWh)</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        type="number"
+                                        step="0.01"
+                                        {...field}
+                                        onChange={(e) => {
+                                            field.onChange(e);
                                         }}
-                                    >
-                                        Reset to Standard
-                                    </Button>
-                                </div>
+                                    />
+                                </FormControl>
+                                <FormDescription>Standard is ~10. Check your bill.</FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
 
-                                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
-                                    {Array.from({ length: 12 }).map((_, i) => {
-                                        const monthName = new Date(0, i).toLocaleString('default', { month: 'short' });
-                                        // Determine effective value for display
-                                        const currentVal = form.watch(`monthly_distribution.${i}`);
-                                        const type = form.watch("type");
-                                        const defaults = type === "gas" ? GAS_WEIGHTS : ELECTRICITY_WEIGHTS;
-                                        const effectiveVal = currentVal !== undefined ? currentVal : defaults[i];
-
-                                        return (
-                                            <FormField
-                                                key={i}
-                                                control={form.control}
-                                                name={`monthly_distribution.${i}`}
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel className="text-xs">{monthName}</FormLabel>
-                                                        <FormControl>
-                                                            <Input
-                                                                type="number"
-                                                                step="0.1"
-                                                                className="h-8 text-xs"
-                                                                value={(Number(effectiveVal) * 100).toFixed(1)}
-                                                                onChange={(e) => {
-                                                                    const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                                                                    if (!isNaN(val)) {
-                                                                        // Initialize with defaults if undefined
-                                                                        const currentDist = (form.getValues("monthly_distribution") as number[] | undefined) || defaults;
-                                                                        const newDist = [...currentDist];
-                                                                        newDist[i] = val / 100;
-                                                                        form.setValue("monthly_distribution", newDist);
-                                                                    }
-                                                                }}
-                                                            />
-                                                        </FormControl>
-                                                    </FormItem>
-                                                )}
-                                            />
-                                        );
-                                    })}
-                                </div>
-                                <div className="text-right text-xs text-gray-400">
-                                    Total: {(
-                                        Array.from({ length: 12 }).reduce((acc: number, _, i) => {
-                                            const dist = form.watch("monthly_distribution");
-                                            const type = form.watch("type");
-                                            const defaults = type === "gas" ? GAS_WEIGHTS : ELECTRICITY_WEIGHTS;
-                                            const val = (dist && dist[i] !== undefined) ? dist[i] : defaults[i];
-                                            return acc + (Number(val) || 0);
-                                        }, 0) * 100
-                                    ).toFixed(1)}%
-                                </div>
-                                {/* Use "as any" to bypass strict typing on array errors which can be tricky */}
-                                {form.formState.errors.monthly_distribution && (
-                                    <p className="text-sm font-medium text-destructive text-right mt-1">
-                                        {(form.formState.errors.monthly_distribution as any).message || (form.formState.errors.monthly_distribution as any).root?.message}
-                                    </p>
-                                )}
-                            </div>
-                        </details>
-
-                        <div className="flex gap-2">
-                            {onCancel && (
-                                <Button type="button" variant="outline" className="flex-1" onClick={onCancel}>
-                                    Cancel
-                                </Button>
-                            )}
-                            <Button type="submit" className="flex-1" disabled={loading}>
-                                {loading ? "Saving..." : "Create Contract"}
-                            </Button>
-                        </div>
-                    </form>
-                </Form>
-            </CardContent>
-        </Card>
+                <div className="flex gap-2">
+                    {onCancel && (
+                        <Button type="button" variant="outline" className="flex-1" onClick={onCancel}>
+                            Cancel
+                        </Button>
+                    )}
+                    <Button type="submit" className="flex-1" disabled={loading}>
+                        {loading ? "Saving..." : "Create Contract"}
+                    </Button>
+                </div>
+            </form>
+        </Form>
     )
 }

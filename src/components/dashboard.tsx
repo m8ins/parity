@@ -9,6 +9,14 @@ import { ContractCard } from "./contract-card"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
 
 export function Dashboard({ user }: { user: any }) {
     const [contracts, setContracts] = useState<Contract[]>([])
@@ -91,27 +99,34 @@ export function Dashboard({ user }: { user: any }) {
                     )
                 })}
 
-                {/* Add New Contract Card */}
+                {/* Add New Contract Dialog */}
                 <div className="md:col-span-2 lg:col-span-1">
-                    {contracts.length > 0 && !isFormExpanded ? (
-                        <Card className="h-full border-dashed flex flex-col items-center justify-center p-6 text-center hover:bg-neutral-50 dark:hover:bg-slate-900 transition-colors cursor-pointer" onClick={() => setIsFormExpanded(true)}>
-                            <div className="rounded-full bg-slate-100 p-4 dark:bg-slate-800 mb-4">
-                                <Plus className="h-6 w-6 text-neutral-500" />
+                    <Dialog open={isFormExpanded} onOpenChange={setIsFormExpanded}>
+                        <DialogTrigger asChild>
+                            <Card className="h-full border-dashed flex flex-col items-center justify-center p-6 text-center hover:bg-neutral-50 dark:hover:bg-slate-900 transition-colors cursor-pointer min-h-[200px]">
+                                <div className="rounded-full bg-slate-100 p-4 dark:bg-slate-800 mb-4">
+                                    <Plus className="h-6 w-6 text-neutral-500" />
+                                </div>
+                                <h3 className="font-semibold text-lg">Add Contract</h3>
+                                <p className="text-sm text-muted-foreground mt-1">Track another electricity or gas contract</p>
+                            </Card>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                                <DialogTitle>Add Contract</DialogTitle>
+                            </DialogHeader>
+                            <div className="py-4">
+                                <ContractForm
+                                    user_id={user.id}
+                                    onSuccess={() => {
+                                        fetchData();
+                                        setIsFormExpanded(false);
+                                    }}
+                                    onCancel={() => setIsFormExpanded(false)}
+                                />
                             </div>
-                            <h3 className="font-semibold text-lg">Add Contract</h3>
-                            <p className="text-sm text-muted-foreground mt-1">Track another electricity or gas contract</p>
-                            <Button variant="ghost" className="mt-4">Add Contract</Button>
-                        </Card>
-                    ) : (
-                        <ContractForm
-                            user_id={user.id}
-                            onSuccess={() => {
-                                fetchData();
-                                setIsFormExpanded(false);
-                            }}
-                            onCancel={contracts.length > 0 ? () => setIsFormExpanded(false) : undefined}
-                        />
-                    )}
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
         </div>
