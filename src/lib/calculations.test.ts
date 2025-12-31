@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { calculateProjection } from './calculations';
 import { Contract, Reading, ContractPrice, ContractPayment, GAS_WEIGHTS } from './types';
 
@@ -65,7 +65,7 @@ describe('calculateProjection', () => {
     });
 
     it('calculates seasonal projection for gas correctly', () => {
-        const contract = createContract('gas');
+        const contract = createContract('gas', { conversion_factor_m3_to_kwh: 1 });
         // Use a winter month where weight is heavy.
         // Jan weight in GAS_WEIGHTS is typically high (e.g. 13-16%).
         // Let's check the imported type or assume standard logic.
@@ -114,5 +114,38 @@ describe('calculateProjection', () => {
         const result10 = calculateProjection(contract, readings, [], []);
 
         expect(result10?.projectedYearlyConsumption).toBeCloseTo(result1!.projectedYearlyConsumption * 10, 0);
+    });
+    it('generates chart data correctly', () => {
+        const date = new Date('2024-06-01T12:00:00Z');
+        vi.setSystemTime(date);
+
+        const contract = createContract('electricity');
+        // Linear readings: 10/day. Start Jan 1.
+        const readings = createReadings([
+            { date: '2024-01-01', value: 1000 },
+            { date: '2024-02-01', value: 1310 } // 31 days * 10 = 310
+        ]);
+        const result = calculateProjection(contract, readings, [], []);
+
+        expect(result?.chartData).toBeDefined();
+        // Billing Period should be 2024-01-01 to 2025-01-01 (approx)
+        // Chart data should be monthly points. ~13 points (Jan ... Jan next year)
+        expect(result?.chartData.length).toBeGreaterThanOrEqual(12);
+
+        const firstPoint = result!.chartData[0];
+        expect(new Date(firstPoint.date).toISOString()).toBe(new Date('2024-01-01T00:00:00.000Z').toISOString());
+        expect(firstPoint.projected).toBe(0);
+        expect(firstPoint.actual).toBe(0);
+
+        // Second point should be roughly Feb 1
+        const secondPoint = result!.chartData[1];
+        // Projected: ~310 (31 days * 3650/366 = 309.xxx)
+        expect(secondPoint.projected).toBeGreaterThan(300);
+        expect(secondPoint.projected).toBeLessThan(320);
+
+        // Actual: Should be exactly 310 (1310 - 1000)
+        expect(secondPoint.actual).toBeCloseTo(310, 0);
+
+        vi.useRealTimers();
     });
 });
