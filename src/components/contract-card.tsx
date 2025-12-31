@@ -25,7 +25,7 @@ export function ContractCard({ contract, readings, currentPayment, projection, o
 
     return (
         <Card className="flex flex-col">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
                 <div className="flex flex-row items-center gap-2">
 
                     <Icon className={`h-4 w-4 ${isGas ? "text-orange-500" : "text-yellow-500"}`} />

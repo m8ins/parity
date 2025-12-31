@@ -105,7 +105,7 @@ export default function ContractDetailPage() {
 
                 <TabsContent value="overview">
                     <Card>
-                        <CardHeader className="flex flex-row items-top justify-between space-y-0 pb-2">
+                        <CardHeader className="flex flex-row items-top justify-between space-y-0">
                             <CardTitle>Details</CardTitle>
                             {!isEditing ? (
                                 <Button variant="ghost" size="icon-sm" onClick={() => {
