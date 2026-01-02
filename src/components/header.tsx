@@ -5,10 +5,20 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
-import { LogOut } from "lucide-react"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { ChevronDown, Lock, LogOut } from "lucide-react"
+import { ProfileDialog } from "./profile-dialog"
 
 export function Header() {
     const [user, setUser] = useState<any>(null)
+    const [isProfileOpen, setIsProfileOpen] = useState(false)
     const router = useRouter()
     const supabase = createClient()
 
@@ -40,14 +50,34 @@ export function Header() {
 
                 {user && (
                     <div className="flex items-center gap-4">
-                        <span className="text-sm text-muted-foreground hidden sm:inline-block">
-                            {user.email}
-                        </span>
-                        <Button variant="ghost" size="sm" onClick={handleLogout} className="gap-2">
-                            <LogOut className="h-4 w-4" />
-                            <span className="hidden sm:inline">Logout</span>
-                            <span className="sm:hidden">Exit</span>
-                        </Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="gap-2">
+                                    <span className="text-sm font-normal">
+                                        {user.email}
+                                    </span>
+                                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => setIsProfileOpen(true)}>
+                                    <Lock className="mr-2 h-4 w-4" />
+                                    <span>Change Password</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={handleLogout}>
+                                    <LogOut className="mr-2 h-4 w-4" />
+                                    <span>Log out</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        <ProfileDialog
+                            open={isProfileOpen}
+                            onOpenChange={setIsProfileOpen}
+                            showTrigger={false}
+                        />
                     </div>
                 )}
             </div>
