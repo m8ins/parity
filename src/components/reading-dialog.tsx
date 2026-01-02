@@ -34,6 +34,18 @@ import { useRouter } from "next/navigation"
 const formSchema = z.object({
     date: z.string().refine((val) => !isNaN(Date.parse(val)), {
         message: "Invalid date",
+    }).refine((val) => {
+        // Create local date string for today to compare with input (which is YYYY-MM-DD)
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const todayStr = `${year}-${month}-${day}`;
+
+        // Lexicographical comparison works for YYYY-MM-DD
+        return val <= todayStr;
+    }, {
+        message: "Date cannot be in the future",
     }),
     value: z.coerce.number().min(0),
 })
