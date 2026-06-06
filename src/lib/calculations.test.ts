@@ -1,135 +1,119 @@
 import { describe, it, expect, vi } from 'vitest';
 import { calculateProjection } from './calculations';
-import { Contract, Reading, ContractPrice, ContractPayment, GAS_WEIGHTS } from './types';
+import { Meter, Contract, Reading, Rate, GAS_WEIGHTS } from './types';
 
 describe('calculateProjection', () => {
-    // Mock Data Helpers
-    const createContract = (type: 'electricity' | 'gas', overrides?: Partial<Contract>): Contract => ({
-        id: 'test-id',
+    const createMeter = (type: 'electricity' | 'gas', overrides?: Partial<Meter>): Meter => ({
+        id: 'meter-1',
         user_id: 'user-1',
-        name: 'Test Contract',
+        name: 'Test Meter',
         type,
-        start_date: '2024-01-01',
+        created_at: '2024-01-01',
+        updated_at: '2024-01-01',
+        ...overrides
+    });
+
+    const createContract = (meterId = 'meter-1', overrides?: Partial<Contract>): Contract => ({
+        id: 'contract-1',
+        meter_id: meterId,
+        period_start: '2024-01-01',
         created_at: '2024-01-01',
         updated_at: '2024-01-01',
         ...overrides
     });
 
     const createReadings = (values: { date: string, value: number }[]): Reading[] =>
-        values.map((v, i) => ({ id: `r-${i}`, contract_id: 'test-id', created_at: 'now', ...v }));
+        values.map((v, i) => ({ id: `r-${i}`, meter_id: 'meter-1', created_at: 'now', ...v }));
 
-    const createPrice = (amount: number, validFrom = '2024-01-01'): ContractPrice => ({
-        id: 'p-1', contract_id: 'test-id', valid_from: validFrom, base_price_monthly: 10, energy_price_cents_per_kwh: amount
-    });
-
-    const createPayment = (amount: number, validFrom = '2024-01-01'): ContractPayment => ({
-        id: 'pay-1', contract_id: 'test-id', valid_from: validFrom, monthly_payment: amount
+    const createRate = (energyPrice: number, overrides?: Partial<Rate>): Rate => ({
+        id: 'rate-1',
+        contract_id: 'contract-1',
+        effective_from: '2024-01-01',
+        grundpreis: 10,
+        arbeitspreis: energyPrice,
+        abschlag: 100,
+        umrechnungsfaktor: 1,
+        created_at: '2024-01-01',
+        ...overrides
     });
 
     it('returns null for insufficient readings', () => {
-        const contract = createContract('electricity');
+        const meter = createMeter('electricity');
+        const contract = createContract();
         const readings = createReadings([{ date: '2024-01-01', value: 1000 }]);
-        const result = calculateProjection(contract, readings, [], []);
+        const result = calculateProjection(meter, contract, readings, []);
         expect(result).toBeNull();
     });
 
     it('calculates linear projection for electricity correctly', () => {
-        const contract = createContract('electricity');
-        // 100 days, 1000 kWh consumption -> 10 kWh/day
-        // Yearly: 10 * 365 = 3650 (approx, taking leap year into account might vary slightly)
+        const meter = createMeter('electricity');
+        const contract = createContract();
+        // 10 days, 100 kWh → 10 kWh/day
+        // 2024 is a leap year (366 days). Projected = 100 / (10/366) = 3660.
         const readings = createReadings([
             { date: '2024-01-01', value: 1000 },
-            { date: '2024-04-10', value: 2000 } // 100 days later (leap year 2024 has 29 days in Feb)
-            // Jan: 31, Feb: 29, Mar: 31, Apr: 10 = 101 days actually.
-            // Let's use simple dates. Jan 1 to Jan 11 (10 days).
+            { date: '2024-01-11', value: 1100 }
         ]);
 
-        const simpleReadings = createReadings([
-            { date: '2024-01-01', value: 1000 },
-            { date: '2024-01-11', value: 1100 } // 10 days, 100 kWh -> 10/day
-        ]);
-
-        // 2024 is a leap year (366 days).
-        // Daily weight in 2024 for electricity = 1/366.
-        // Tracked weight for 10 days = 10/366.
-        // Consumption = 100.
-        // Projected = 100 / (10/366) = 3660.
-
-        const prices = [createPrice(30)]; // 30 cents/kwh
-        const payments = [createPayment(100)];
-
-        const result = calculateProjection(contract, simpleReadings, prices, payments);
+        const rates = [createRate(30)];
+        const result = calculateProjection(meter, contract, readings, rates);
 
         expect(result).not.toBeNull();
         expect(result?.projectedYearlyConsumption).toBeCloseTo(3660, 0);
     });
 
     it('calculates seasonal projection for gas correctly', () => {
-        const contract = createContract('gas', { conversion_factor_m3_to_kwh: 1 });
-        // Use a winter month where weight is heavy.
-        // Jan weight in GAS_WEIGHTS is typically high (e.g. 13-16%).
-        // Let's check the imported type or assume standard logic.
-        // If we track 10 days in Jan, we expect high consumption, so yearly projection should NOT be just linear (which would be huge),
-        // but normalized by the high weight.
-
-        // Example: Jan weight is 0.16 (16%).
-        // 31 days in Jan. Daily weight = 0.16 / 31.
-        // Track 10 days in Jan: Weight = 10 * (0.16/31) ~= 0.0516
-        // Consumption 100 kWh.
-        // Projected = 100 / 0.0516 = 1937.
-
-        // If it were linear: 100/10 * 366 = 3660.
-        // So gas projection should be LOWER than linear if measured in winter.
-
+        // Gas in winter (Jan) should project LOWER than linear because Jan is heavily weighted.
+        // Use umrechnungsfaktor=1 to test pure seasonal distribution, not conversion.
+        const meter = createMeter('gas');
+        const contract = createContract();
         const readings = createReadings([
             { date: '2024-01-01', value: 1000 },
             { date: '2024-01-11', value: 1100 }
         ]);
+        const rates = [createRate(9.33, { umrechnungsfaktor: 1 })];
 
-        const result = calculateProjection(contract, readings, [], []);
+        const result = calculateProjection(meter, contract, readings, rates);
 
-        // We don't know exact weights here without checking the file, but we know logic.
-        // Just verify it is different from linear calculation if weights are applied.
-
-        const linearContract = createContract('electricity');
-        const linearResult = calculateProjection(linearContract, readings, [], []);
+        const elecMeter = createMeter('electricity');
+        const linearResult = calculateProjection(elecMeter, contract, readings, []);
 
         expect(result?.projectedYearlyConsumption).not.toBe(linearResult?.projectedYearlyConsumption);
-        // It should be roughly half because Jan is ~2x weighted than average?
-        // Actually Jan is ~16%, average month is 8.3%. So yes, roughly half.
+        // Jan is ~2x average weight, so gas projection should be roughly half of linear
         expect(result?.projectedYearlyConsumption).toBeLessThan(linearResult!.projectedYearlyConsumption);
     });
 
-    it('applies m3 to kWh conversion factor correctly', () => {
-        const contract = createContract('gas', { conversion_factor_m3_to_kwh: 10 });
+    it('applies umrechnungsfaktor correctly', () => {
+        const meter10 = createMeter('gas');
+        const meter1 = createMeter('gas');
+        const contract = createContract();
         const readings = createReadings([
-            { date: '2024-01-01', value: 100 }, // m3
-            { date: '2024-01-11', value: 110 }  // 10 m3 delta
+            { date: '2024-01-01', value: 100 },
+            { date: '2024-01-11', value: 110 }
         ]);
-        // 10 m3 * 10 = 100 kWh consumption.
 
-        // Compare with factor 1
-        const contract1 = createContract('gas', { conversion_factor_m3_to_kwh: 1 });
-        const result1 = calculateProjection(contract1, readings, [], []);
-        const result10 = calculateProjection(contract, readings, [], []);
+        const rates10 = [createRate(9.33, { umrechnungsfaktor: 10 })];
+        const rates1  = [createRate(9.33, { umrechnungsfaktor: 1 })];
+
+        const result10 = calculateProjection(meter10, contract, readings, rates10);
+        const result1  = calculateProjection(meter1,  contract, readings, rates1);
 
         expect(result10?.projectedYearlyConsumption).toBeCloseTo(result1!.projectedYearlyConsumption * 10, 0);
     });
+
     it('generates chart data correctly', () => {
         const date = new Date('2024-06-01T12:00:00Z');
         vi.setSystemTime(date);
 
-        const contract = createContract('electricity');
-        // Linear readings: 10/day. Start Jan 1.
+        const meter = createMeter('electricity');
+        const contract = createContract();
         const readings = createReadings([
             { date: '2024-01-01', value: 1000 },
             { date: '2024-02-01', value: 1310 } // 31 days * 10 = 310
         ]);
-        const result = calculateProjection(contract, readings, [], []);
+        const result = calculateProjection(meter, contract, readings, []);
 
         expect(result?.chartData).toBeDefined();
-        // Billing Period should be 2024-01-01 to 2025-01-01 (approx)
-        // Chart data should be monthly points. ~13 points (Jan ... Jan next year)
         expect(result?.chartData.length).toBeGreaterThanOrEqual(12);
 
         const firstPoint = result!.chartData[0];
@@ -137,13 +121,9 @@ describe('calculateProjection', () => {
         expect(firstPoint.projected).toBe(0);
         expect(firstPoint.actual).toBe(0);
 
-        // Second point should be roughly Feb 1
         const secondPoint = result!.chartData[1];
-        // Projected: ~310 (31 days * 3650/366 = 309.xxx)
         expect(secondPoint.projected).toBeGreaterThan(300);
         expect(secondPoint.projected).toBeLessThan(320);
-
-        // Actual: Should be exactly 310 (1310 - 1000)
         expect(secondPoint.actual).toBeCloseTo(310, 0);
 
         vi.useRealTimers();

@@ -12,6 +12,8 @@ vi.mock('next/navigation', () => ({
 
 // Mock Supabase Client
 const mockInsert = vi.fn();
+const mockSelect = vi.fn();
+const mockSingle = vi.fn();
 const mockFrom = vi.fn();
 
 vi.mock('@/lib/supabase/client', () => ({
@@ -24,7 +26,12 @@ describe('ReadingDialog', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         mockFrom.mockReturnValue({ insert: mockInsert });
-        mockInsert.mockResolvedValue({ error: null });
+        mockInsert.mockReturnValue({ select: mockSelect });
+        mockSelect.mockReturnValue({ single: mockSingle });
+        mockSingle.mockResolvedValue({
+            data: { id: '1', meter_id: 'm1', date: '2025-01-01', value: 100, created_at: 'now' },
+            error: null
+        });
     });
 
     it('validates strictly future dates', async () => {
@@ -32,7 +39,7 @@ describe('ReadingDialog', () => {
         const onSuccess = vi.fn();
 
         render(
-            <ReadingDialog contractId="c1" onSuccess={onSuccess}>
+            <ReadingDialog meterId="m1" onSuccess={onSuccess}>
                 <button>Open Dialog</button>
             </ReadingDialog>
         );
@@ -69,7 +76,7 @@ describe('ReadingDialog', () => {
         const onSuccess = vi.fn();
 
         render(
-            <ReadingDialog contractId="c1" onSuccess={onSuccess}>
+            <ReadingDialog meterId="m1" onSuccess={onSuccess}>
                 <button>Open Dialog</button>
             </ReadingDialog>
         );
@@ -98,7 +105,7 @@ describe('ReadingDialog', () => {
         // Check success
         await waitFor(() => {
             expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({
-                contract_id: 'c1',
+                meter_id: 'm1',
                 date: todayStr,
                 value: 100
             }));
