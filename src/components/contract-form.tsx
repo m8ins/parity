@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { createClient } from "@/lib/supabase/client"
+import type { Resolver } from "react-hook-form"
 import { Button } from "@/components/ui/button"
 import { Info } from "lucide-react"
 import {
@@ -32,7 +33,6 @@ import {
     Select,
     SelectContent,
     SelectItem,
-
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
@@ -40,46 +40,19 @@ import {
     Table,
     TableBody,
     TableCell,
-    TableHead,
-    TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useRouter } from "next/navigation"
-
-import { GAS_WEIGHTS, ELECTRICITY_WEIGHTS } from "@/lib/types"
+import { GAS_WEIGHTS } from "@/lib/types"
 
 const formSchema = z.object({
-    name: z.string().min(2, {
-        message: "Name must be at least 2 characters.",
-    }),
+    name: z.string().min(2, { message: "Name must be at least 2 characters." }),
     type: z.enum(["electricity", "gas"]),
-    provider: z.string().optional(),
-    start_date: z.string().refine((val) => !isNaN(Date.parse(val)), {
-        message: "Invalid date",
-    }),
-    base_price_monthly: z.coerce.number().min(0),
-    energy_price_cents_per_kwh: z.coerce.number().min(0),
-    monthly_payment: z.coerce.number().min(0),
-    monthly_distribution: z.preprocess((val) => {
-        // If entirely empty/undefined, let it be optional (return undefined)
-        if (!val || (Array.isArray(val) && val.every(v => v === undefined || v === null))) return undefined;
-
-        // If it's a sparse array, we need to fill the holes with defaults
-        if (Array.isArray(val)) {
-            return val.map(v => v === undefined || v === null ? 0 : v);
-        }
-        return val;
-    }, z.array(z.number()).optional().refine((val) => {
-        if (!val) return true; // Optional
-        const sum = val.reduce((a, b) => a + b, 0);
-        // Allow small floating point error
-        return Math.abs(sum - 1) < 0.001;
-    }, { message: "Monthly weights must sum to 100%" })),
-    conversion_factor_m3_to_kwh: z.preprocess((val) => {
-        if (val === undefined || val === '') return 1;
-        return Number(val);
-    }, z.number().min(0.0001).default(1)),
+    period_start: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Invalid date" }),
+    grundpreis: z.coerce.number().min(0),
+    arbeitspreis: z.coerce.number().min(0),
+    abschlag: z.coerce.number().min(0),
+    umrechnungsfaktor: z.coerce.number().min(0.0001),
 })
 
 export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string, onSuccess?: () => void, onCancel?: () => void }) {
@@ -87,31 +60,28 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
     const router = useRouter()
     const [loading, setLoading] = useState(false)
 
-    const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema) as any,
+    type FormValues = z.infer<typeof formSchema>
+    const form = useForm<FormValues>({
+        resolver: zodResolver(formSchema) as Resolver<FormValues>,
         defaultValues: {
             name: "",
             type: "electricity",
-            provider: "",
-            start_date: new Date().toISOString().split('T')[0],
-            base_price_monthly: 0,
-            energy_price_cents_per_kwh: 0,
-            monthly_payment: 0,
-            conversion_factor_m3_to_kwh: 1, // Default for electricity
+            period_start: new Date().toISOString().split('T')[0],
+            grundpreis: 0,
+            arbeitspreis: 0,
+            abschlag: 0,
+            umrechnungsfaktor: 1,
         },
     })
 
-    // Update conversion factor when type changes
     useEffect(() => {
         const subscription = form.watch((value, { name }) => {
             if (name === 'type') {
-                const currentFactor = form.getValues('conversion_factor_m3_to_kwh');
+                const currentFactor = form.getValues('umrechnungsfaktor');
                 if (value.type === 'gas' && currentFactor === 1) {
-                    // Switching to gas, default to 10
-                    form.setValue('conversion_factor_m3_to_kwh', 10);
+                    form.setValue('umrechnungsfaktor', 10);
                 } else if (value.type === 'electricity' && currentFactor === 10) {
-                    // Switching back to electricity, reset to 1
-                    form.setValue('conversion_factor_m3_to_kwh', 1);
+                    form.setValue('umrechnungsfaktor', 1);
                 }
             }
         });
@@ -121,43 +91,45 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setLoading(true)
         try {
-            // 1. Create Contract Wrapper
-            const { data: contract, error: contractError } = await supabase.from("contracts").insert({
+            // 1. Create Meter
+            const { data: meter, error: meterError } = await supabase.from("meters").insert({
                 user_id,
                 name: values.name,
                 type: values.type,
-                provider: values.provider,
-                start_date: values.start_date,
-                monthly_distribution: values.type === 'gas' ? GAS_WEIGHTS : values.monthly_distribution,
-                conversion_factor_m3_to_kwh: values.type === 'gas' ? (values.conversion_factor_m3_to_kwh || 10) : 1,
+                monthly_distribution: values.type === 'gas'
+                    ? GAS_WEIGHTS
+                    : Array(12).fill(1 / 12),
+            }).select().single()
+
+            if (meterError) throw meterError
+            if (!meter) throw new Error("No meter returned")
+
+            // 2. Create Contract (billing period)
+            const { data: contract, error: contractError } = await supabase.from("contracts").insert({
+                meter_id: meter.id,
+                period_start: values.period_start,
             }).select().single()
 
             if (contractError) throw contractError
             if (!contract) throw new Error("No contract returned")
 
-            // 2. Insert Initial Price
-            const { error: priceError } = await supabase.from("contract_prices").insert({
+            // 3. Create initial Rate
+            const { error: rateError } = await supabase.from("rates").insert({
                 contract_id: contract.id,
-                valid_from: values.start_date,
-                base_price_monthly: values.base_price_monthly,
-                energy_price_cents_per_kwh: values.energy_price_cents_per_kwh,
+                effective_from: values.period_start,
+                grundpreis: values.grundpreis,
+                arbeitspreis: values.arbeitspreis,
+                abschlag: values.abschlag,
+                umrechnungsfaktor: values.type === 'gas' ? values.umrechnungsfaktor : 1,
             })
-            if (priceError) throw priceError
-
-            // 3. Insert Initial Payment
-            const { error: paymentError } = await supabase.from("contract_payments").insert({
-                contract_id: contract.id,
-                valid_from: values.start_date,
-                monthly_payment: values.monthly_payment,
-            })
-            if (paymentError) throw paymentError
+            if (rateError) throw rateError
 
             form.reset()
             router.refresh()
             if (onSuccess) onSuccess()
         } catch (e) {
             console.error(e)
-            alert("Error saving contract")
+            alert("Error saving meter")
         } finally {
             setLoading(false)
         }
@@ -173,7 +145,7 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
                         <FormItem>
                             <FormLabel>Name</FormLabel>
                             <FormControl>
-                                <Input placeholder="Home Electricity" {...field} />
+                                <Input placeholder="Hauptzähler Strom" {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -184,7 +156,6 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
                     <FormField
                         control={form.control}
                         name="type"
-
                         render={({ field }) => (
                             <FormItem className="flex-1">
                                 <FormLabel>Type</FormLabel>
@@ -196,7 +167,7 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="electricity">Electricity</SelectItem>
+                                            <SelectItem value="electricity">Strom</SelectItem>
                                             <SelectItem value="gas">Gas</SelectItem>
                                         </SelectContent>
                                     </Select>
@@ -210,15 +181,15 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
                                             </PopoverTrigger>
                                             <PopoverContent className="w-80" side="right" align="start">
                                                 <div className="space-y-4">
-                                                    <h4 className="font-medium leading-none">Gas Usage Calculation</h4>
+                                                    <h4 className="font-medium leading-none">Saisonale Gasverteilung</h4>
                                                     <p className="text-sm text-muted-foreground">
-                                                        Gas usage isn't linear. We use a standard load profile (Standardlastprofil) to estimate higher consumption in winter months.
+                                                        Gas-Verbrauch ist nicht linear. Wir verwenden ein Standard-Lastprofil (H0) mit höherem Verbrauch in Wintermonaten.
                                                     </p>
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <Table>
                                                             <TableBody>
                                                                 {Array.from({ length: 6 }).map((_, i) => {
-                                                                    const monthName = new Date(0, i).toLocaleString('default', { month: 'short' });
+                                                                    const monthName = new Date(0, i).toLocaleString('de-DE', { month: 'short' });
                                                                     return (
                                                                         <TableRow key={i} className="h-6">
                                                                             <TableCell className="py-0.5 text-xs">{monthName}</TableCell>
@@ -232,7 +203,7 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
                                                             <TableBody>
                                                                 {Array.from({ length: 6 }).map((_, i) => {
                                                                     const idx = i + 6;
-                                                                    const monthName = new Date(0, idx).toLocaleString('default', { month: 'short' });
+                                                                    const monthName = new Date(0, idx).toLocaleString('de-DE', { month: 'short' });
                                                                     return (
                                                                         <TableRow key={idx} className="h-6">
                                                                             <TableCell className="py-0.5 text-xs">{monthName}</TableCell>
@@ -254,43 +225,27 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
                     />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                        control={form.control}
-                        name="provider"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Provider</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="E.ON" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="start_date"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Start Date</FormLabel>
-                                <FormControl>
-                                    <Input type="date" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
+                <FormField
+                    control={form.control}
+                    name="period_start"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Abrechnungsperiode Start</FormLabel>
+                            <FormControl>
+                                <Input type="date" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
 
                 <div className="grid grid-cols-2 gap-4">
                     <FormField
                         control={form.control}
-                        name="base_price_monthly"
+                        name="grundpreis"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Base Price</FormLabel>
+                                <FormLabel>Grundpreis</FormLabel>
                                 <InputGroup>
                                     <FormControl>
                                         <InputGroupInput type="number" step="0.01" {...field} />
@@ -306,10 +261,10 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
 
                     <FormField
                         control={form.control}
-                        name="energy_price_cents_per_kwh"
+                        name="arbeitspreis"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Price</FormLabel>
+                                <FormLabel>Arbeitspreis</FormLabel>
                                 <InputGroup>
                                     <FormControl>
                                         <InputGroupInput type="number" step="0.01" {...field} />
@@ -326,16 +281,16 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
 
                 <FormField
                     control={form.control}
-                    name="monthly_payment"
+                    name="abschlag"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Monthly Payment (Abschlag)</FormLabel>
+                            <FormLabel>Abschlag</FormLabel>
                             <InputGroup>
                                 <FormControl>
                                     <InputGroupInput type="number" step="0.01" {...field} />
                                 </FormControl>
                                 <InputGroupAddon align="inline-end">
-                                    <InputGroupText>€</InputGroupText>
+                                    <InputGroupText>€/mo</InputGroupText>
                                 </InputGroupAddon>
                             </InputGroup>
                             <FormMessage />
@@ -346,26 +301,19 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
                 {form.watch("type") === "gas" && (
                     <FormField
                         control={form.control}
-                        name="conversion_factor_m3_to_kwh"
+                        name="umrechnungsfaktor"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Gas Conversion Factor</FormLabel>
+                                <FormLabel>Umrechnungsfaktor</FormLabel>
                                 <InputGroup>
                                     <FormControl>
-                                        <InputGroupInput
-                                            type="number"
-                                            step="0.01"
-                                            {...field}
-                                            onChange={(e) => {
-                                                field.onChange(e);
-                                            }}
-                                        />
+                                        <InputGroupInput type="number" step="0.01" {...field} />
                                     </FormControl>
                                     <InputGroupAddon align="inline-end">
-                                        <InputGroupText>m³ -&gt; kWh</InputGroupText>
+                                        <InputGroupText>kWh/m³</InputGroupText>
                                     </InputGroupAddon>
                                 </InputGroup>
-                                <FormDescription>Standard is ~10. Check your bill.</FormDescription>
+                                <FormDescription>Standard ~10. Auf der Jahresabrechnung angegeben.</FormDescription>
                                 <FormMessage />
                             </FormItem>
                         )}
@@ -375,11 +323,11 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
                 <div className="flex gap-2">
                     {onCancel && (
                         <Button type="button" variant="outline" className="flex-1" onClick={onCancel}>
-                            Cancel
+                            Abbrechen
                         </Button>
                     )}
                     <Button type="submit" className="flex-1" disabled={loading}>
-                        {loading ? "Saving..." : "Create Contract"}
+                        {loading ? "Wird gespeichert…" : "Zähler anlegen"}
                     </Button>
                 </div>
             </form>

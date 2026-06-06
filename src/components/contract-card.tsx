@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { Contract, Reading } from "@/lib/types"
+import { Meter, Reading } from "@/lib/types"
 import { ProjectionResult } from "@/lib/calculations"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
@@ -13,16 +13,17 @@ import { ReadingDialog } from "./reading-dialog"
 import { ContractChart } from "./contract-chart"
 
 interface ContractCardProps {
-    contract: Contract
+    meter: Meter
     readings: Reading[]
-    currentPayment: number
+    currentAbschlag: number
     projection: ProjectionResult | null
     onUpdate: () => void
+    onReadingAdded: (meterId: string, reading: Reading) => void
     onDelete: (id: string) => void
 }
 
-export function ContractCard({ contract, readings, currentPayment, projection, onUpdate, onDelete }: ContractCardProps) {
-    const isGas = contract.type === 'gas'
+export function ContractCard({ meter, readings, currentAbschlag, projection, onUpdate, onReadingAdded, onDelete }: ContractCardProps) {
+    const isGas = meter.type === 'gas'
     const Icon = isGas ? Flame : Zap
     const diff = projection ? projection.difference : 0
     const isGood = diff >= 0
@@ -33,7 +34,7 @@ export function ContractCard({ contract, readings, currentPayment, projection, o
 
     const handleRename = async () => {
         if (!newName.trim()) return
-        const { error } = await supabase.from('contracts').update({ name: newName }).eq('id', contract.id)
+        const { error } = await supabase.from('meters').update({ name: newName }).eq('id', meter.id)
         if (!error) {
             setIsRenaming(false)
             onUpdate()
@@ -45,7 +46,7 @@ export function ContractCard({ contract, readings, currentPayment, projection, o
             <Dialog open={isRenaming} onOpenChange={setIsRenaming}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Rename Contract</DialogTitle>
+                        <DialogTitle>Zähler umbenennen</DialogTitle>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                         <Input
@@ -58,19 +59,18 @@ export function ContractCard({ contract, readings, currentPayment, projection, o
                         />
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsRenaming(false)}>Cancel</Button>
-                        <Button onClick={handleRename}>Save</Button>
+                        <Button variant="outline" onClick={() => setIsRenaming(false)}>Abbrechen</Button>
+                        <Button onClick={handleRename}>Speichern</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
             <Card className="flex flex-col">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0">
                     <div className="flex flex-row items-center gap-2">
-
                         <Icon className={`h-4 w-4 ${isGas ? "text-orange-500" : "text-yellow-500"}`} />
                         <CardTitle className="font-medium">
-                            <Link href={`/contract/${contract.id}`} className="hover:underline">
-                                {contract.name}
+                            <Link href={`/meter/${meter.id}`} className="hover:underline">
+                                {meter.name}
                             </Link>
                         </CardTitle>
                     </div>
@@ -82,26 +82,26 @@ export function ContractCard({ contract, readings, currentPayment, projection, o
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuItem onSelect={() => {
-                                setNewName(contract.name)
+                                setNewName(meter.name)
                                 setIsRenaming(true)
                             }}>
                                 <Pencil className="mr-2 h-4 w-4" />
-                                Rename
+                                Umbenennen
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onDelete(contract.id)} className="text-red-600">
+                            <DropdownMenuItem onClick={() => onDelete(meter.id)} className="text-red-600">
                                 <Trash className="mr-2 h-4 w-4" />
-                                Delete
+                                Löschen
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </CardHeader>
                 <CardContent className="flex-1">
                     <div className="text-2xl font-bold">
-                        {projection ? `${projection.projectedYearlyCost.toFixed(2)} €` : "No Data"}
-                        {projection && <span className="text-xs font-normal text-muted-foreground ml-2">est. / year</span>}
+                        {projection ? `${projection.projectedYearlyCost.toFixed(2)} €` : "Keine Daten"}
+                        {projection && <span className="text-xs font-normal text-muted-foreground ml-2">geschätzt / Jahr</span>}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                        Current Pay: {(currentPayment * 12).toFixed(2)} € / year
+                        Aktueller Abschlag: {(currentAbschlag * 12).toFixed(2)} € / Jahr
                     </p>
 
                     {projection && (
@@ -109,9 +109,9 @@ export function ContractCard({ contract, readings, currentPayment, projection, o
                             {isGood ? <CheckCircle className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
                             <div>
                                 {isGood ? (
-                                    <span>Safe! Refund: <strong>{diff.toFixed(2)} €</strong></span>
+                                    <span>Erstattung: <strong>{diff.toFixed(2)} €</strong></span>
                                 ) : (
-                                    <span>Backpayment: <strong>{Math.abs(diff).toFixed(2)} €</strong></span>
+                                    <span>Nachzahlung: <strong>{Math.abs(diff).toFixed(2)} €</strong></span>
                                 )}
                             </div>
                         </div>
@@ -119,7 +119,7 @@ export function ContractCard({ contract, readings, currentPayment, projection, o
 
                     {projection && (
                         <div className="mt-2 text-xs text-muted-foreground flex justify-between">
-                            <span>Paid Goal: {Math.round(projection.paidUsage)} kWh</span>
+                            <span>Abschlag deckt: {Math.round(projection.paidUsage)} kWh</span>
                         </div>
                     )}
 
@@ -133,17 +133,19 @@ export function ContractCard({ contract, readings, currentPayment, projection, o
                     )}
 
                     <div className="mt-4 flex justify-between items-center text-xs text-muted-foreground">
-                        <span>{readings.length} readings</span>
+                        <span>{readings.length} Ablesungen</span>
                     </div>
                 </CardContent>
                 <CardFooter className="flex gap-2">
-                    <ReadingDialog contractId={contract.id} lastReadingValue={readings[readings.length - 1]?.value} onSuccess={onUpdate}>
+                    <ReadingDialog
+                        meterId={meter.id}
+                        lastReadingValue={readings[readings.length - 1]?.value}
+                        onSuccess={(reading) => onReadingAdded(meter.id, reading)}
+                    >
                         <Button variant="outline" className="flex-1">
-                            <Plus className="mr-2 h-4 w-4" /> Reading
+                            <Plus className="mr-2 h-4 w-4" /> Ablesung
                         </Button>
                     </ReadingDialog>
-
-
                 </CardFooter>
             </Card>
         </>

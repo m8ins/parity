@@ -15,9 +15,10 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { ChevronDown, Lock, LogOut } from "lucide-react"
 import { ProfileDialog } from "./profile-dialog"
+import type { User } from "@supabase/supabase-js"
 
 export function Header() {
-    const [user, setUser] = useState<any>(null)
+    const [user, setUser] = useState<User | null>(null)
     const [isProfileOpen, setIsProfileOpen] = useState(false)
     const router = useRouter()
     const supabase = createClient()
