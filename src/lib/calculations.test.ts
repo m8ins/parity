@@ -154,6 +154,53 @@ describe('calculateProjection', () => {
     vi.useRealTimers();
   });
 
+  it('adds a chart point at each real reading date (mid-month)', () => {
+    const date = new Date('2024-06-01T12:00:00Z');
+    vi.setSystemTime(date);
+
+    const meter = createMeter('electricity');
+    const contract = createContract();
+    const readings = createReadings([
+      { date: '2024-01-01', value: 1000 },
+      { date: '2024-02-15', value: 1450 }, // mid-month reading
+    ]);
+    const result = calculateProjection(meter, contract, readings, []);
+
+    const midPoint = result!.chartData.find(
+      (p) =>
+        new Date(p.date).toISOString() ===
+        new Date('2024-02-15T00:00:00.000Z').toISOString(),
+    );
+
+    expect(midPoint).toBeDefined();
+    // actual = (1450 - 1000) * factor(1) = 450
+    expect(midPoint!.actual).toBeCloseTo(450, 0);
+
+    vi.useRealTimers();
+  });
+
+  it('includes the current partial month in monthlyBreakdown', () => {
+    const meter = createMeter('electricity');
+    const contract = createContract();
+    // Last reading is mid-month -> the partial month must show up.
+    const readings = createReadings([
+      { date: '2024-01-01', value: 1000 },
+      { date: '2024-02-01', value: 1100 },
+      { date: '2024-02-15', value: 1170 },
+    ]);
+    const rate = createRate(30, { grundpreis: 10 });
+
+    const result = calculateProjection(meter, contract, readings, [rate]);
+
+    const feb = result!.monthlyBreakdown.find(
+      (m) => new Date(m.month).getMonth() === 1, // February
+    );
+
+    expect(feb).toBeDefined();
+    // Feb 1 -> Feb 15 = 1170 - 1100 = 70
+    expect(feb!.consumption).toBeCloseTo(70, 0);
+  });
+
   it('calculates monthlyBreakdown correctly', () => {
     const meter = createMeter('electricity');
     const contract = createContract();
