@@ -153,13 +153,29 @@ export function calculateProjection(
 
   const baselineReading = estimateReading(billingYearStart);
 
-  const nextChartPointDate = new Date(billingYearStart);
   chartData.push({
     date: billingYearStart.toISOString(),
     projected: 0,
     actual: baselineReading !== null ? 0 : null,
   });
-  nextChartPointDate.setMonth(nextChartPointDate.getMonth() + 1);
+
+  // Emit dates = monthly grid points UNION actual reading dates, so the chart's
+  // actual line gets a vertex at every reading (incl. the latest one) while the
+  // projected curve stays smooth across the whole billing year.
+  const emitTimes = new Set<number>();
+  const gridDate = new Date(billingYearStart);
+  gridDate.setMonth(gridDate.getMonth() + 1);
+  while (gridDate < billingYearEnd) {
+    emitTimes.add(gridDate.getTime());
+    gridDate.setMonth(gridDate.getMonth() + 1);
+  }
+  for (const r of sortedReadingsByTime) {
+    if (r.time > billingYearStart.getTime() && r.time < billingYearEnd.getTime()) {
+      emitTimes.add(r.time);
+    }
+  }
+  const emitDates = [...emitTimes].sort((a, b) => a - b);
+  let emitPtr = 0;
 
   const calcDate = new Date(billingYearStart);
 
@@ -170,18 +186,22 @@ export function calculateProjection(
 
     accumulatedProjectedConsumption += dailyConsumption;
 
-    if (calcDate.getTime() >= nextChartPointDate.getTime()) {
-      const val = estimateReading(calcDate);
+    while (
+      emitPtr < emitDates.length &&
+      calcDate.getTime() >= emitDates[emitPtr]
+    ) {
+      const pointDate = new Date(emitDates[emitPtr]);
+      const val = estimateReading(pointDate);
       const actual =
         val !== null && baselineReading !== null
           ? (val - baselineReading) * factor
           : null;
       chartData.push({
-        date: calcDate.toISOString(),
+        date: pointDate.toISOString(),
         projected: accumulatedProjectedConsumption,
         actual,
       });
-      nextChartPointDate.setMonth(nextChartPointDate.getMonth() + 1);
+      emitPtr++;
     }
 
     if (activeRate) {
@@ -213,24 +233,39 @@ export function calculateProjection(
     actual,
   );
 
+  // Per calendar month, derived from real readings (month boundaries are
+  // interpolated). Includes the current partial month up to the last reading.
+  const lastReadingDate = new Date(lastReading.date);
   const monthlyBreakdown: MonthlyBreakdown[] = [];
-  for (let i = 1; i < chartData.length; i++) {
-    const current = chartData[i];
-    const previous = chartData[i - 1];
+  // Anchor month boundaries on billingYearStart (matching the chart grid) so they
+  // align exactly with reading dates that fall on the 1st.
+  const monthCursor = new Date(billingYearStart);
+  while (monthCursor < billingYearEnd) {
+    const monthStart = new Date(monthCursor);
+    const nextMonth = new Date(monthCursor);
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    const monthEnd = nextMonth < lastReadingDate ? nextMonth : lastReadingDate;
 
-    if (current.actual === null || previous.actual === null) continue;
+    if (monthEnd.getTime() > monthStart.getTime()) {
+      const startVal = estimateReading(monthStart);
+      const endVal = estimateReading(monthEnd);
 
-    const consumption = current.actual - previous.actual;
-    const rate = findActiveRate(new Date(current.date));
-    const cost = rate
-      ? (consumption * rate.arbeitspreis) / 100 + rate.grundpreis
-      : 0;
+      if (startVal !== null && endVal !== null) {
+        const consumption = (endVal - startVal) * factor;
+        const rate = findActiveRate(monthStart);
+        const cost = rate
+          ? (consumption * rate.arbeitspreis) / 100 + rate.grundpreis
+          : 0;
 
-    monthlyBreakdown.push({
-      month: current.date,
-      consumption,
-      cost,
-    });
+        monthlyBreakdown.push({
+          month: monthStart.toISOString(),
+          consumption,
+          cost,
+        });
+      }
+    }
+
+    monthCursor.setMonth(monthCursor.getMonth() + 1);
   }
 
   const difference = expectedYearlyPayment - projectedYearlyCost;

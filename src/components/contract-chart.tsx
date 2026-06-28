@@ -9,6 +9,9 @@ interface ContractChartProps {
     data: ChartDataPoint[]
     unit: string
     goal?: number
+    // Whether the contract is financially on track (no projected Nachzahlung).
+    // Drives the actual line/area color: green when good, red when a Nachzahlung is projected.
+    isGood?: boolean
     className?: string
 }
 
@@ -24,13 +27,8 @@ export function ContractChart({ data, unit, goal, className }: ContractChartProp
         }))
     }, [data, locale])
 
-    // Determine color based on latest actual vs projected
-    // If actual < projected -> Good (Green)
-    // If actual > projected -> Bad (Red/Orange)
-    // We look at the last point that has actual data
-    const lastActualPoint = [...data].reverse().find(p => p.actual !== null)
-    const isGood = lastActualPoint ? (lastActualPoint.actual! <= lastActualPoint.projected) : true
-
+    // Color reflects the financial outlook (passed in via isGood), i.e. whether a
+    // Nachzahlung is projected — consistent with the card's Nachzahlung/Erstattung badge.
     const actualColor = isGood ? "oklch(0.696 0.17 142.5)" : "oklch(0.627 0.258 29.234)" // green-500 : red-500
     // Use CSS variables for better theme support if possible, but hex is safe for recharts
 

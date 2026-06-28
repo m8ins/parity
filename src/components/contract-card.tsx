@@ -284,6 +284,7 @@ export function ContractCard({
                   data={projection.chartData}
                   unit="kWh"
                   goal={projection.paidUsage}
+                  isGood={isGood}
                   className="mt-4"
                 />
               </TabsContent>
