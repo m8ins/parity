@@ -15,7 +15,7 @@ interface ContractChartProps {
     className?: string
 }
 
-export function ContractChart({ data, unit, goal, className }: ContractChartProps) {
+export function ContractChart({ data, unit, goal, isGood, className }: ContractChartProps) {
     const locale = useLocale()
     // Format data for display
     const formattedData = useMemo(() => {
