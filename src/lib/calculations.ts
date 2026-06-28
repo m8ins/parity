@@ -190,21 +190,17 @@ export function calculateProjection(
     calcDate.setDate(calcDate.getDate() + 1);
   }
 
-  {
-    const val = estimateReading(billingYearEnd);
-    const actual =
-      val !== null && baselineReading !== null
-        ? (val - baselineReading) * factor
-        : null;
-    const lastPt = chartData[chartData.length - 1];
-    if (new Date(lastPt.date).getTime() < billingYearEnd.getTime()) {
-      chartData.push({
-        date: billingYearEnd.toISOString(),
-        projected: accumulatedProjectedConsumption,
-        actual,
-      });
-    }
-  }
+  const val = estimateReading(billingYearEnd);
+  const actual =
+    val !== null && baselineReading !== null
+      ? (val - baselineReading) * factor
+      : null;
+  appendYearEndpoint(
+    chartData,
+    billingYearEnd,
+    accumulatedProjectedConsumption,
+    actual,
+  );
 
   const monthlyBreakdown: MonthlyBreakdown[] = [];
   for (let i = 1; i < chartData.length; i++) {
@@ -214,12 +210,15 @@ export function calculateProjection(
     if (current.actual === null || previous.actual === null) continue;
 
     const consumption = current.actual - previous.actual;
-    // TODO: add cost
+    const rate = findActiveRate(new Date(current.date));
+    const cost = rate
+      ? (consumption * rate.arbeitspreis) / 100 + rate.grundpreis
+      : 0;
 
     monthlyBreakdown.push({
       month: current.date,
       consumption,
-      cost: 0, // Placeholder
+      cost,
     });
   }
 
@@ -249,4 +248,20 @@ export function calculateProjection(
 
 function isLeapYear(year: number) {
   return (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;
+}
+
+function appendYearEndpoint(
+  chartData: ChartDataPoint[],
+  billingYearEnd: Date,
+  accumulatedProjectedConsumption: number,
+  actual: number | null,
+) {
+  const lastPt = chartData[chartData.length - 1];
+  if (new Date(lastPt.date).getTime() < billingYearEnd.getTime()) {
+    chartData.push({
+      date: billingYearEnd.toISOString(),
+      projected: accumulatedProjectedConsumption,
+      actual,
+    });
+  }
 }
