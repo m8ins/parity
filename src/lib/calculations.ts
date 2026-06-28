@@ -1,4 +1,4 @@
-import { Meter, Contract, Rate, Reading, GAS_WEIGHTS } from './types';
+import { Meter, Contract, Rate, Reading, GAS_WEIGHTS } from "./types";
 
 export interface ProjectionResult {
   projectedYearlyConsumption: number; // kWh
@@ -11,6 +11,7 @@ export interface ProjectionResult {
   billingPeriodEnd: Date;
   chartData: ChartDataPoint[];
   paidUsage: number; // kWh
+  monthlyBreakdown: MonthlyBreakdown[]; // Optional, can be computed if needed
 }
 
 export interface ChartDataPoint {
@@ -50,7 +51,7 @@ export function calculateProjection(
   // Use the latest rate's umrechnungsfaktor for the overall consumption calculation.
   const latestRate = sortedRates[sortedRates.length - 1];
   const factor =
-    meter.type === 'gas' ? (latestRate?.umrechnungsfaktor ?? 10) : 1;
+    meter.type === "gas" ? (latestRate?.umrechnungsfaktor ?? 10) : 1;
   const consumption = (lastReading.value - firstReading.value) * factor;
 
   const startDate = new Date(firstReading.date);
@@ -69,7 +70,7 @@ export function calculateProjection(
       const daysInMonth = new Date(date.getFullYear(), month + 1, 0).getDate();
       return meter.monthly_distribution[month] / daysInMonth;
     }
-    if (meter.type === 'electricity') {
+    if (meter.type === "electricity") {
       return 1 / (365 + (isLeapYear(date.getFullYear()) ? 1 : 0));
     } else {
       const month = date.getMonth();
@@ -205,6 +206,23 @@ export function calculateProjection(
     }
   }
 
+  const monthlyBreakdown: MonthlyBreakdown[] = [];
+  for (let i = 1; i < chartData.length; i++) {
+    const current = chartData[i];
+    const previous = chartData[i - 1];
+
+    if (current.actual === null || previous.actual === null) continue;
+
+    const consumption = current.actual - previous.actual;
+    // TODO: add cost
+
+    monthlyBreakdown.push({
+      month: current.date,
+      consumption,
+      cost: 0, // Placeholder
+    });
+  }
+
   const difference = expectedYearlyPayment - projectedYearlyCost;
   const recommendedMonthlyPayment = projectedYearlyCost / 12;
 
@@ -225,6 +243,7 @@ export function calculateProjection(
     billingPeriodStart: billingYearStart,
     billingPeriodEnd: billingYearEnd,
     chartData,
+    monthlyBreakdown,
   };
 }
 
