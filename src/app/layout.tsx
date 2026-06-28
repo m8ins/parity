@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Header } from "@/components/header";
+import { LocaleProvider } from "@/lib/locale";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,19 +20,35 @@ export const metadata: Metadata = {
   description: "Energy contract tracking and optimization",
 };
 
-export default function RootLayout({
+/** First locale from the Accept-Language header, validated; falls back to en-US. */
+function pickLocale(acceptLanguage: string | null): string {
+  const first = acceptLanguage?.split(",")[0]?.trim();
+  if (!first) return "en-US";
+  try {
+    Intl.getCanonicalLocales(first);
+    return first;
+  } catch {
+    return "en-US";
+  }
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = pickLocale((await headers()).get("accept-language"));
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body
         className={`bg-neutral-50 ${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
-        <Header />
-        {children}
+        <LocaleProvider locale={locale}>
+          <Header />
+          {children}
+        </LocaleProvider>
       </body>
     </html>
   );

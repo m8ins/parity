@@ -15,6 +15,9 @@ export interface Contract {
   meter_id: string;
   period_start: string; // ISO Date YYYY-MM-DD
   period_end?: string;
+  provider?: string; // energy supplier for this period (e.g. "e.on", "Vattenfall")
+  settlement_amount?: number; // signed €: >= 0 = Erstattung, < 0 = Nachzahlung
+  settlement_date?: string; // ISO Date YYYY-MM-DD
   created_at: string;
   updated_at: string;
 }
@@ -36,6 +39,15 @@ export interface Reading {
   date: string; // ISO Date YYYY-MM-DD
   value: number;
   created_at: string;
+}
+
+// All billing periods of a single meter, plus the rates per period and the
+// meter's (cumulative) readings. Used by the dashboard and detail views to
+// switch between contract years.
+export interface MeterData {
+  contracts: Contract[]; // newest period first
+  ratesByContract: Record<string, Rate[]>; // rates per contract id, oldest first
+  readings: Reading[]; // ascending by date
 }
 
 // Standard Load Profile (H0) approximation for German households.

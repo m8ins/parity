@@ -154,6 +154,61 @@ describe('calculateProjection', () => {
     vi.useRealTimers();
   });
 
+  it('scopes the run-rate to the billing period for multi-year readings', () => {
+    // A meter with readings spanning two contract years. The 2024 projection
+    // must ignore the 2025 reading, so it equals the projection computed from
+    // the 2024 readings alone.
+    const meter = createMeter('electricity');
+    const contract2024 = createContract('meter-1', {
+      period_start: '2024-01-01',
+      period_end: '2025-01-01',
+    });
+    const within2024 = [
+      { date: '2024-01-01', value: 0 },
+      { date: '2024-07-01', value: 1000 },
+    ];
+    const rates = [createRate(30)];
+
+    const scoped = calculateProjection(
+      meter,
+      contract2024,
+      createReadings([...within2024, { date: '2025-07-01', value: 9000 }]),
+      rates,
+    );
+    const isolated = calculateProjection(
+      meter,
+      contract2024,
+      createReadings(within2024),
+      rates,
+    );
+
+    expect(scoped?.projectedYearlyConsumption).toBeCloseTo(
+      isolated!.projectedYearlyConsumption,
+      5,
+    );
+  });
+
+  it('difference sign follows the settlement convention', () => {
+    const meter = createMeter('electricity');
+    const contract = createContract();
+    const readings = createReadings([
+      { date: '2024-01-01', value: 1000 },
+      { date: '2024-01-11', value: 1100 },
+    ]);
+
+    // High abschlag → overpaid → positive difference (Erstattung).
+    const overpaid = calculateProjection(meter, contract, readings, [
+      createRate(30, { abschlag: 1000 }),
+    ]);
+    expect(overpaid?.difference).toBeGreaterThan(0);
+
+    // Tiny abschlag → underpaid → negative difference (Nachzahlung).
+    const underpaid = calculateProjection(meter, contract, readings, [
+      createRate(30, { abschlag: 1 }),
+    ]);
+    expect(underpaid?.difference).toBeLessThan(0);
+  });
+
   it('calculates monthlyBreakdown correctly', () => {
     const meter = createMeter('electricity');
     const contract = createContract();

@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Dashboard } from '../dashboard';
 import { ContractDetail } from '../contract-detail';
-import type { Meter, Contract, Rate, Reading } from '@/lib/types';
+import type { Meter, Contract, Rate, MeterData } from '@/lib/types';
 import type { User } from '@supabase/supabase-js';
 
 vi.mock('next/navigation', () => ({
@@ -51,8 +51,8 @@ describe('Meter Interactions', () => {
                 created_at: '2024-01-01T00:00:00Z',
                 updated_at: '2024-01-01T00:00:00Z'
             }];
-            const initialData: Record<string, { contract: Contract | null, rates: Rate[], readings: Reading[] }> = {
-                m1: { contract: null, rates: [], readings: [] }
+            const initialData: Record<string, MeterData> = {
+                m1: { contracts: [], ratesByContract: {}, readings: [] }
             };
 
             render(
@@ -98,9 +98,11 @@ describe('Meter Interactions', () => {
             render(
                 <ContractDetail
                     initialMeter={meter}
-                    initialContract={contract}
-                    initialRates={[rate]}
-                    initialReadings={[]}
+                    initialData={{
+                        contracts: [contract],
+                        ratesByContract: { c1: [rate] },
+                        readings: [],
+                    }}
                 />
             );
 

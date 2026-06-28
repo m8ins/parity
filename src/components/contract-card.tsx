@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Meter, Reading } from '@/lib/types';
-import { ProjectionResult } from '@/lib/calculations';
+import { Meter, MeterData } from '@/lib/types';
+import { calculateProjection } from '@/lib/calculations';
+import { formatPeriodLabel } from '@/lib/contracts';
+import { useLocale } from '@/lib/locale';
 import {
   Card,
   CardContent,
@@ -23,6 +25,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import {
   Plus,
@@ -37,25 +46,15 @@ import {
   ChartSpline,
 } from 'lucide-react';
 import Link from 'next/link';
-import { ReadingDialog } from './reading-dialog';
 import { ContractChart } from './contract-chart';
 import { ContractMonthlyTable } from './contract-monthly-table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import {
-  Table,
-  TableHead,
-  TableHeader,
-  TableRow,
-  TableCell,
-  TableBody,
-  TableFooter,
-} from './ui/table';
+import { ReadingDialog } from './reading-dialog';
+import { Reading } from '@/lib/types';
 
 interface ContractCardProps {
   meter: Meter;
-  readings: Reading[];
-  currentAbschlag: number;
-  projection: ProjectionResult | null;
+  meterData: MeterData;
   onUpdate: () => void;
   onReadingAdded: (meterId: string, reading: Reading) => void;
   onDelete: (id: string) => void;
@@ -63,17 +62,36 @@ interface ContractCardProps {
 
 export function ContractCard({
   meter,
-  readings,
-  currentAbschlag,
-  projection,
+  meterData,
   onUpdate,
   onReadingAdded,
   onDelete,
 }: ContractCardProps) {
   const isGas = meter.type === 'gas';
   const Icon = isGas ? Flame : Zap;
+  const locale = useLocale();
+
+  const { contracts, ratesByContract, readings } = meterData;
+
+  // Default to the newest period (contracts are sorted newest-first).
+  const [selectedContractId, setSelectedContractId] = useState(
+    contracts[0]?.id ?? '',
+  );
+  const selectedContract =
+    contracts.find((c) => c.id === selectedContractId) ?? contracts[0] ?? null;
+  const rates = selectedContract
+    ? (ratesByContract[selectedContract.id] ?? [])
+    : [];
+
+  const projection = selectedContract
+    ? calculateProjection(meter, selectedContract, readings, rates)
+    : null;
+  const currentAbschlag = rates[rates.length - 1]?.abschlag || 0;
+
   const diff = projection ? projection.difference : 0;
   const isGood = diff >= 0;
+  const settlement = selectedContract?.settlement_amount;
+  const hasSettlement = settlement !== null && settlement !== undefined;
 
   const [isRenaming, setIsRenaming] = useState(false);
   const [newName, setNewName] = useState('');
@@ -155,6 +173,24 @@ export function ContractCard({
           </DropdownMenu>
         </CardHeader>
         <CardContent className="flex-1">
+          {contracts.length > 1 && (
+            <Select
+              value={selectedContract?.id}
+              onValueChange={setSelectedContractId}
+            >
+              <SelectTrigger size="sm" className="mb-3 w-full">
+                <SelectValue placeholder="Vertragsjahr" />
+              </SelectTrigger>
+              <SelectContent>
+                {contracts.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {formatPeriodLabel(c, locale)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
           <div className="text-2xl font-bold">
             {projection
               ? `${projection.projectedYearlyCost.toFixed(2)} €`
@@ -167,29 +203,62 @@ export function ContractCard({
           </div>
           <p className="text-xs text-muted-foreground">
             Aktueller Abschlag: {(currentAbschlag * 12).toFixed(2)} € / Jahr
+            {contracts.length <= 1 && selectedContract?.provider
+              ? ` · ${selectedContract.provider}`
+              : ''}
           </p>
 
-          {projection && (
+          {/* Final settlement recorded → show actual vs. forecast. */}
+          {hasSettlement ? (
             <div
-              className={`mt-4 rounded-md p-2 flex items-center gap-2 text-sm ${isGood ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100'}`}
+              className={`mt-4 rounded-md p-2 text-sm ${settlement! >= 0 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100'}`}
             >
-              {isGood ? (
-                <CheckCircle className="h-4 w-4" />
-              ) : (
-                <AlertTriangle className="h-4 w-4" />
-              )}
-              <div>
-                {isGood ? (
-                  <span>
-                    Erstattung: <strong>{diff.toFixed(2)} €</strong>
-                  </span>
+              <div className="flex items-center gap-2">
+                {settlement! >= 0 ? (
+                  <CheckCircle className="h-4 w-4" />
                 ) : (
-                  <span>
-                    Nachzahlung: <strong>{Math.abs(diff).toFixed(2)} €</strong>
-                  </span>
+                  <AlertTriangle className="h-4 w-4" />
                 )}
+                <span>
+                  Schlussabrechnung:{' '}
+                  <strong>
+                    {settlement! >= 0 ? 'Erstattung' : 'Nachzahlung'}{' '}
+                    {Math.abs(settlement!).toFixed(2)} €
+                  </strong>
+                </span>
               </div>
+              {projection && (
+                <div className="mt-1 text-xs opacity-80">
+                  Prognose war: {projection.difference >= 0 ? '+' : '−'}
+                  {Math.abs(projection.difference).toFixed(2)} €
+                </div>
+              )}
             </div>
+          ) : (
+            projection && (
+              <div
+                className={`mt-4 rounded-md p-2 flex items-center gap-2 text-sm ${isGood ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100'}`}
+              >
+                {isGood ? (
+                  <CheckCircle className="h-4 w-4" />
+                ) : (
+                  <AlertTriangle className="h-4 w-4" />
+                )}
+                <div>
+                  {isGood ? (
+                    <span>
+                      Erstattung (Prognose):{' '}
+                      <strong>{diff.toFixed(2)} €</strong>
+                    </span>
+                  ) : (
+                    <span>
+                      Nachzahlung (Prognose):{' '}
+                      <strong>{Math.abs(diff).toFixed(2)} €</strong>
+                    </span>
+                  )}
+                </div>
+              </div>
+            )
           )}
 
           {projection && (

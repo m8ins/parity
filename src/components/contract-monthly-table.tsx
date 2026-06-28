@@ -1,4 +1,7 @@
+'use client';
+
 import { MonthlyBreakdown } from '@/lib/calculations';
+import { useLocale } from '@/lib/locale';
 import {
   Table,
   TableBody,
@@ -14,6 +17,7 @@ export function ContractMonthlyTable({
 }: {
   breakdown: MonthlyBreakdown[];
 }) {
+  const locale = useLocale();
   const totalConsumption = breakdown.reduce(
     (sum, entry) => sum + entry.consumption,
     0,
@@ -45,7 +49,7 @@ export function ContractMonthlyTable({
               className={isCurrentMonth(e.month) ? 'text-muted-foreground' : ''}
             >
               <TableCell>
-                {new Date(e.month).toLocaleDateString('de-DE', {
+                {new Date(e.month).toLocaleDateString(locale, {
                   month: 'short',
                   year: '2-digit',
                 })}{' '}

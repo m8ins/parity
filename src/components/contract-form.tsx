@@ -43,11 +43,13 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { useRouter } from "next/navigation"
+import { useLocale } from "@/lib/locale"
 import { GAS_WEIGHTS } from "@/lib/types"
 
 const formSchema = z.object({
     name: z.string().min(2, { message: "Name must be at least 2 characters." }),
     type: z.enum(["electricity", "gas"]),
+    provider: z.string().optional(),
     period_start: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Invalid date" }),
     grundpreis: z.coerce.number().min(0),
     arbeitspreis: z.coerce.number().min(0),
@@ -58,6 +60,7 @@ const formSchema = z.object({
 export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string, onSuccess?: () => void, onCancel?: () => void }) {
     const supabase = createClient()
     const router = useRouter()
+    const locale = useLocale()
     const [loading, setLoading] = useState(false)
 
     type FormValues = z.infer<typeof formSchema>
@@ -66,6 +69,7 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
         defaultValues: {
             name: "",
             type: "electricity",
+            provider: "",
             period_start: new Date().toISOString().split('T')[0],
             grundpreis: 0,
             arbeitspreis: 0,
@@ -108,6 +112,7 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
             const { data: contract, error: contractError } = await supabase.from("contracts").insert({
                 meter_id: meter.id,
                 period_start: values.period_start,
+                provider: values.provider?.trim() || null,
             }).select().single()
 
             if (contractError) throw contractError
@@ -152,6 +157,20 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
                     )}
                 />
 
+                <FormField
+                    control={form.control}
+                    name="provider"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Anbieter (optional)</FormLabel>
+                            <FormControl>
+                                <Input placeholder="z. B. e.on, Vattenfall" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
                 <div className="flex items-center gap-2">
                     <FormField
                         control={form.control}
@@ -189,7 +208,7 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
                                                         <Table>
                                                             <TableBody>
                                                                 {Array.from({ length: 6 }).map((_, i) => {
-                                                                    const monthName = new Date(0, i).toLocaleString('de-DE', { month: 'short' });
+                                                                    const monthName = new Date(0, i).toLocaleString(locale, { month: 'short' });
                                                                     return (
                                                                         <TableRow key={i} className="h-6">
                                                                             <TableCell className="py-0.5 text-xs">{monthName}</TableCell>
@@ -203,7 +222,7 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
                                                             <TableBody>
                                                                 {Array.from({ length: 6 }).map((_, i) => {
                                                                     const idx = i + 6;
-                                                                    const monthName = new Date(0, idx).toLocaleString('de-DE', { month: 'short' });
+                                                                    const monthName = new Date(0, idx).toLocaleString(locale, { month: 'short' });
                                                                     return (
                                                                         <TableRow key={idx} className="h-6">
                                                                             <TableCell className="py-0.5 text-xs">{monthName}</TableCell>

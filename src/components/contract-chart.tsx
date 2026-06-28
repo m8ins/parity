@@ -3,6 +3,7 @@
 import { useMemo } from "react"
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, ReferenceLine } from "recharts"
 import { ChartDataPoint } from "@/lib/calculations"
+import { useLocale } from "@/lib/locale"
 
 interface ContractChartProps {
     data: ChartDataPoint[]
@@ -12,15 +13,16 @@ interface ContractChartProps {
 }
 
 export function ContractChart({ data, unit, goal, className }: ContractChartProps) {
+    const locale = useLocale()
     // Format data for display
     const formattedData = useMemo(() => {
         return data.map(point => ({
             ...point,
-            formattedDate: new Date(point.date).toLocaleDateString('de-DE', { month: 'short', year: '2-digit' }),
+            formattedDate: new Date(point.date).toLocaleDateString(locale, { month: 'short', year: '2-digit' }),
             projected: Math.round(point.projected),
             actual: point.actual !== null ? Math.round(point.actual) : null
         }))
-    }, [data])
+    }, [data, locale])
 
     // Determine color based on latest actual vs projected
     // If actual < projected -> Good (Green)
