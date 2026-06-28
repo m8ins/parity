@@ -2,12 +2,11 @@
 
 import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { Meter, Contract, Rate, Reading } from "@/lib/types"
-import { calculateProjection } from "@/lib/calculations"
+import { Meter, Reading, MeterData } from "@/lib/types"
+import { loadMeterData } from "@/lib/contracts"
 import { ContractForm } from "./contract-form"
 import { ContractCard } from "./contract-card"
 import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import type { User } from "@supabase/supabase-js"
 import {
@@ -17,12 +16,6 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-
-type MeterData = {
-    contract: Contract | null
-    rates: Rate[]
-    readings: Reading[]
-}
 
 export function Dashboard({
     user,
@@ -49,30 +42,8 @@ export function Dashboard({
         setMeters(metersData as Meter[])
 
         const newData: Record<string, MeterData> = {}
-
         for (const meter of metersData) {
-            const contractRes = await supabase
-                .from('contracts')
-                .select('*')
-                .eq('meter_id', meter.id)
-                .order('period_start', { ascending: false })
-                .limit(1)
-                .single()
-
-            const contract = contractRes.data as Contract | null
-
-            const [ratesRes, readingsRes] = await Promise.all([
-                contract
-                    ? supabase.from('rates').select('*').eq('contract_id', contract.id).order('effective_from', { ascending: true })
-                    : Promise.resolve({ data: [] }),
-                supabase.from('readings').select('*').eq('meter_id', meter.id).order('date', { ascending: true }),
-            ])
-
-            newData[meter.id] = {
-                contract,
-                rates: (ratesRes.data as Rate[]) || [],
-                readings: (readingsRes.data as Reading[]) || [],
-            }
+            newData[meter.id] = await loadMeterData(supabase, meter.id)
         }
         setData(newData)
     }
@@ -88,7 +59,7 @@ export function Dashboard({
 
     const handleReadingAdded = (meterId: string, reading: Reading) => {
         setData(prev => {
-            const existing = prev[meterId] || { contract: null, rates: [], readings: [] }
+            const existing = prev[meterId] || { contracts: [], ratesByContract: {}, readings: [] }
             const nextReadings = [...existing.readings, reading].sort(
                 (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
             )
@@ -103,19 +74,13 @@ export function Dashboard({
         <div className="container mx-auto p-4 space-y-8">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {meters.map(meter => {
-                    const mData = data[meter.id] || { contract: null, rates: [], readings: [] }
-                    const projection = mData.contract
-                        ? calculateProjection(meter, mData.contract, mData.readings, mData.rates)
-                        : null
-                    const currentAbschlag = mData.rates[mData.rates.length - 1]?.abschlag || 0
+                    const mData = data[meter.id] || { contracts: [], ratesByContract: {}, readings: [] }
 
                     return (
                         <ContractCard
                             key={meter.id}
                             meter={meter}
-                            readings={mData.readings}
-                            currentAbschlag={currentAbschlag}
-                            projection={projection}
+                            meterData={mData}
                             onUpdate={fetchData}
                             onReadingAdded={handleReadingAdded}
                             onDelete={deleteMeter}

@@ -3,6 +3,7 @@
 import { useMemo } from "react"
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, ReferenceLine } from "recharts"
 import { ChartDataPoint } from "@/lib/calculations"
+import { useLocale } from "@/lib/locale"
 
 interface ContractChartProps {
     data: ChartDataPoint[]
@@ -14,16 +15,17 @@ interface ContractChartProps {
     className?: string
 }
 
-export function ContractChart({ data, unit, goal, isGood = true, className }: ContractChartProps) {
+export function ContractChart({ data, unit, goal, isGood, className }: ContractChartProps) {
+    const locale = useLocale()
     // Format data for display
     const formattedData = useMemo(() => {
         return data.map(point => ({
             ...point,
-            formattedDate: new Date(point.date).toLocaleDateString('de-DE', { month: 'short', year: '2-digit' }),
+            formattedDate: new Date(point.date).toLocaleDateString(locale, { month: 'short', year: '2-digit' }),
             projected: Math.round(point.projected),
             actual: point.actual !== null ? Math.round(point.actual) : null
         }))
-    }, [data])
+    }, [data, locale])
 
     // Color reflects the financial outlook (passed in via isGood), i.e. whether a
     // Nachzahlung is projected — consistent with the card's Nachzahlung/Erstattung badge.

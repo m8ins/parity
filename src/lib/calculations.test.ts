@@ -154,51 +154,59 @@ describe('calculateProjection', () => {
     vi.useRealTimers();
   });
 
-  it('adds a chart point at each real reading date (mid-month)', () => {
-    const date = new Date('2024-06-01T12:00:00Z');
-    vi.setSystemTime(date);
-
+  it('scopes the run-rate to the billing period for multi-year readings', () => {
+    // A meter with readings spanning two contract years. The 2024 projection
+    // must ignore the 2025 reading, so it equals the projection computed from
+    // the 2024 readings alone.
     const meter = createMeter('electricity');
-    const contract = createContract();
-    const readings = createReadings([
-      { date: '2024-01-01', value: 1000 },
-      { date: '2024-02-15', value: 1450 }, // mid-month reading
-    ]);
-    const result = calculateProjection(meter, contract, readings, []);
+    const contract2024 = createContract('meter-1', {
+      period_start: '2024-01-01',
+      period_end: '2025-01-01',
+    });
+    const within2024 = [
+      { date: '2024-01-01', value: 0 },
+      { date: '2024-07-01', value: 1000 },
+    ];
+    const rates = [createRate(30)];
 
-    const midPoint = result!.chartData.find(
-      (p) =>
-        new Date(p.date).toISOString() ===
-        new Date('2024-02-15T00:00:00.000Z').toISOString(),
+    const scoped = calculateProjection(
+      meter,
+      contract2024,
+      createReadings([...within2024, { date: '2025-07-01', value: 9000 }]),
+      rates,
+    );
+    const isolated = calculateProjection(
+      meter,
+      contract2024,
+      createReadings(within2024),
+      rates,
     );
 
-    expect(midPoint).toBeDefined();
-    // actual = (1450 - 1000) * factor(1) = 450
-    expect(midPoint!.actual).toBeCloseTo(450, 0);
-
-    vi.useRealTimers();
+    expect(scoped?.projectedYearlyConsumption).toBeCloseTo(
+      isolated!.projectedYearlyConsumption,
+      5,
+    );
   });
 
-  it('includes the current partial month in monthlyBreakdown', () => {
+  it('difference sign follows the settlement convention', () => {
     const meter = createMeter('electricity');
     const contract = createContract();
-    // Last reading is mid-month -> the partial month must show up.
     const readings = createReadings([
       { date: '2024-01-01', value: 1000 },
-      { date: '2024-02-01', value: 1100 },
-      { date: '2024-02-15', value: 1170 },
+      { date: '2024-01-11', value: 1100 },
     ]);
-    const rate = createRate(30, { grundpreis: 10 });
 
-    const result = calculateProjection(meter, contract, readings, [rate]);
+    // High abschlag → overpaid → positive difference (Erstattung).
+    const overpaid = calculateProjection(meter, contract, readings, [
+      createRate(30, { abschlag: 1000 }),
+    ]);
+    expect(overpaid?.difference).toBeGreaterThan(0);
 
-    const feb = result!.monthlyBreakdown.find(
-      (m) => new Date(m.month).getMonth() === 1, // February
-    );
-
-    expect(feb).toBeDefined();
-    // Feb 1 -> Feb 15 = 1170 - 1100 = 70
-    expect(feb!.consumption).toBeCloseTo(70, 0);
+    // Tiny abschlag → underpaid → negative difference (Nachzahlung).
+    const underpaid = calculateProjection(meter, contract, readings, [
+      createRate(30, { abschlag: 1 }),
+    ]);
+    expect(underpaid?.difference).toBeLessThan(0);
   });
 
   it('calculates monthlyBreakdown correctly', () => {

@@ -1,7 +1,8 @@
 import { Dashboard } from "@/components/dashboard"
 import { AuthScreen } from "@/components/auth-screen"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
-import { Meter, Contract, Rate, Reading } from "@/lib/types"
+import { Meter, MeterData } from "@/lib/types"
+import { loadMeterData } from "@/lib/contracts"
 
 export default async function Home() {
   const supabase = await createServerSupabaseClient()
@@ -18,35 +19,10 @@ export default async function Home() {
 
   const meters = (metersData as Meter[]) || []
 
-  const initialData: Record<string, {
-    contract: Contract | null
-    rates: Rate[]
-    readings: Reading[]
-  }> = {}
+  const initialData: Record<string, MeterData> = {}
 
   for (const meter of meters) {
-    const contractRes = await supabase
-      .from("contracts")
-      .select("*")
-      .eq("meter_id", meter.id)
-      .order("period_start", { ascending: false })
-      .limit(1)
-      .single()
-
-    const contract = (contractRes.data as Contract) || null
-
-    const [ratesRes, readingsRes] = await Promise.all([
-      contract
-        ? supabase.from("rates").select("*").eq("contract_id", contract.id).order("effective_from", { ascending: true })
-        : Promise.resolve({ data: [] }),
-      supabase.from("readings").select("*").eq("meter_id", meter.id).order("date", { ascending: true }),
-    ])
-
-    initialData[meter.id] = {
-      contract,
-      rates: (ratesRes.data as Rate[]) || [],
-      readings: (readingsRes.data as Reading[]) || [],
-    }
+    initialData[meter.id] = await loadMeterData(supabase, meter.id)
   }
 
   return (

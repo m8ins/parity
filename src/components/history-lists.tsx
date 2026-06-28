@@ -1,6 +1,7 @@
 "use client"
 
 import { formatDate } from "@/lib/date-utils"
+import { useLocale } from "@/lib/locale"
 import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Rate } from "@/lib/types"
@@ -21,6 +22,7 @@ export function RateHistory({ contractId, initialData, isGas }: { contractId: st
     const [rates, setRates] = useState(initialData)
     const [loading, setLoading] = useState(false)
     const supabase = createClient()
+    const locale = useLocale()
 
     const [date, setDate] = useState("")
     const [grundpreis, setGrundpreis] = useState("")
@@ -99,7 +101,7 @@ export function RateHistory({ contractId, initialData, isGas }: { contractId: st
                 <TableBody>
                     {rates.map((rate) => (
                         <TableRow key={rate.id}>
-                            <TableCell>{formatDate(rate.effective_from)}</TableCell>
+                            <TableCell>{formatDate(rate.effective_from, locale)}</TableCell>
                             <TableCell>{rate.grundpreis.toFixed(2)} €</TableCell>
                             <TableCell>{rate.arbeitspreis.toFixed(2)} ct</TableCell>
                             <TableCell>{rate.abschlag.toFixed(2)} €</TableCell>

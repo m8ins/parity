@@ -45,8 +45,30 @@ export function calculateProjection(
       new Date(b.effective_from).getTime(),
   );
 
-  const firstReading = sortedReadings[0];
-  const lastReading = sortedReadings[sortedReadings.length - 1];
+  // Billing period bounds: explicit period_start / period_end from the
+  // contract. If period_end is absent, derive as period_start + 1 year.
+  const billingYearStart = new Date(contract.period_start);
+  const billingYearEnd = contract.period_end
+    ? new Date(contract.period_end)
+    : new Date(
+        billingYearStart.getFullYear() + 1,
+        billingYearStart.getMonth(),
+        billingYearStart.getDate(),
+      );
+
+  // Run-rate is derived only from readings inside this billing period, so a
+  // meter spanning multiple contract years doesn't mix prior periods into the
+  // current projection. For a single-period meter this is simply all readings.
+  const periodReadings = sortedReadings.filter((r) => {
+    const t = new Date(r.date).getTime();
+    return t >= billingYearStart.getTime() && t <= billingYearEnd.getTime();
+  });
+  if (periodReadings.length < 2) {
+    return null;
+  }
+
+  const firstReading = periodReadings[0];
+  const lastReading = periodReadings[periodReadings.length - 1];
 
   // Use the latest rate's umrechnungsfaktor for the overall consumption calculation.
   const latestRate = sortedRates[sortedRates.length - 1];
@@ -88,17 +110,6 @@ export function calculateProjection(
   if (trackedWeight <= 0) trackedWeight = 0.0001;
 
   const projectedYearlyConsumption = consumption / trackedWeight;
-
-  // Billing period: use explicit period_start / period_end from contract.
-  // If period_end is absent, derive as period_start + 1 year.
-  const billingYearStart = new Date(contract.period_start);
-  const billingYearEnd = contract.period_end
-    ? new Date(contract.period_end)
-    : new Date(
-        billingYearStart.getFullYear() + 1,
-        billingYearStart.getMonth(),
-        billingYearStart.getDate(),
-      );
 
   let projectedYearlyCost = 0;
   let expectedYearlyPayment = 0;
