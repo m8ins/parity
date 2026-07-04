@@ -224,4 +224,32 @@ describe('calculateProjection', () => {
     expect(result?.monthlyBreakdown).toHaveLength(2);
     expect(result?.monthlyBreakdown[0].consumption).toBeCloseTo(100);
   });
+
+  it('includes the current month in monthlyBreakdown when the latest reading falls past billingYearEnd', () => {
+    // Electricity contract: period_start = 2025-07-01, no period_end.
+    // billingYearEnd is derived as 2026-07-01.
+    // The most-recent reading is 2026-07-04 — just past billingYearEnd —
+    // which is the scenario that caused July 2026 to be silently omitted.
+    const meter = createMeter('electricity');
+    const contract = createContract('meter-1', {
+      period_start: '2025-07-01',
+    });
+    const readings = createReadings([
+      { date: '2025-07-01', value: 10000 },
+      { date: '2025-10-01', value: 10900 },
+      { date: '2026-01-01', value: 11800 },
+      { date: '2026-04-01', value: 12700 },
+      { date: '2026-07-04', value: 13600 }, // past billingYearEnd (2026-07-01)
+    ]);
+    const rate = createRate(30, { grundpreis: 10, effective_from: '2025-07-01' });
+
+    const result = calculateProjection(meter, contract, readings, [rate]);
+
+    expect(result).not.toBeNull();
+    const julyEntry = result!.monthlyBreakdown.find((m) =>
+      m.month.startsWith('2026-07'),
+    );
+    expect(julyEntry).toBeDefined();
+    expect(julyEntry!.consumption).toBeGreaterThan(0);
+  });
 });

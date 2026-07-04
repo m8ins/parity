@@ -235,12 +235,15 @@ export function calculateProjection(
 
   // Per calendar month, derived from real readings (month boundaries are
   // interpolated). Includes the current partial month up to the last reading.
-  const lastReadingDate = new Date(lastReading.date);
+  // Use all readings (not just period-filtered) so a reading made in the new month
+  // right after billingYearEnd still appears as the current partial month.
+  const lastReadingDate = new Date(sortedReadings[sortedReadings.length - 1].date);
   const monthlyBreakdown: MonthlyBreakdown[] = [];
   // Anchor month boundaries on billingYearStart (matching the chart grid) so they
   // align exactly with reading dates that fall on the 1st.
   const monthCursor = new Date(billingYearStart);
-  while (monthCursor < billingYearEnd) {
+  const loopEnd = new Date(Math.max(billingYearEnd.getTime(), lastReadingDate.getTime()));
+  while (monthCursor < loopEnd) {
     const monthStart = new Date(monthCursor);
     const nextMonth = new Date(monthCursor);
     nextMonth.setMonth(nextMonth.getMonth() + 1);
