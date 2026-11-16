@@ -128,11 +128,9 @@ input { caret-color: var(--sys-color-text); }
 .reading-value { display: flex; align-items: baseline; gap: var(--sys-gap-inline); }
 .reading-value .reading-input { font: var(--sys-font-reading); text-align: right; }
 .reading-unit { font: var(--sys-font-control); white-space: nowrap; }
-.reading-hint, .reading-error, .reading-last { font: var(--sys-font-support); }
-.reading-hint, .reading-last { color: var(--sys-color-text-secondary); }
+.reading-hint, .reading-error { font: var(--sys-font-support); }
+.reading-hint { color: var(--sys-color-text-secondary); }
 .reading-error { color: var(--sys-color-error); }
-.reading-last { border-block: 1px solid var(--sys-color-divider); padding-block: var(--sys-gap-group); display: flex; flex-wrap: wrap; gap: var(--sys-gap-inline); justify-content: space-between; }
-.reading-last strong { white-space: nowrap; max-width: 100%; overflow-x: auto; }
 .reading-actions { display: grid; gap: var(--sys-gap-group); }
 .sheet-handle { display: none; }
 .meter-reading-summary { border-bottom: 1px solid var(--sys-color-divider); padding-bottom: var(--sys-gap-field); margin-bottom: var(--sys-gap-field); }
@@ -191,3 +189,62 @@ input { caret-color: var(--sys-color-text); }
 .setup-summary dd { font-variant-numeric: lining-nums tabular-nums; }
 .setup-empty { max-width: 65ch; margin-bottom: var(--sys-gap-section); display: grid; gap: var(--sys-gap-group); }
 @media (max-width: 359px) { .meter-setup-dialog { padding-inline: var(--sys-gap-group); } }
+
+/* Slice 3: the selected billing period is the unit of understanding. */
+.understand { min-width: 0; padding-block: var(--sys-gap-group); }
+.understand h2 { font: var(--sys-font-section); font-weight: var(--ref-font-weight-bold); }
+.understand h3, .understand summary { font: var(--sys-font-body); font-weight: var(--ref-font-weight-bold); }
+.understand p { margin-block: var(--sys-gap-inline); max-width: 72ch; overflow-wrap: anywhere; }
+.understand-totals { margin-block: var(--sys-gap-group); }
+.understand-totals > div, .detail-page .understand-totals > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--sys-gap-inline) var(--sys-gap-group); padding-block: var(--sys-gap-inline); border-bottom: 1px solid var(--sys-color-divider); }
+.understand-totals dt { color: var(--sys-color-text-secondary); }
+.understand-totals dd { text-align: right; margin-left: auto; font-weight: var(--ref-font-weight-semibold); overflow-wrap: anywhere; }
+.understand-section { margin-top: var(--sys-gap-section); padding-top: var(--sys-gap-group); border-top: 1px solid var(--sys-color-divider); }
+.understand summary { cursor: pointer; padding-block: var(--sys-gap-group); }
+.understand summary:focus-visible, .understand-link:focus-visible { outline: 3px solid var(--sys-color-focus); outline-offset: 3px; }
+.understand-link { display: inline-block; text-decoration: underline; text-underline-offset: 0.2em; padding-block: var(--sys-gap-group); font-weight: var(--ref-font-weight-semibold); }
+.detail-heading h1 { min-width: 0; overflow-wrap: anywhere; }
+
+.understand-chart-scroll { width: 100%; max-width: 100%; overflow-x: auto; }
+.understand-chart-canvas { min-width: 40rem; height: 16rem; }
+.understand-chart-scroll:focus-visible { outline: 3px solid var(--sys-color-focus); outline-offset: 3px; }
+
+/* Understanding: answer first, chart second, supporting facts on demand. */
+.understand-result { margin-block: var(--sys-gap-group); }
+.understand-compact .understand-result h2 { font: var(--sys-font-body); font-weight: var(--ref-font-weight-bold); }
+.understand-chart { margin-top: var(--sys-gap-section); }
+.understand-legend { display: flex; flex-wrap: wrap; gap: var(--sys-gap-group); margin-block: var(--sys-gap-inline); }
+.understand-legend span { display: inline-flex; align-items: center; gap: var(--sys-gap-inline); }
+.understand-legend span::before { content: ''; width: 1.5em; border-top: 2px solid var(--sys-color-chart-actual); }
+.understand-legend span + span::before { border-top-style: dashed; border-color: var(--sys-color-chart-projected); }
+.understand > details.understand-section { margin-top: 0; padding-top: 0; }
+
+.detail-title-group { display: flex; flex: 1; min-width: 0; flex-wrap: wrap; align-items: baseline; gap: var(--sys-gap-inline) var(--sys-gap-group); }
+.detail-title-group h1 { margin: 0; }
+.detail-type-icon { width: 1.75rem; height: 1.75rem; flex-shrink: 0; }
+.detail-title-group .detail-period-select { max-width: 100%; width: auto; }
+
+.meter-confirmation:empty { margin-top: 0; }
+
+/* Keep the name readable while aligning the period on its text baseline. */
+.detail-heading { align-items: baseline; }
+.detail-title-group { flex-basis: 28rem; }
+.detail-title-group h1 { flex: 0 1 auto; }
+.detail-type-icon { align-self: center; }
+.understand:not(.understand-compact) .understand-result { padding: var(--sys-gap-group); border: var(--sys-border-width) solid var(--sys-color-border); border-radius: var(--sys-radius-control); }
+.understand:not(.understand-compact) .understand-result-due { background: var(--sys-color-outcome-negative-surface); color: var(--sys-color-error); border-color: var(--sys-color-error); }
+.understand:not(.understand-compact) .understand-result-refund { background: var(--sys-color-outcome-positive-surface); color: var(--sys-color-outcome-positive); border-color: var(--sys-color-outcome-positive); }
+.understand-result h2 { margin: 0; }
+@media (max-width: 639px) {
+  .detail-heading { display: block; }
+  .detail-heading > button { margin-bottom: var(--sys-gap-inline); }
+  .detail-title-group { display: grid; grid-template-columns: minmax(0, 1fr); align-items: baseline; }
+  .detail-title-group h1 { grid-column: 1; width: 100%; }
+  .detail-title-group > [data-slot=select-trigger], .detail-title-group > span, .detail-title-group .rename-field { grid-column: 1 / -1; }
+}
+
+.detail-title-group h1 button { display: inline; }
+.detail-title-group h1 .detail-type-icon { display: inline-block; vertical-align: -0.1em; margin-inline-end: var(--sys-gap-inline); }
+
+.understand:not(.understand-compact) .understand-result-neutral { background: var(--sys-color-surface); }
+.understand-result-due .text-muted-foreground, .understand-result-refund .text-muted-foreground { color: inherit; }

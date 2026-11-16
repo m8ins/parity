@@ -1,316 +1,150 @@
-import { Meter, Contract, Rate, Reading, GAS_WEIGHTS } from "./types";
+import { Meter, Contract, Rate, Reading, GAS_WEIGHTS } from './types';
 
 export interface ProjectionResult {
-  projectedYearlyConsumption: number; // kWh
-  projectedYearlyCost: number; // Euro
-  currentYearlyPayment: number; // Euro
-  difference: number; // Euro
-  recommendedMonthlyPayment: number; // Euro
+  // Historical names retained for callers. All totals cover the billing PERIOD.
+  projectedYearlyConsumption: number;
+  projectedYearlyCost: number | null;
+  currentYearlyPayment: number | null;
+  difference: number | null;
+  recommendedMonthlyPayment: number | null;
+  paidUsage: number | null;
   daysTracked: number;
   billingPeriodStart: Date;
   billingPeriodEnd: Date;
+  observedConsumption: number;
+  observedStart: string;
+  observedEnd: string;
   chartData: ChartDataPoint[];
-  paidUsage: number; // kWh
-  monthlyBreakdown: MonthlyBreakdown[]; // Optional, can be computed if needed
+  monthlyBreakdown: MonthlyBreakdown[];
 }
-
 export interface ChartDataPoint {
-  date: string; // ISO String
-  projected: number; // Cumulative kWh
-  actual: number | null; // Cumulative kWh
+  date: string;
+  projected: number;
+  actual: number | null;
 }
-
 export interface MonthlyBreakdown {
-  month: string; // e.g., "Jan 2024"
-  consumption: number; // kWh
-  cost: number; // € in this month
+  month: string;
+  end?: string;
+  consumption: number;
+  cost: number | null;
+}
+const DAY = 86_400_000;
+const iso = (time: number) => new Date(time).toISOString().slice(0, 10);
+export function periodEnd(contract: Contract): string {
+  if (contract.period_end) return contract.period_end;
+  const date = new Date(`${contract.period_start}T00:00:00Z`);
+  date.setUTCFullYear(date.getUTCFullYear() + 1);
+  return iso(date.getTime());
+}
+export function readingsInPeriod(contract: Contract, readings: Reading[]) {
+  return readings.filter(r => r.date >= contract.period_start && r.date <= periodEnd(contract))
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
+export function activeRate(rates: Rate[], date: string): Rate | undefined {
+  return [...rates].sort((a, b) => a.effective_from.localeCompare(b.effective_from))
+    .filter(r => r.effective_from <= date).at(-1);
+}
+function daysInYear(date: Date) {
+  const year = date.getUTCFullYear();
+  return (Date.UTC(year + 1, 0, 1) - Date.UTC(year, 0, 1)) / DAY;
 }
 
-export function calculateProjection(
-  meter: Meter,
-  contract: Contract,
-  readings: Reading[],
-  rates: Rate[],
-): ProjectionResult | null {
-  if (!readings || readings.length < 2) {
-    return null;
-  }
-
-  const sortedReadings = [...readings].sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-  );
-  const sortedRates = [...rates].sort(
-    (a, b) =>
-      new Date(a.effective_from).getTime() -
-      new Date(b.effective_from).getTime(),
-  );
-
-  // Billing period bounds: explicit period_start / period_end from the
-  // contract. If period_end is absent, derive as period_start + 1 year.
-  const billingYearStart = new Date(contract.period_start);
-  const billingYearEnd = contract.period_end
-    ? new Date(contract.period_end)
-    : new Date(
-        billingYearStart.getFullYear() + 1,
-        billingYearStart.getMonth(),
-        billingYearStart.getDate(),
-      );
-
-  // Run-rate is derived only from readings inside this billing period, so a
-  // meter spanning multiple contract years doesn't mix prior periods into the
-  // current projection. For a single-period meter this is simply all readings.
-  const periodReadings = sortedReadings.filter((r) => {
-    const t = new Date(r.date).getTime();
-    return t >= billingYearStart.getTime() && t <= billingYearEnd.getTime();
-  });
-  if (periodReadings.length < 2) {
-    return null;
-  }
-
-  const firstReading = periodReadings[0];
-  const lastReading = periodReadings[periodReadings.length - 1];
-
-  // Use the latest rate's umrechnungsfaktor for the overall consumption calculation.
-  const latestRate = sortedRates[sortedRates.length - 1];
-  const factor =
-    meter.type === "gas" ? (latestRate?.umrechnungsfaktor ?? 10) : 1;
-  const consumption = (lastReading.value - firstReading.value) * factor;
-
-  const startDate = new Date(firstReading.date);
-  const endDate = new Date(lastReading.date);
-  const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-  const daysTracked = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  if (daysTracked <= 0) return null;
-
-  const getDayWeight = (date: Date) => {
-    if (
-      meter.monthly_distribution &&
-      meter.monthly_distribution.length === 12
-    ) {
-      const month = date.getMonth();
-      const daysInMonth = new Date(date.getFullYear(), month + 1, 0).getDate();
-      return meter.monthly_distribution[month] / daysInMonth;
-    }
-    if (meter.type === "electricity") {
-      return 1 / (365 + (isLeapYear(date.getFullYear()) ? 1 : 0));
-    } else {
-      const month = date.getMonth();
-      const daysInMonth = new Date(date.getFullYear(), month + 1, 0).getDate();
-      return GAS_WEIGHTS[month] / daysInMonth;
-    }
+/** Existing model: seasonal run-rate, linear interpolation of readings, and
+ * annual/day proration of monthly prices/payments. UTC calendar days avoid DST.
+ * End is exclusive for charges, inclusive ONLY for the closing meter reading.
+ * No rates are backdated and missing money values remain null. */
+export function calculateProjection(meter: Meter, contract: Contract, readings: Reading[], rates: Rate[]): ProjectionResult | null {
+  const start = Date.parse(contract.period_start);
+  const end = Date.parse(periodEnd(contract));
+  const samples = readingsInPeriod(contract, readings);
+  if (samples.length < 2 || !(end > start)) return null;
+  if (samples.some((r, i) => !Number.isFinite(r.value) || r.value < 0 ||
+    (i > 0 && (r.date === samples[i - 1].date || r.value < samples[i - 1].value)))) return null;
+  const first = samples[0], last = samples[samples.length - 1];
+  const firstTime = Date.parse(first.date), lastTime = Date.parse(last.date);
+  const weight = (time: number) => {
+    const date = new Date(time), month = date.getUTCMonth();
+    const distribution = meter.monthly_distribution;
+    const custom = distribution?.length === 12 && distribution.every(w => Number.isFinite(w) && w >= 0) && distribution.some(w => w > 0);
+    if (!custom && meter.type === 'electricity') return 1 / daysInYear(date);
+    const weights = custom ? distribution! : GAS_WEIGHTS;
+    const days = new Date(Date.UTC(date.getUTCFullYear(), month + 1, 0)).getUTCDate();
+    return weights[month] / days;
   };
-
   let trackedWeight = 0;
-  const loopDate = new Date(startDate);
-  while (loopDate < endDate) {
-    trackedWeight += getDayWeight(loopDate);
-    loopDate.setDate(loopDate.getDate() + 1);
-  }
-  if (trackedWeight <= 0) trackedWeight = 0.0001;
-
-  const projectedYearlyConsumption = consumption / trackedWeight;
-
-  let projectedYearlyCost = 0;
-  let expectedYearlyPayment = 0;
-  let totalBasePrice = 0;
-  let totalWeightedEnergyPrice = 0;
-
+  for (let day = firstTime; day < lastTime; day += DAY) trackedWeight += weight(day);
+  if (!(trackedWeight > 0)) return null;
+  // Run-rate is in meter units; dated conversion factors are applied per day.
+  const runRate = (last.value - first.value) / trackedWeight;
+  const estimateReading = (time: number): number | null => {
+    if (time < firstTime || time > lastTime) return null;
+    const index = samples.findIndex(r => Date.parse(r.date) >= time);
+    const after = samples[index];
+    if (Date.parse(after.date) === time) return after.value;
+    const before = samples[index - 1];
+    return before.value + (after.value - before.value) *
+      (time - Date.parse(before.date)) / (Date.parse(after.date) - Date.parse(before.date));
+  };
+  let consumption = 0, cost = 0, payments = 0, months = 0;
+  let base = 0, weightedPrice = 0, observed = 0, conversionWeight = 0;
+  let costsKnown = true, paymentsKnown = true;
   const chartData: ChartDataPoint[] = [];
-  let accumulatedProjectedConsumption = 0;
-  const sortedReadingsByTime = [...sortedReadings].map((r) => ({
-    ...r,
-    time: new Date(r.date).getTime(),
-  }));
-
-  const estimateReading = (targetDate: Date): number | null => {
-    const time = targetDate.getTime();
-    if (
-      time < sortedReadingsByTime[0].time ||
-      time > sortedReadingsByTime[sortedReadingsByTime.length - 1].time
-    ) {
-      return null;
-    }
-    const afterIndex = sortedReadingsByTime.findIndex((r) => r.time >= time);
-    if (afterIndex === -1) return null;
-    const after = sortedReadingsByTime[afterIndex];
-    if (after.time === time) return after.value;
-    if (afterIndex === 0) return after.value;
-    const before = sortedReadingsByTime[afterIndex - 1];
-    const span = after.time - before.time;
-    const progress = (time - before.time) / span;
-    return before.value + (after.value - before.value) * progress;
-  };
-
-  const findActiveRate = (date: Date): Rate | null => {
-    for (let i = sortedRates.length - 1; i >= 0; i--) {
-      if (new Date(sortedRates[i].effective_from) <= date) {
-        return sortedRates[i];
-      }
-    }
-    return sortedRates[0] ?? null;
-  };
-
-  const baselineReading = estimateReading(billingYearStart);
-
-  chartData.push({
-    date: billingYearStart.toISOString(),
-    projected: 0,
-    actual: baselineReading !== null ? 0 : null,
-  });
-
-  // Emit dates = monthly grid points UNION actual reading dates, so the chart's
-  // actual line gets a vertex at every reading (incl. the latest one) while the
-  // projected curve stays smooth across the whole billing year.
-  const emitTimes = new Set<number>();
-  const gridDate = new Date(billingYearStart);
-  gridDate.setMonth(gridDate.getMonth() + 1);
-  while (gridDate < billingYearEnd) {
-    emitTimes.add(gridDate.getTime());
-    gridDate.setMonth(gridDate.getMonth() + 1);
-  }
-  for (const r of sortedReadingsByTime) {
-    if (r.time > billingYearStart.getTime() && r.time < billingYearEnd.getTime()) {
-      emitTimes.add(r.time);
-    }
-  }
-  const emitDates = [...emitTimes].sort((a, b) => a - b);
-  let emitPtr = 0;
-
-  const calcDate = new Date(billingYearStart);
-
-  while (calcDate < billingYearEnd) {
-    const activeRate = findActiveRate(calcDate);
-    const dayWeight = getDayWeight(calcDate);
-    const dailyConsumption = projectedYearlyConsumption * dayWeight;
-
-    accumulatedProjectedConsumption += dailyConsumption;
-
-    while (
-      emitPtr < emitDates.length &&
-      calcDate.getTime() >= emitDates[emitPtr]
-    ) {
-      const pointDate = new Date(emitDates[emitPtr]);
-      const val = estimateReading(pointDate);
-      const actual =
-        val !== null && baselineReading !== null
-          ? (val - baselineReading) * factor
-          : null;
-      chartData.push({
-        date: pointDate.toISOString(),
-        projected: accumulatedProjectedConsumption,
-        actual,
-      });
-      emitPtr++;
-    }
-
-    if (activeRate) {
-      const year = calcDate.getFullYear();
-      const daysInYear = 365 + (isLeapYear(year) ? 1 : 0);
-      const dailyBasePrice = (activeRate.grundpreis * 12) / daysInYear;
-      const dailyEnergyCost =
-        (dailyConsumption * activeRate.arbeitspreis) / 100;
-      projectedYearlyCost += dailyBasePrice + dailyEnergyCost;
-      totalBasePrice += dailyBasePrice;
-      totalWeightedEnergyPrice += (activeRate.arbeitspreis / 100) * dayWeight;
-
-      const dailyPayment = (activeRate.abschlag * 12) / daysInYear;
-      expectedYearlyPayment += dailyPayment;
-    }
-
-    calcDate.setDate(calcDate.getDate() + 1);
-  }
-
-  const val = estimateReading(billingYearEnd);
-  const actual =
-    val !== null && baselineReading !== null
-      ? (val - baselineReading) * factor
-      : null;
-  appendYearEndpoint(
-    chartData,
-    billingYearEnd,
-    accumulatedProjectedConsumption,
-    actual,
-  );
-
-  // Per calendar month, derived from real readings (month boundaries are
-  // interpolated). Includes the current partial month up to the last reading.
-  // Use all readings (not just period-filtered) so a reading made in the new month
-  // right after billingYearEnd still appears as the current partial month.
-  const lastReadingDate = new Date(sortedReadings[sortedReadings.length - 1].date);
   const monthlyBreakdown: MonthlyBreakdown[] = [];
-  // Anchor month boundaries on billingYearStart (matching the chart grid) so they
-  // align exactly with reading dates that fall on the 1st.
-  const monthCursor = new Date(billingYearStart);
-  const loopEnd = new Date(Math.max(billingYearEnd.getTime(), lastReadingDate.getTime()));
-  while (monthCursor < loopEnd) {
-    const monthStart = new Date(monthCursor);
-    const nextMonth = new Date(monthCursor);
-    nextMonth.setMonth(nextMonth.getMonth() + 1);
-    const monthEnd = nextMonth < lastReadingDate ? nextMonth : lastReadingDate;
+  const baselineKnown = firstTime === start;
+  const emit = (day: number) => chartData.push({ date: new Date(day).toISOString(), projected: consumption,
+    actual: baselineKnown && day <= lastTime ? observed : null });
+  emit(start);
+  let bucket: MonthlyBreakdown | undefined;
+  for (let day = start; day < end; day += DAY) {
+    const date = new Date(day), dateIso = iso(day);
+    const rate = activeRate(rates, dateIso);
+    const factor = meter.type === 'gas' ? rate?.umrechnungsfaktor : 1;
+    // Gas without a known positive factor cannot yield a defensible kWh value.
+    if (factor == null || !Number.isFinite(factor) || factor <= 0) return null;
+    const daily = runRate * weight(day) * factor;
+    const monthlyPart = 12 / daysInYear(date);
+    consumption += daily;
+    conversionWeight += weight(day) * factor;
+    months += monthlyPart;
+    const priceKnown = rate && Number.isFinite(rate.grundpreis) && rate.grundpreis >= 0 &&
+      Number.isFinite(rate.arbeitspreis) && rate.arbeitspreis >= 0;
+    if (priceKnown) {
+      const dailyBase = rate.grundpreis * monthlyPart;
+      cost += dailyBase + daily * rate.arbeitspreis / 100;
+      base += dailyBase;
+      weightedPrice += weight(day) * factor * rate.arbeitspreis / 100;
+    } else costsKnown = false;
+    if (rate && Number.isFinite(rate.abschlag) && rate.abschlag >= 0) payments += rate.abschlag * monthlyPart;
+    else paymentsKnown = false;
 
-    if (monthEnd.getTime() > monthStart.getTime()) {
-      const startVal = estimateReading(monthStart);
-      const endVal = estimateReading(monthEnd);
-
-      if (startVal !== null && endVal !== null) {
-        const consumption = (endVal - startVal) * factor;
-        const rate = findActiveRate(monthStart);
-        const cost = rate
-          ? (consumption * rate.arbeitspreis) / 100 + rate.grundpreis
-          : 0;
-
-        monthlyBreakdown.push({
-          month: monthStart.toISOString(),
-          consumption,
-          cost,
-        });
+    const before = estimateReading(day), after = estimateReading(day + DAY);
+    if (before !== null && after !== null) {
+      const used = (after - before) * factor;
+      observed += used;
+      if (!bucket || bucket.month.slice(0, 7) !== dateIso.slice(0, 7)) {
+        bucket = { month: dateIso, end: iso(day + DAY), consumption: 0, cost: 0 };
+        monthlyBreakdown.push(bucket);
       }
+      bucket.end = iso(day + DAY);
+      bucket.consumption += used;
+      bucket.cost = priceKnown && bucket.cost !== null
+        ? bucket.cost + rate.grundpreis * monthlyPart + used * rate.arbeitspreis / 100 : null;
     }
-
-    monthCursor.setMonth(monthCursor.getMonth() + 1);
+    const next = day + DAY;
+    if (next === end || new Date(next).getUTCDate() === 1 || samples.some(r => r.date === iso(next))) emit(next);
   }
-
-  const difference = expectedYearlyPayment - projectedYearlyCost;
-  const recommendedMonthlyPayment = projectedYearlyCost / 12;
-
-  let paidUsage = 0;
-  if (totalWeightedEnergyPrice > 0) {
-    paidUsage =
-      (expectedYearlyPayment - totalBasePrice) / totalWeightedEnergyPrice;
-  }
-
+  const difference = costsKnown && paymentsKnown ? payments - cost : null;
   return {
-    projectedYearlyConsumption,
-    projectedYearlyCost,
-    currentYearlyPayment: expectedYearlyPayment,
+    projectedYearlyConsumption: consumption,
+    projectedYearlyCost: costsKnown ? cost : null,
+    currentYearlyPayment: paymentsKnown ? payments : null,
     difference,
-    recommendedMonthlyPayment,
-    paidUsage,
-    daysTracked,
-    billingPeriodStart: billingYearStart,
-    billingPeriodEnd: billingYearEnd,
-    chartData,
-    monthlyBreakdown,
+    recommendedMonthlyPayment: costsKnown ? cost / months : null,
+    paidUsage: costsKnown && paymentsKnown && weightedPrice > 0
+      ? Math.max(0, (payments - base) / weightedPrice * conversionWeight) : null,
+    daysTracked: (lastTime - firstTime) / DAY,
+    billingPeriodStart: new Date(start), billingPeriodEnd: new Date(end),
+    observedConsumption: observed, observedStart: samples[0].date, observedEnd: samples[samples.length - 1].date,
+    chartData, monthlyBreakdown,
   };
-}
-
-function isLeapYear(year: number) {
-  return (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;
-}
-
-function appendYearEndpoint(
-  chartData: ChartDataPoint[],
-  billingYearEnd: Date,
-  accumulatedProjectedConsumption: number,
-  actual: number | null,
-) {
-  const lastPt = chartData[chartData.length - 1];
-  if (new Date(lastPt.date).getTime() < billingYearEnd.getTime()) {
-    chartData.push({
-      date: billingYearEnd.toISOString(),
-      projected: accumulatedProjectedConsumption,
-      actual,
-    });
-  }
 }

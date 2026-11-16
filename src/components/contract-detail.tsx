@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { periodEnd } from '@/lib/calculations';
 import { formatDate } from '@/lib/date-utils';
 import { Meter, Reading, MeterData } from '@/lib/types';
 import {
@@ -10,7 +11,6 @@ import {
   formatPeriodLabel,
   addOneYear,
 } from '@/lib/contracts';
-import { useLocale } from '@/lib/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,10 +33,10 @@ import {
 } from '@/components/ui/select';
 import {
   ArrowLeft,
+  Flame,
+  Zap,
   Trash2,
   Calendar,
-  Zap,
-  Flame,
   Gauge,
   Building2,
   CalendarPlus,
@@ -46,6 +46,7 @@ import {
   Plus,
   HandCoins,
 } from 'lucide-react';
+import { PeriodUnderstanding } from './PeriodUnderstanding';
 import { RateHistory } from '@/components/history-lists';
 import { ReadingDialog } from '@/components/reading-dialog';
 import {
@@ -60,13 +61,17 @@ import {
 export function ContractDetail({
   initialMeter,
   initialData,
+  initialContractId,
+  asOf,
 }: {
   initialMeter: Meter | null;
   initialData: MeterData;
+  initialContractId?: string;
+  asOf?: string;
 }) {
   const router = useRouter();
   const supabase = createClient();
-  const locale = useLocale();
+  const locale = 'de-DE';
 
   const [meter, setMeter] = useState<Meter | null>(initialMeter);
   const { contracts, ratesByContract } = initialData;
@@ -78,7 +83,7 @@ export function ContractDetail({
 
   // Newest period first; default the view to it.
   const [selectedContractId, setSelectedContractId] = useState(
-    contracts[0]?.id ?? '',
+    initialContractId ?? contracts[0]?.id ?? '',
   );
   const contract =
     contracts.find((c) => c.id === selectedContractId) ?? contracts[0] ?? null;
@@ -228,13 +233,15 @@ export function ContractDetail({
 
   const settlement = contract?.settlement_amount;
   const hasSettlement = settlement !== null && settlement !== undefined;
+  const periodLabel = contract ? `(${contract.period_start.split('-').reverse().join('.')} – ${new Date(Date.parse(periodEnd(contract)) - 86400000).toISOString().slice(0, 10).split('-').reverse().join('.')}${!contract.period_end ? ', Ende vorläufig' : ''})` : 'Kein Abrechnungszeitraum';
 
   return (
     <div className="parity-page detail-page space-y-6">
-      <div className="detail-heading">
+      <header className="detail-heading">
         <Button aria-label="Zurück zur Übersicht" variant="ghost" size="icon-sm" onClick={() => router.back()}>
           <ArrowLeft />
         </Button>
+        <div className="detail-title-group">
         {isRenaming ? (
           <div className="rename-field">
             <Input aria-label="Zählername" disabled={actionBusy}
@@ -261,16 +268,12 @@ export function ContractDetail({
             </Button>
           </div>
         ) : (
-          <h1><button type="button" className="text-left cursor-pointer" onClick={() => { setNewName(meter.name); setIsRenaming(true); }} aria-label={`${meter.name} umbenennen`}>{meter.name}</button></h1>
+          <h1><button type="button" className="text-left cursor-pointer" onClick={() => { setNewName(meter.name); setIsRenaming(true); }} aria-label={`${meter.name} umbenennen`}>{meter.type === 'gas' ? <Flame className="detail-type-icon" aria-label="Gas" /> : <Zap className="detail-type-icon" aria-label="Strom" />}{meter.name}</button></h1>
         )}
-      </div>
-
-      {actionError && <p className="form-error" role="alert">{actionError}</p>}
-      <div className="detail-toolbar">
         {contracts.length > 1 ? (
           <Select value={contract?.id} onValueChange={setSelectedContractId}>
-            <SelectTrigger size="sm" aria-label="Abrechnungszeitraum">
-              <SelectValue placeholder="Vertragsjahr" />
+            <SelectTrigger size="sm" className="detail-period-select" aria-label="Abrechnungszeitraum">
+              <SelectValue placeholder="Abrechnungszeitraum">{periodLabel}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               {contracts.map((c) => (
@@ -282,9 +285,26 @@ export function ContractDetail({
           </Select>
         ) : (
           <span className="text-sm text-muted-foreground">
-            {contract ? formatPeriodLabel(contract, locale) : 'Kein Abrechnungszeitraum'}
+            {periodLabel}
           </span>
         )}
+
+        </div>
+      </header>
+      {actionError && <p className="form-error" role="alert">{actionError}</p>}
+
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList>
+          <TabsTrigger value="overview">Verstehen</TabsTrigger>
+          <TabsTrigger value="manage">Verwalten</TabsTrigger>
+          <TabsTrigger value="rates">Konditionen</TabsTrigger>
+          <TabsTrigger value="readings">Ablesungen</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview">
+          <PeriodUnderstanding meter={meter} contract={contract} readings={readings} rates={rates} asOf={asOf} />
+        </TabsContent>
+        <TabsContent value="manage">
         <Button
           variant="outline"
           size="sm"
@@ -293,16 +313,6 @@ export function ContractDetail({
         >
           <CalendarPlus className="mr-2 h-4 w-4" /> Neuer Zeitraum / Wechsel
         </Button>
-      </div>
-
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList>
-          <TabsTrigger value="overview">Übersicht</TabsTrigger>
-          <TabsTrigger value="rates">Konditionen</TabsTrigger>
-          <TabsTrigger value="readings">Ablesungen</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview">
           <Card>
             <CardHeader className="flex flex-row items-top justify-between space-y-0">
               <CardTitle>Details</CardTitle>
@@ -343,19 +353,6 @@ export function ContractDetail({
             </CardHeader>
             <CardContent className="space-y-2">
               <dl className="space-y-0.5">
-                <div className="flex flex-row items-center py-2 hover:bg-muted/50 rounded-sm px-2 -mx-2 transition-colors h-11">
-                  <dt className="w-36 text-sm text-muted-foreground flex items-center gap-2 flex-shrink-0">
-                    {meter.type === 'gas' ? (
-                      <Flame className="h-4 w-4" />
-                    ) : (
-                      <Zap className="h-4 w-4" />
-                    )}{' '}
-                    Typ
-                  </dt>
-                  <dd className="text-sm font-medium capitalize">
-                    {meter.type === 'gas' ? 'Gas' : 'Strom'}
-                  </dd>
-                </div>
                 <div className="flex flex-row items-center py-2 hover:bg-muted/50 rounded-sm px-2 -mx-2 transition-colors h-11">
                   <dt className="w-36 text-sm text-muted-foreground flex items-center gap-2 flex-shrink-0">
                     <Building2 className="h-4 w-4" /> Anbieter
@@ -453,7 +450,7 @@ export function ContractDetail({
                       <Gauge className="h-4 w-4" /> Umrechnungsfaktor
                     </dt>
                     <dd className="text-sm font-medium flex items-center gap-2">
-                      {rates[rates.length - 1].umrechnungsfaktor} kWh/m³
+                      {rates[rates.length - 1].umrechnungsfaktor.toLocaleString('de-DE', { maximumFractionDigits: 20 })} kWh/m³ (letzte Konditionen)
                     </dd>
                   </div>
                 )}
@@ -487,7 +484,7 @@ export function ContractDetail({
           <Card>
             <CardHeader>
               <div className="flex flex-row items-center justify-between">
-                <CardTitle>Ablesungen</CardTitle>
+                <CardTitle>Alle Ablesungen dieses Zählers</CardTitle>
                 <ReadingDialog
                   meterId={meter.id}
               meterName={meter.name}

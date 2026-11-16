@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, PointerEvent } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { MeterType, Reading } from '@/lib/types';
-import { formatReading, formatReadingDate, localToday, readingSchema } from '@/lib/readings';
+import { formatReading, localToday, readingSchema } from '@/lib/readings';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -32,13 +32,14 @@ export function ReadingDialog({
   const [viewport, setViewport] = useState<CSSProperties>({});
   const saving = useRef(false);
   const initialDate = useRef(date);
+  const initialValue = useRef('');
   const dateRef = useRef<HTMLInputElement>(null);
   const valueRef = useRef<HTMLInputElement>(null);
   const suppressHandleClick = useRef(false);
   const drag = useRef<{ id: number; x: number; y: number } | null>(null);
   const unit = meterType === 'gas' ? 'm³' : 'kWh';
   const previousValue = lastReading?.value ?? lastReadingValue;
-  const dirty = value !== '' || date !== initialDate.current;
+  const dirty = value !== initialValue.current || date !== initialDate.current;
 
   useEffect(() => {
     if (!open) return;
@@ -75,7 +76,8 @@ export function ReadingDialog({
     const today = localToday();
     initialDate.current = today;
     setDate(today);
-    setValue('');
+    initialValue.current = previousValue === undefined ? '' : formatReading(previousValue);
+    setValue(initialValue.current);
     setErrors({});
     setDiscard(false);
     setKeyboard(document.activeElement?.matches(':focus-visible') ?? false);
@@ -131,7 +133,7 @@ export function ReadingDialog({
         onPointerDownOutside={event => event.preventDefault()}
         onInteractOutside={event => event.preventDefault()}
         onEscapeKeyDown={event => { event.preventDefault(); requestClose(); }}
-        onOpenAutoFocus={event => { event.preventDefault(); valueRef.current?.focus(); }}>
+        onOpenAutoFocus={event => { event.preventDefault(); valueRef.current?.focus(); valueRef.current?.select(); }}>
         <button type="button" className="sheet-handle" aria-label="Erfassung schließen – nach unten ziehen oder tippen"
           disabled={loading} onClick={() => { if (!suppressHandleClick.current) requestClose(); suppressHandleClick.current = false; }}
           onPointerDown={event => {
@@ -165,10 +167,6 @@ export function ReadingDialog({
             <p className="reading-hint" id={`value-hint-${meterId}`}>Den Stand in {unit} ablesen. Nachkommastellen mit Komma eingeben.</p>
             {errors.value && <p className="reading-error" id={`value-error-${meterId}`}>{errors.value}</p>}
           </div>
-          {previousValue !== undefined && <div className="reading-last">
-            <span>Zuletzt{lastReading ? ` · ${formatReadingDate(lastReading.date)}` : ''}</span>
-            <strong className="numeric">{formatReading(previousValue)} {unit}</strong>
-          </div>}
           {errors.save && <p role="alert" className="reading-error">{errors.save}</p>}
           <div className="reading-actions">
             <Button type="submit" className="parity-button" disabled={loading}>

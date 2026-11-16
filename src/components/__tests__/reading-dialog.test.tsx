@@ -28,6 +28,29 @@ describe('ReadingDialog', () => {
     single.mockResolvedValue({ data: { id: 'r1', meter_id: 'm1', date: localToday(), value: 100, created_at: 'now' }, error: null });
   });
 
+  it.each([
+    ['electricity', 24681.7, '24.681,7'],
+    ['gas', 8412.365123, '8.412,365123'],
+    ['electricity', 0, '0'],
+  ] as const)('prefills %s with the last recorded value %s without marking it as an edit', async (type, previous, formatted) => {
+    const user = userEvent.setup();
+    render(<ReadingDialog meterId="prefill" meterName="Keller" meterType={type} lastReadingValue={previous}>
+      <button>Stand erfassen</button>
+    </ReadingDialog>);
+    await user.click(screen.getByText('Stand erfassen'));
+    const input = screen.getByLabelText(`Neuer Zählerstand (${type === 'gas' ? 'm³' : 'kWh'})`);
+    expect(input).toHaveValue(formatted);
+    expect(screen.queryByText(/Zuletzt/)).not.toBeInTheDocument();
+    expect(insert).not.toHaveBeenCalled();
+    await user.click(screen.getByText('Abbrechen'));
+    expect(screen.queryByText('Eingaben verwerfen?')).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await user.click(screen.getByText('Stand erfassen'));
+    await user.clear(screen.getByLabelText(`Neuer Zählerstand (${type === 'gas' ? 'm³' : 'kWh'})`));
+    await user.click(screen.getByText('Abbrechen'));
+    expect(await screen.findByText('Eingaben verwerfen?')).toBeVisible();
+  });
+
   it('blocks future dates and associates the message with the field', async () => {
     const { user, value } = await open();
     fireEvent.change(screen.getByLabelText('Ablesedatum'), { target: { value: '2999-01-01' } });

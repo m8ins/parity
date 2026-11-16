@@ -1,6 +1,6 @@
 # Frontend-Neugestaltung: OOUX und vertikale Slices
 
-Stand: 16. November 2026. Status: fachliche Richtung und Slice-Zuschnitt abgestimmt; Slice 1 und Slice 1b implementiert, technische und synthetische visuelle Prüfungen bestanden. Slice 2 ist implementiert und zusätzlich mit echter lokaler Supabase-Persistenz und Zwei-Konten-RLS geprüft. Physische Geräteabnahme und Nutzerreview bleiben offen. Slices 3–6 nicht begonnen.
+Stand: 16. November 2026. Status: fachliche Richtung und Slice-Zuschnitt abgestimmt; Slice 1 und Slice 1b implementiert, technische und synthetische visuelle Prüfungen bestanden. Slice 2 ist implementiert und zusätzlich mit echter lokaler Supabase-Persistenz und Zwei-Konten-RLS geprüft. Physische Geräteabnahme und Nutzerreview bleiben offen. Slice 3 ist implementiert und synthetisch geprüft; Slices 4–6 nicht begonnen.
 
 Diese Datei ist der Arbeits- und Übergabeplan für spätere Implementierungsagenten. Sie enthält verbindliche Gesprächsentscheidungen und ausdrücklich offene Gestaltungsfragen. Die Dokumentation allein ist kein Auftrag, jetzt Anwendungscode zu ändern.
 
@@ -140,6 +140,8 @@ Für Slice 1 sind Palette, Schrift, hybride Skalierung und Modal/Sheet entschied
 **Einstiegspunkte:** `src/components/contract-form.tsx`, `dashboard.tsx`, `src/lib/types.ts`, Formular- und Interaktionstests.
 
 ## Slice 3 — Verstehen
+
+**Status:** Implementiert auf `codex/slice-3-understand` ab `6071b2f`; Gewichtung der Verstehensansicht vom Nutzer bestätigt. Nachweise und gezielte Berechnungskorrekturen: `docs/verification/slice-3/README.md`. Vollständige Nutzerabnahme des Slice 3 bleibt offen. Slice 2 wurde als Ausgangspunkt vom Nutzer abgenommen.
 
 **Nutzerziel:** Verbrauch, Kosten und Prognose eines ausgewählten Zeitraums nachvollziehen.
 

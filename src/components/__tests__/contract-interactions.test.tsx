@@ -107,7 +107,7 @@ describe('Meter Interactions', () => {
             );
 
             await screen.findByText('Gas Zähler');
-            expect(screen.getByText('Gas')).toBeInTheDocument();
+            expect(screen.getByLabelText('Gas')).toBeInTheDocument();
         });
     });
 });

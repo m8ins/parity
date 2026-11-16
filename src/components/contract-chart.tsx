@@ -3,7 +3,6 @@
 import { useId, useMemo } from "react"
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, ReferenceLine } from "recharts"
 import { ChartDataPoint } from "@/lib/calculations"
-import { useLocale } from "@/lib/locale"
 
 interface ContractChartProps {
     data: ChartDataPoint[]
@@ -16,31 +15,24 @@ interface ContractChartProps {
 }
 
 export function ContractChart({ data, unit, goal, isGood, className }: ContractChartProps) {
-    const locale = useLocale()
     const gradientId = useId().replaceAll(':', '')
-    // Format data for display
-    const formattedData = useMemo(() => {
-        return data.map(point => ({
-            ...point,
-            formattedDate: new Date(point.date).toLocaleDateString(locale, { month: 'short', year: '2-digit' }),
-            projected: Math.round(point.projected),
-            actual: point.actual !== null ? Math.round(point.actual) : null
-        }))
-    }, [data, locale])
+    const monthTicks = useMemo(() => data.filter((point, index) => index === 0 ||
+        point.date.slice(0, 7) !== data[index - 1].date.slice(0, 7)).map(point => point.date), [data])
 
     // Color reflects the financial outlook (passed in via isGood), i.e. whether a
     // Nachzahlung is projected — consistent with the card's Nachzahlung/Erstattung badge.
     const actualColor = isGood ? 'var(--sys-color-chart-actual)' : 'var(--sys-color-error)'
 
     const domainMax = Math.max(
-        ...formattedData.flatMap(d => [d.projected, d.actual ?? 0]),
+        ...data.flatMap(d => [d.projected, d.actual ?? 0]),
         goal ?? 0
-    ) * 1.1 // Add 10% padding
+    ) * 1.1 || 1 // Keep a readable axis for explicitly zero consumption
 
     return (
-        <div className={`h-[200px] w-full numeric ${className}`} role="img" aria-label="Verbrauch und Prognose im Abrechnungszeitraum. Die Werte stehen auch in der Monatstabelle.">
+        <div className={`understand-chart-scroll numeric ${className ?? ''}`} tabIndex={0} role="img" aria-label="Hochrechnung und aus Ablesungen abgeleiteter Verbrauch im Abrechnungszeitraum. Zusammenfassung und Monatswerte stehen im Text.">
+            <div className="understand-chart-canvas">
             <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={formattedData} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
+                <AreaChart data={data} margin={{ top: 56, right: 112, left: 8, bottom: 32 }}>
                     <defs>
                         <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor={actualColor} stopOpacity={0.3} />
@@ -49,36 +41,41 @@ export function ContractChart({ data, unit, goal, isGood, className }: ContractC
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--sys-color-divider)" />
                     <XAxis
-                        dataKey="formattedDate"
+                        dataKey="date"
+                        ticks={monthTicks}
+                        tickFormatter={(value) => new Date(value).toLocaleDateString('de-DE', { month: 'long', timeZone: 'UTC' })}
                         stroke="var(--sys-color-text-secondary)"
                         fontSize="var(--ref-font-size-100)"
                         tickLine={false}
                         axisLine={false}
                         interval="preserveStartEnd"
-                        minTickGap={30}
+                        minTickGap={80}
                     />
                     <YAxis
+                        width="auto"
+                        label={{ value: unit, position: 'top', offset: 16, fill: 'var(--sys-color-text-secondary)', fontSize: 'var(--ref-font-size-100)' }}
                         stroke="var(--sys-color-text-secondary)"
                         fontSize="var(--ref-font-size-100)"
                         tickLine={false}
                         axisLine={false}
-                        tickFormatter={(value) => Number(value).toLocaleString('de-DE')}
+                        tickFormatter={(value) => Number(value).toLocaleString('de-DE', { maximumFractionDigits: 0 })}
                         domain={[0, domainMax]}
                     />
                     <Tooltip
+                        labelFormatter={value => new Date(String(value)).toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })}
                         contentStyle={{ backgroundColor: 'var(--sys-color-surface)', borderColor: 'var(--sys-color-border)', borderRadius: 'var(--sys-radius-control)', color: 'var(--sys-color-text)' }}
                         itemStyle={{ color: 'var(--sys-color-text)' }}
                         formatter={(value, name) => {
-                            const numValue = typeof value === 'number' ? value : 0
+                            const numValue = typeof value === 'number' ? value.toLocaleString('de-DE', { maximumFractionDigits: 2 }) : '—'
                             return [
                                 `${numValue} ${unit}`,
-                                name === 'projected' ? 'Prognose' : 'Verbrauch'
+                                name === 'projected' ? 'Hochrechnung' : 'Aus Ablesungen abgeleitet'
                             ]
                         }}
                     />
                     <Area
                         isAnimationActive={false}
-                        type="monotone"
+                        type="linear"
                         dataKey="projected"
                         stroke="var(--sys-color-chart-projected)"
                         strokeDasharray="5 5"
@@ -88,15 +85,15 @@ export function ContractChart({ data, unit, goal, isGood, className }: ContractC
                     />
                     <Area
                         isAnimationActive={false}
-                        type="monotone"
+                        type="linear"
                         dataKey="actual"
                         stroke={actualColor}
                         fill={`url(#${gradientId})`}
                         strokeWidth={2}
                         name="actual"
-                        connectNulls
+                        connectNulls={false}
                     />
-                    {goal && (
+                    {goal !== undefined && (
                         <ReferenceLine
                             y={goal}
                             stroke="var(--sys-color-chart-target)"
@@ -106,6 +103,7 @@ export function ContractChart({ data, unit, goal, isGood, className }: ContractC
                     )}
                 </AreaChart>
             </ResponsiveContainer>
+            </div>
         </div>
     )
 }

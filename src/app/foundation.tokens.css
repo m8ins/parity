@@ -32,6 +32,7 @@
   --ref-color-action-ink: oklch(33% .035 264);
   --ref-color-white: oklch(100% 0 none);
   --ref-color-red: oklch(46% .16 26);
+  --ref-color-green: oklch(45% .11 148);
 
   /* Primitive Typografie. rem respektiert die Schriftgröße des Browsers.
      Kein html { font-size: 62.5% }, keine viewportabhängige Schrift für Formularrollen. */
@@ -107,6 +108,10 @@
 
   --sys-color-error-surface: color-mix(in oklch, var(--ref-color-red) 6%, var(--sys-color-surface));
   --sys-color-success-surface: color-mix(in oklch, var(--ref-color-ink) 6%, var(--sys-color-surface));
+  /* Billing outcomes: approved green refund / red additional payment. */
+  --sys-color-outcome-positive: var(--ref-color-green);
+  --sys-color-outcome-positive-surface: color-mix(in oklch, var(--ref-color-green) 12%, var(--sys-color-surface));
+  --sys-color-outcome-negative-surface: color-mix(in oklch, var(--ref-color-red) 12%, var(--sys-color-surface));
   --sys-color-overlay: oklch(25% .02 264 / .48);
   --sys-color-chart-actual: var(--sys-color-text);
   --sys-color-chart-projected: var(--sys-color-text-secondary);

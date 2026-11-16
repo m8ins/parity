@@ -225,11 +225,9 @@ describe('calculateProjection', () => {
     expect(result?.monthlyBreakdown[0].consumption).toBeCloseTo(100);
   });
 
-  it('includes the current month in monthlyBreakdown when the latest reading falls past billingYearEnd', () => {
-    // Electricity contract: period_start = 2025-07-01, no period_end.
-    // billingYearEnd is derived as 2026-07-01.
-    // The most-recent reading is 2026-07-04 — just past billingYearEnd —
-    // which is the scenario that caused July 2026 to be silently omitted.
+  it('keeps monthlyBreakdown inside the selected period when later readings exist', () => {
+    // Slice 3 intentionally replaces the old cross-period monthly table.
+    // The July reading belongs to the next period and cannot extend this one.
     const meter = createMeter('electricity');
     const contract = createContract('meter-1', {
       period_start: '2025-07-01',
@@ -249,7 +247,7 @@ describe('calculateProjection', () => {
     const julyEntry = result!.monthlyBreakdown.find((m) =>
       m.month.startsWith('2026-07'),
     );
-    expect(julyEntry).toBeDefined();
-    expect(julyEntry!.consumption).toBeGreaterThan(0);
+    expect(julyEntry).toBeUndefined();
+    expect(result!.monthlyBreakdown.every(m => m.end! <= '2026-07-01')).toBe(true);
   });
 });

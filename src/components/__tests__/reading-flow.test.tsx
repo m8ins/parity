@@ -26,7 +26,9 @@ describe('meter reading flow (synthetic data adapter, not a database acceptance)
     const view = render(<Dashboard {...readingFixture} />);
     const target = () => document.querySelector(`[data-meter-id="${meter.id}"]`)! as HTMLElement;
     await user.click(within(target()).getByText('Stand erfassen'));
-    await user.type(screen.getByLabelText(`Neuer Zählerstand (${index ? 'm³' : 'kWh'})`), '99.999,123');
+    const input = screen.getByLabelText(`Neuer Zählerstand (${index ? 'm³' : 'kWh'})`);
+    await user.clear(input);
+    await user.type(input, '99.999,123');
     await user.click(screen.getByText('Zählerstand speichern'));
     await waitFor(() => expect(within(target()).getByRole('status')).toHaveTextContent('Gespeichert: 99.999,123'));
     expect(within(target()).getByLabelText(/^Letzter Zählerstand/)).toHaveTextContent('99.999,123');
