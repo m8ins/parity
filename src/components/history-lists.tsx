@@ -1,120 +1,81 @@
-"use client"
+'use client';
 
-import { formatDate } from "@/lib/date-utils"
-import { useLocale } from "@/lib/locale"
-import { useState } from "react"
-import { createClient } from "@/lib/supabase/client"
-import { Rate } from "@/lib/types"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table"
-import { Trash2 } from "lucide-react"
+import { formatDate } from '@/lib/date-utils';
+import { useLocale } from '@/lib/locale';
+import { useId, useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import { Rate } from '@/lib/types';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
+import { Trash2 } from 'lucide-react';
 
-export function RateHistory({ contractId, initialData, isGas }: { contractId: string, initialData: Rate[], isGas: boolean }) {
-    const [rates, setRates] = useState(initialData)
-    const [loading, setLoading] = useState(false)
-    const supabase = createClient()
-    const locale = useLocale()
-
-    const [date, setDate] = useState("")
-    const [grundpreis, setGrundpreis] = useState("")
-    const [arbeitspreis, setArbeitspreis] = useState("")
-    const [abschlag, setAbschlag] = useState("")
-    const [umrechnungsfaktor, setUmrechnungsfaktor] = useState(isGas ? "10" : "1")
-
-    const handleAdd = async () => {
-        if (!date || !grundpreis || !arbeitspreis || !abschlag) return
-        setLoading(true)
-        const { data, error } = await supabase.from('rates').insert({
-            contract_id: contractId,
-            effective_from: date,
-            grundpreis: parseFloat(grundpreis),
-            arbeitspreis: parseFloat(arbeitspreis),
-            abschlag: parseFloat(abschlag),
-            umrechnungsfaktor: isGas ? parseFloat(umrechnungsfaktor) : 1,
-        }).select().single()
-
-        if (!error && data) {
-            setRates([...rates, data as Rate].sort((a, b) =>
-                new Date(a.effective_from).getTime() - new Date(b.effective_from).getTime()
-            ))
-            setDate("")
-            setGrundpreis("")
-            setArbeitspreis("")
-            setAbschlag("")
-        }
-        setLoading(false)
-    }
-
-    const handleDelete = async (id: string) => {
-        const { error } = await supabase.from('rates').delete().eq('id', id)
-        if (!error) setRates(rates.filter(r => r.id !== id))
-    }
-
-    return (
-        <div className="space-y-4">
-            <div className="flex flex-wrap gap-2 items-end border p-4 rounded-md bg-zinc-50 dark:bg-zinc-900">
-                <div className="space-y-1">
-                    <Label>Ab Datum</Label>
-                    <Input type="date" value={date} onChange={e => setDate(e.target.value)} />
-                </div>
-                <div className="space-y-1 w-24">
-                    <Label>Grundpreis (€)</Label>
-                    <Input type="number" step="0.01" value={grundpreis} onChange={e => setGrundpreis(e.target.value)} />
-                </div>
-                <div className="space-y-1 w-24">
-                    <Label>Arbeitspreis (ct)</Label>
-                    <Input type="number" step="0.01" value={arbeitspreis} onChange={e => setArbeitspreis(e.target.value)} />
-                </div>
-                <div className="space-y-1 w-24">
-                    <Label>Abschlag (€)</Label>
-                    <Input type="number" step="0.01" value={abschlag} onChange={e => setAbschlag(e.target.value)} />
-                </div>
-                {isGas && (
-                    <div className="space-y-1 w-24">
-                        <Label>Faktor</Label>
-                        <Input type="number" step="0.01" value={umrechnungsfaktor} onChange={e => setUmrechnungsfaktor(e.target.value)} />
-                    </div>
-                )}
-                <Button onClick={handleAdd} disabled={loading}>Hinzufügen</Button>
-            </div>
-
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Ab</TableHead>
-                        <TableHead>Grundpreis</TableHead>
-                        <TableHead>Arbeitspreis</TableHead>
-                        <TableHead>Abschlag</TableHead>
-                        {isGas && <TableHead>Faktor</TableHead>}
-                        <TableHead className="w-[50px]"></TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {rates.map((rate) => (
-                        <TableRow key={rate.id}>
-                            <TableCell>{formatDate(rate.effective_from, locale)}</TableCell>
-                            <TableCell>{rate.grundpreis.toFixed(2)} €</TableCell>
-                            <TableCell>{rate.arbeitspreis.toFixed(2)} ct</TableCell>
-                            <TableCell>{rate.abschlag.toFixed(2)} €</TableCell>
-                            {isGas && <TableCell>{rate.umrechnungsfaktor}</TableCell>}
-                            <TableCell>
-                                <Button variant="ghost" size="icon" onClick={() => handleDelete(rate.id)}>
-                                    <Trash2 className="h-4 w-4 text-red-500" />
-                                </Button>
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-        </div>
-    )
+export function RateHistory({ contractId, initialData, isGas }: { contractId: string; initialData: Rate[]; isGas: boolean }) {
+  const [rates, setRates] = useState(initialData);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const supabase = createClient();
+  const locale = useLocale();
+  const prefix = useId();
+  const [values, setValues] = useState({ date: '', grundpreis: '', arbeitspreis: '', abschlag: '', umrechnungsfaktor: isGas ? '10' : '1' });
+  const handleAdd = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (loading) return;
+    if (!values.date || !values.grundpreis || !values.arbeitspreis || !values.abschlag) { setError('Bitte Gültigkeitsdatum, Grundpreis, Arbeitspreis und Abschlag eingeben.'); return; }
+    setLoading(true); setError(''); setMessage('');
+    try {
+      const { data, error } = await supabase.from('rates').insert({
+        contract_id: contractId, effective_from: values.date,
+        grundpreis: parseFloat(values.grundpreis), arbeitspreis: parseFloat(values.arbeitspreis),
+        abschlag: parseFloat(values.abschlag), umrechnungsfaktor: isGas ? parseFloat(values.umrechnungsfaktor) : 1,
+      }).select().single();
+      if (error || !data) throw error;
+      setRates([...rates, data as Rate].sort((a, b) => new Date(a.effective_from).getTime() - new Date(b.effective_from).getTime()));
+      setValues({ ...values, date: '', grundpreis: '', arbeitspreis: '', abschlag: '' });
+      setMessage('Konditionen gespeichert.');
+    } catch { setError('Die Konditionen konnten nicht gespeichert werden. Deine Eingaben bleiben erhalten. Bitte versuche es erneut.'); }
+    finally { setLoading(false); }
+  };
+  const handleDelete = async (id: string) => {
+    if (loading) return;
+    setLoading(true); setError(''); setMessage('');
+    try {
+      const { error } = await supabase.from('rates').delete().eq('id', id);
+      if (error) throw error;
+      setRates(rates.filter(rate => rate.id !== id)); setMessage('Konditionen gelöscht.');
+    } catch { setError('Die Konditionen konnten nicht gelöscht werden. Bitte versuche es erneut.'); }
+    finally { setLoading(false); }
+  };
+  const fields = [
+    ['date', 'Gültig ab', 'date'], ['grundpreis', 'Grundpreis (€/Monat)', 'number'],
+    ['arbeitspreis', 'Arbeitspreis (ct/kWh)', 'number'], ['abschlag', 'Abschlag (€/Monat)', 'number'],
+    ...(isGas ? [['umrechnungsfaktor', 'Umrechnungsfaktor (kWh/m³)', 'number']] : []),
+  ];
+  return <div className="space-y-6">
+    <form noValidate onSubmit={handleAdd} className="parity-form" aria-busy={loading}>
+      <fieldset disabled={loading}>
+        <legend className="sr-only">Neue Konditionen</legend>
+        <div className="rate-fields">{fields.map(([key, label, type]) => <div className="form-field" key={key}>
+          <Label htmlFor={`${prefix}-${key}`}>{label}</Label>
+          <Input id={`${prefix}-${key}`} type={type} step={type === 'number' ? '0.01' : undefined} value={values[key as keyof typeof values]} onChange={event => setValues({ ...values, [key]: event.target.value })} required />
+        </div>)}</div>
+        <Button type="submit">{loading ? 'Bitte warten …' : 'Hinzufügen'}</Button>
+      </fieldset>
+    </form>
+    {error && <p className="form-error" role="alert">{error}</p>}
+    <p className="form-success" role="status">{message}</p>
+    <Table><TableHeader><TableRow>
+      <TableHead>Gültig ab</TableHead><TableHead className="text-right">Grundpreis (€/Monat)</TableHead><TableHead className="text-right">Arbeitspreis (ct/kWh)</TableHead><TableHead className="text-right">Abschlag (€/Monat)</TableHead>{isGas && <TableHead className="text-right">Faktor (kWh/m³)</TableHead>}<TableHead><span className="sr-only">Aktionen</span></TableHead>
+    </TableRow></TableHeader><TableBody>{rates.map(rate => <TableRow key={rate.id}>
+      <TableCell>{formatDate(rate.effective_from, locale)}</TableCell>
+      <TableCell className="text-right">{rate.grundpreis.toLocaleString('de-DE', { minimumFractionDigits: 2 })}</TableCell>
+      <TableCell className="text-right">{rate.arbeitspreis.toLocaleString('de-DE', { minimumFractionDigits: 2 })}</TableCell>
+      <TableCell className="text-right">{rate.abschlag.toLocaleString('de-DE', { minimumFractionDigits: 2 })}</TableCell>
+      {isGas && <TableCell className="text-right">{rate.umrechnungsfaktor.toLocaleString('de-DE')}</TableCell>}
+      <TableCell><Button variant="ghost" size="icon" disabled={loading} onClick={() => handleDelete(rate.id)} aria-label={`Konditionen vom ${formatDate(rate.effective_from, locale)} löschen`}><Trash2 className="text-destructive" /></Button></TableCell>
+    </TableRow>)}</TableBody></Table>
+    {!rates.length && <p className="text-sm text-muted-foreground">Noch keine Konditionen hinterlegt.</p>}
+  </div>;
 }

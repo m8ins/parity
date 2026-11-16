@@ -26,7 +26,7 @@ export default async function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-slate-950">
+    <div className="min-h-screen bg-background">
       <Dashboard user={user} initialMeters={meters} initialData={initialData} />
     </div>
   )

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Parity · Zählerstand im Vergleich</title>
+<link rel="stylesheet" href="preview.css">
+<script src="preview.js" defer></script>
+</head>
+<body>
+<header class="lab-header">
+  <div class="intro"><h1>Zählerstand im Vergleich</h1><p>Zwei Varianten. Gleiche Aufgabe, gleiche Daten, gleiche Palette.</p></div>
+  <span class="local-note">Lokale Designvorschau · fiktive Daten</span>
+</header>
+<main>
+  <section class="controls" aria-label="Vorschau einstellen">
+    <div><label for="meter">Einzelnen Zähler ansehen</label><select id="meter"><option value="electricity">Strom · Keller</option><option value="gas">Gas · Hausanschluss</option></select></div>
+    <div><label for="state">Zustand vergleichen</label><select id="state"><option value="ready">Eingabe</option><option value="active">Eingabefeld aktiv</option><option value="input-focus">Tastaturfokus · Feld</option><option value="focus">Tastaturfokus · Knopf</option><option value="pressed">Taste gedrückt</option><option value="invalid">Eingabefehler</option><option value="saving">Wird gespeichert</option><option value="saved">Gespeichert</option><option value="failure">Speicherfehler</option><option value="empty">Leeres Feld</option></select></div>
+    <button class="reset" id="reset" type="button">Zurücksetzen</button>
+    <p class="simulation">Speichern ist simuliert. Beim Neuladen werden alle Eingaben zurückgesetzt.</p>
+  </section>
+  <nav class="mobile-switch" aria-label="Variante auswählen"><button data-view="a" aria-pressed="true">Variante A</button><button data-view="b" aria-pressed="false">Variante B</button></nav>
+  <div class="comparison" id="comparison"></div>
+  <section class="specimen" aria-labelledby="specimen-title">
+    <h2 id="specimen-title">Zahlen auf dem Prüfstand</h2>
+    <p>Gleiche Werte, rechtsbündig. Tabellarische Ziffern in 400, 600 und 700; feste Einheiten ohne Zeilenumbruch.</p>
+    <div class="specimen-grid" id="specimens"></div>
+    <p class="font-result" id="font-result" role="status">Schriften werden geprüft …</p>
+  </section>
+  <footer><span class="swatch ink"></span><span class="swatch cream"></span> Dad’s old wallet · #3B465C / #E9E8D4 <span>Nordstern: A · Atkinson Hyperlegible Next. Nur Designvorschau.</span></footer>
+</main>
+</body>
+</html>

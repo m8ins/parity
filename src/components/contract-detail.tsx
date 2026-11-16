@@ -88,6 +88,9 @@ export function ContractDetail({
   const newestRates = newest ? (ratesByContract[newest.id] ?? []) : [];
   const newestLatestRate = newestRates[newestRates.length - 1] ?? null;
 
+  const [actionError, setActionError] = useState('');
+  const [actionBusy, setActionBusy] = useState(false);
+  const [settleError, setSettleError] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [editPeriodStart, setEditPeriodStart] = useState('');
   const [editPeriodEnd, setEditPeriodEnd] = useState('');
@@ -113,38 +116,33 @@ export function ContractDetail({
   const [settleDate, setSettleDate] = useState('');
   const [settleBusy, setSettleBusy] = useState(false);
 
-  const handleRename = async () => {
+  const runAction = async (action: () => Promise<void>) => {
+    if (actionBusy) return;
+    setActionBusy(true); setActionError('');
+    try { await action(); }
+    catch { setActionError('Die Änderung konnte nicht gespeichert werden. Bitte versuche es erneut.'); }
+    finally { setActionBusy(false); }
+  };
+  const handleRename = () => runAction(async () => {
     if (!meter || !newName.trim()) return;
-    const { error } = await supabase
-      .from('meters')
-      .update({ name: newName })
-      .eq('id', meter.id);
-    if (!error) {
-      setMeter({ ...meter, name: newName });
-      setIsRenaming(false);
-    }
-  };
-
-  const handleSaveDetails = async () => {
+    const { error } = await supabase.from('meters').update({ name: newName }).eq('id', meter.id);
+    if (error) throw error;
+    setMeter({ ...meter, name: newName }); setIsRenaming(false);
+  });
+  const handleSaveDetails = () => runAction(async () => {
     if (!contract) return;
-    const { error } = await supabase
-      .from('contracts')
-      .update({
-        period_start: editPeriodStart || contract.period_start,
-        period_end: editPeriodEnd || null,
-        provider: editProvider.trim() || null,
-      })
-      .eq('id', contract.id);
-    if (!error) {
-      setIsEditing(false);
-      router.refresh();
-    }
-  };
-
-  const handleDeleteReading = async (rid: string) => {
+    const { error } = await supabase.from('contracts').update({
+      period_start: editPeriodStart || contract.period_start,
+      period_end: editPeriodEnd || null, provider: editProvider.trim() || null,
+    }).eq('id', contract.id);
+    if (error) throw error;
+    setIsEditing(false); router.refresh();
+  });
+  const handleDeleteReading = (rid: string) => runAction(async () => {
     const { error } = await supabase.from('readings').delete().eq('id', rid);
-    if (!error) setReadings(readings.filter((r) => r.id !== rid));
-  };
+    if (error) throw error;
+    setReadings(readings.filter(reading => reading.id !== rid));
+  });
 
   const handleReadingAdded = (reading: Reading) => {
     setReadings((prev) => {
@@ -192,7 +190,7 @@ export function ContractDetail({
       router.refresh();
     } catch (e) {
       console.error('Rollover failed:', e);
-      setRoError(e instanceof Error ? e.message : 'Anlegen fehlgeschlagen.');
+      setRoError('Der neue Zeitraum konnte nicht angelegt werden. Prüfe die Angaben und versuche es erneut.');
     } finally {
       setRoBusy(false);
     }
@@ -217,18 +215,13 @@ export function ContractDetail({
     setSettleBusy(true);
     const signed =
       (settleSign === 'nachzahlung' ? -1 : 1) * Math.abs(Number(settleAmount));
-    const { error } = await supabase
-      .from('contracts')
-      .update({
-        settlement_amount: signed,
-        settlement_date: settleDate || null,
-      })
-      .eq('id', contract.id);
-    setSettleBusy(false);
-    if (!error) {
-      setSettleOpen(false);
-      router.refresh();
-    }
+    setSettleError('');
+    try {
+      const { error } = await supabase.from('contracts').update({ settlement_amount: signed, settlement_date: settleDate || null }).eq('id', contract.id);
+      if (error) throw error;
+      setSettleOpen(false); router.refresh();
+    } catch { setSettleError('Die Schlussabrechnung konnte nicht gespeichert werden. Bitte versuche es erneut.'); }
+    finally { setSettleBusy(false); }
   };
 
   if (!meter) return <div className="p-8">Zähler nicht gefunden</div>;
@@ -237,54 +230,46 @@ export function ContractDetail({
   const hasSettlement = settlement !== null && settlement !== undefined;
 
   return (
-    <div className="container mx-auto max-w-xl p-4 space-y-6">
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon-sm" onClick={() => router.back()}>
+    <div className="parity-page detail-page space-y-6">
+      <div className="detail-heading">
+        <Button aria-label="Zurück zur Übersicht" variant="ghost" size="icon-sm" onClick={() => router.back()}>
           <ArrowLeft />
         </Button>
         {isRenaming ? (
-          <div className="flex items-center gap-2">
-            <Input
+          <div className="rename-field">
+            <Input aria-label="Zählername" disabled={actionBusy}
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              className="h-9 text-2xl font-bold w-64"
+              className="text-2xl font-bold"
               autoFocus
             />
             <Button
               variant="ghost"
               size="icon-sm"
-              className="text-green-500 hover:text-green-600"
-              onClick={handleRename}
+              className="text-foreground"
+              onClick={handleRename} disabled={actionBusy} aria-label="Zählername speichern"
             >
               <Check className="h-5 w-5" />
             </Button>
             <Button
               variant="ghost"
               size="icon-sm"
-              className="text-gray-500 hover:text-gray-600"
-              onClick={() => setIsRenaming(false)}
+              className="text-muted-foreground"
+              onClick={() => setIsRenaming(false)} disabled={actionBusy} aria-label="Umbenennen abbrechen"
             >
               <X className="h-5 w-5" />
             </Button>
           </div>
         ) : (
-          <h1
-            className="text-3xl font-bold cursor-pointer hover:outline  hover:outline-muted-foreground/20 hover:rounded-sm px-1 -mx-1 select-none"
-            onClick={() => {
-              setNewName(meter.name);
-              setIsRenaming(true);
-            }}
-            title="Klicken zum Umbenennen"
-          >
-            {meter.name}
-          </h1>
+          <h1><button type="button" className="text-left cursor-pointer" onClick={() => { setNewName(meter.name); setIsRenaming(true); }} aria-label={`${meter.name} umbenennen`}>{meter.name}</button></h1>
         )}
       </div>
 
-      <div className="flex items-center justify-between gap-2">
+      {actionError && <p className="form-error" role="alert">{actionError}</p>}
+      <div className="detail-toolbar">
         {contracts.length > 1 ? (
           <Select value={contract?.id} onValueChange={setSelectedContractId}>
-            <SelectTrigger size="sm" className="w-56">
+            <SelectTrigger size="sm" aria-label="Abrechnungszeitraum">
               <SelectValue placeholder="Vertragsjahr" />
             </SelectTrigger>
             <SelectContent>
@@ -297,7 +282,7 @@ export function ContractDetail({
           </Select>
         ) : (
           <span className="text-sm text-muted-foreground">
-            {contract ? formatPeriodLabel(contract, locale) : 'Keine Periode'}
+            {contract ? formatPeriodLabel(contract, locale) : 'Kein Abrechnungszeitraum'}
           </span>
         )}
         <Button
@@ -306,14 +291,14 @@ export function ContractDetail({
           onClick={openRollover}
           disabled={!newest}
         >
-          <CalendarPlus className="mr-2 h-4 w-4" /> Neue Periode / Wechsel
+          <CalendarPlus className="mr-2 h-4 w-4" /> Neuer Zeitraum / Wechsel
         </Button>
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
         <TabsList>
           <TabsTrigger value="overview">Übersicht</TabsTrigger>
-          <TabsTrigger value="rates">Tarife</TabsTrigger>
+          <TabsTrigger value="rates">Konditionen</TabsTrigger>
           <TabsTrigger value="readings">Ablesungen</TabsTrigger>
         </TabsList>
 
@@ -325,6 +310,7 @@ export function ContractDetail({
                 <Button
                   variant="ghost"
                   size="icon-sm"
+                  aria-label="Details bearbeiten" disabled={!contract || actionBusy}
                   onClick={() => {
                     setEditPeriodStart(contract?.period_start || '');
                     setEditPeriodEnd(contract?.period_end || '');
@@ -339,16 +325,16 @@ export function ContractDetail({
                   <Button
                     variant="ghost"
                     size="icon-sm"
-                    className="text-red-500 hover:text-red-600"
-                    onClick={() => setIsEditing(false)}
+                    className="text-destructive"
+                    onClick={() => setIsEditing(false)} disabled={actionBusy} aria-label="Details bearbeiten abbrechen"
                   >
                     <X className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon-sm"
-                    className="text-green-500 hover:text-green-600"
-                    onClick={handleSaveDetails}
+                    className="text-foreground"
+                    onClick={handleSaveDetails} disabled={actionBusy} aria-label="Details speichern"
                   >
                     <Check className="h-4 w-4" />
                   </Button>
@@ -377,7 +363,7 @@ export function ContractDetail({
                   <dd className="text-sm font-medium flex-1">
                     {isEditing ? (
                       <Input
-                        value={editProvider}
+                        aria-label="Anbieter" disabled={actionBusy} value={editProvider}
                         onChange={(e) => setEditProvider(e.target.value)}
                         placeholder="z. B. Vattenfall"
                         className="h-8"
@@ -392,13 +378,13 @@ export function ContractDetail({
                 {contract && (
                   <div className="flex flex-row items-center py-2 hover:bg-muted/50 rounded-sm px-2 -mx-2 transition-colors h-11">
                     <dt className="w-36 text-sm text-muted-foreground flex items-center gap-2 flex-shrink-0">
-                      <Calendar className="h-4 w-4" /> Periode Start
+                      <Calendar className="h-4 w-4" /> Beginn
                     </dt>
                     <dd className="text-sm font-medium flex-1">
                       {isEditing ? (
                         <Input
                           type="date"
-                          value={editPeriodStart}
+                          aria-label="Beginn" disabled={actionBusy} value={editPeriodStart}
                           onChange={(e) => setEditPeriodStart(e.target.value)}
                           className="h-8"
                         />
@@ -411,13 +397,13 @@ export function ContractDetail({
                 {(isEditing || contract?.period_end) && (
                   <div className="flex flex-row items-center py-2 hover:bg-muted/50 rounded-sm px-2 -mx-2 transition-colors h-11">
                     <dt className="w-36 text-sm text-muted-foreground flex items-center gap-2 flex-shrink-0">
-                      <Calendar className="h-4 w-4" /> Periode Ende
+                      <Calendar className="h-4 w-4" /> Ende
                     </dt>
                     <dd className="text-sm font-medium flex-1">
                       {isEditing ? (
                         <Input
                           type="date"
-                          value={editPeriodEnd}
+                          aria-label="Ende" disabled={actionBusy} value={editPeriodEnd}
                           onChange={(e) => setEditPeriodEnd(e.target.value)}
                           className="h-8"
                         />
@@ -437,11 +423,11 @@ export function ContractDetail({
                     {hasSettlement ? (
                       <span
                         className={
-                          settlement! >= 0 ? 'text-green-600' : 'text-red-600'
+                          settlement! >= 0 ? 'text-foreground' : 'text-destructive'
                         }
                       >
                         {settlement! >= 0 ? 'Erstattung' : 'Nachzahlung'}{' '}
-                        {Math.abs(settlement!).toFixed(2)} €
+                        {Math.abs(settlement!).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
                         {contract?.settlement_date
                           ? ` (${formatDate(contract.settlement_date, locale)})`
                           : ''}
@@ -479,11 +465,11 @@ export function ContractDetail({
         <TabsContent value="rates">
           <Card>
             <CardHeader>
-              <CardTitle>Tarife</CardTitle>
+              <CardTitle>Konditionen</CardTitle>
             </CardHeader>
             <CardContent>
               {contract ? (
-                <RateHistory
+                <RateHistory key={contract?.id}
                   contractId={contract.id}
                   initialData={rates}
                   isGas={meter.type === 'gas'}
@@ -504,6 +490,8 @@ export function ContractDetail({
                 <CardTitle>Ablesungen</CardTitle>
                 <ReadingDialog
                   meterId={meter.id}
+              meterName={meter.name}
+              meterType={meter.type}
                   lastReadingValue={readings[0]?.value}
                   onSuccess={handleReadingAdded}
                 >
@@ -519,7 +507,7 @@ export function ContractDetail({
                   <TableHeader>
                     <TableRow>
                       <TableHead>Datum</TableHead>
-                      <TableHead>Wert</TableHead>
+                      <TableHead className="text-right">Zählerstand ({meter.type === 'gas' ? 'm³' : 'kWh'})</TableHead>
                       <TableHead></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -527,14 +515,14 @@ export function ContractDetail({
                     {readings.map((r) => (
                       <TableRow key={r.id}>
                         <TableCell>{formatDate(r.date, locale)}</TableCell>
-                        <TableCell>{r.value}</TableCell>
+                        <TableCell className="text-right">{r.value.toLocaleString('de-DE', { maximumFractionDigits: 20 })}</TableCell>
                         <TableCell>
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleDeleteReading(r.id)}
+                            onClick={() => handleDeleteReading(r.id)} disabled={actionBusy} aria-label={`Ablesung vom ${formatDate(r.date, locale)} löschen`}
                           >
-                            <Trash2 className="h-4 w-4 text-red-500" />
+                            <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -548,17 +536,17 @@ export function ContractDetail({
       </Tabs>
 
       {/* Rollover dialog */}
-      <Dialog open={rolloverOpen} onOpenChange={setRolloverOpen}>
-        <DialogContent>
+      <Dialog open={rolloverOpen} onOpenChange={value => { if (!roBusy) setRolloverOpen(value); }}>
+        <DialogContent aria-busy={roBusy} showCloseButton={!roBusy}>
           <DialogHeader>
-            <DialogTitle>Neue Periode / Anbieterwechsel</DialogTitle>
+            <DialogTitle>Neuer Zeitraum / Anbieterwechsel</DialogTitle>
             <DialogDescription>
               Für den regulären Jahreswechsel oder einen unterjährigen
               Anbieterwechsel. Der letzte Tarif/Abschlag wird übernommen (unten
               anpassbar), das Guthaben startet bei 0.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-2">
+          <fieldset className="grid gap-4 py-2" disabled={roBusy}>
             <div className="grid gap-2">
               <Label htmlFor="ro-start">Wechsel-/Startdatum</Label>
               <Input
@@ -569,13 +557,13 @@ export function ContractDetail({
               />
               {newest && (
                 <p className="text-xs text-muted-foreground">
-                  Die laufende Periode (ab {formatDate(newest.period_start, locale)})
+                  Der laufende Zeitraum (ab {formatDate(newest.period_start, locale)})
                   endet zum {roStart ? formatDate(roStart, locale) : '…'}.
                 </p>
               )}
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="ro-end">Ende der neuen Periode</Label>
+              <Label htmlFor="ro-end">Ende des neuen Zeitraums</Label>
               <Input
                 id="ro-end"
                 type="date"
@@ -602,14 +590,14 @@ export function ContractDetail({
                 onChange={(e) => setRoAbschlag(e.target.value)}
               />
             </div>
-          </div>
+          </fieldset>
           {roError && (
-            <p className="text-sm text-red-600" role="alert">
+            <p className="text-sm text-destructive" role="alert">
               {roError}
             </p>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRolloverOpen(false)}>
+            <Button variant="outline" disabled={roBusy} onClick={() => setRolloverOpen(false)}>
               Abbrechen
             </Button>
             <Button onClick={handleRollover} disabled={roBusy || !roStart}>
@@ -620,25 +608,25 @@ export function ContractDetail({
       </Dialog>
 
       {/* Settlement dialog */}
-      <Dialog open={settleOpen} onOpenChange={setSettleOpen}>
-        <DialogContent>
+      <Dialog open={settleOpen} onOpenChange={value => { if (!settleBusy) setSettleOpen(value); }}>
+        <DialogContent aria-busy={settleBusy} showCloseButton={!settleBusy}>
           <DialogHeader>
             <DialogTitle>Schlussabrechnung erfassen</DialogTitle>
             <DialogDescription>
               Der tatsächliche Betrag aus der Abrechnung des Versorgers für
-              diese Periode.
+              diesen Abrechnungszeitraum.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-2">
+          <fieldset className="grid gap-4 py-2" disabled={settleBusy}>
             <div className="grid gap-2">
-              <Label>Art</Label>
+              <Label htmlFor="settle-sign">Art</Label>
               <Select
                 value={settleSign}
                 onValueChange={(v) =>
                   setSettleSign(v as 'erstattung' | 'nachzahlung')
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger id="settle-sign" disabled={settleBusy}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -667,9 +655,10 @@ export function ContractDetail({
                 onChange={(e) => setSettleDate(e.target.value)}
               />
             </div>
-          </div>
+          </fieldset>
+          {settleError && <p className="form-error" role="alert">{settleError}</p>}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSettleOpen(false)}>
+            <Button variant="outline" disabled={settleBusy} onClick={() => setSettleOpen(false)}>
               Abbrechen
             </Button>
             <Button

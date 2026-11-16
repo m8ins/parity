@@ -1,0 +1,173 @@
+/*
+ * PARITY FOUNDATION — gemeinsame Quelle für Anwendung und Tokenvorschau.
+ * Primitive → semantische Rollen → Komponenten.
+ * Nordstern A / Atkinson Hyperlegible Next und Farb-/Interaktionsrichtung
+ * sind gewählt. Formulare/Zahlen bleiben stabil; nur Seiten-Titel/-Ränder fluid.
+ * Bei der später beauftragten Umsetzung diese Datei als Quelle verwenden;
+ * nicht zusätzlich dieselben Werte in einer JSON-Datei von Hand pflegen.
+ *
+ * 1. ref = primitive Werte. Nur hier echte Farb-/Größenwerte definieren.
+ * 2. sys = Bedeutung. Komponenten verwenden diese Rollen.
+ * 3. Komponententokens erst bei tatsächlichem Bedarf ergänzen.
+ * Typorolle und HTML-Semantik sind unabhängig (h2 darf Titelgröße haben).
+ */
+@font-face {
+  font-family: 'Atkinson Hyperlegible Next';
+  src: url('/fonts/AtkinsonHyperlegibleNext.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+:root {
+  /* Primitive Farben. Kein Tonwertkatalog ohne konkreten Verwendungszweck. */
+  --ref-color-ink: oklch(39.375129% 0.04015540 263.947164);
+  --ref-color-cream: oklch(92.640917% 0.02656370 104.574367);
+  /* Freigegeben: C + Orange; Aktionsschrift für Kontrast gezielt dunkler. */
+  --ref-color-canvas-cream: oklch(95.8% .019 104.574367);
+  --ref-color-surface-cream: oklch(97.5% .0125 104.574367);
+  --ref-color-field-cream: oklch(97.7% .0118 104.574367);
+  --ref-color-orange: oklch(74% .18 46);
+  --ref-color-orange-hover: oklch(77% .17 46);
+  --ref-color-action-ink: oklch(33% .035 264);
+  --ref-color-white: oklch(100% 0 none);
+  --ref-color-red: oklch(46% .16 26);
+
+  /* Primitive Typografie. rem respektiert die Schriftgröße des Browsers.
+     Kein html { font-size: 62.5% }, keine viewportabhängige Schrift für Formularrollen. */
+  --ref-font-family: 'Atkinson Hyperlegible Next', sans-serif;
+  --ref-font-size-100: .875rem; /* 14 px bei 16-px-Browserbasis */
+  --ref-font-size-200: 1rem; /* 16 */
+  --ref-font-size-300: 1.125rem; /* 18 */
+  --ref-font-size-400: 1.375rem; /* 22 */
+  --ref-font-size-500: 1.75rem; /* 28 */
+  --ref-font-size-600: 2rem; /* 32 */
+  --ref-font-size-700: 2.25rem; /* 36 */
+  --ref-font-weight-regular: 400;
+  --ref-font-weight-semibold: 600;
+  --ref-font-weight-bold: 700;
+  --ref-leading-body: 1.5;
+  --ref-leading-control: 1.25;
+  --ref-leading-heading: 1.2;
+  --ref-leading-reading: 1.2;
+
+  /* Primitive Abstände: 4-px-Basis, bewusst ausgedünnte Skala.
+     Die Zahl bezeichnet Schritte von .25rem, keinen Pixelwert.
+     20/40 px erst ergänzen, wenn eine konkrete wiederkehrende Rolle fehlt.
+     Konturen, Radien und Schriftzeilen müssen diesem Raster nicht folgen. */
+  --ref-space-0: 0;
+  --ref-space-1: .25rem;
+  --ref-space-2: .5rem;
+  --ref-space-3: .75rem;
+  --ref-space-4: 1rem;
+  --ref-space-6: 1.5rem;
+  --ref-space-8: 2rem;
+  --ref-space-12: 3rem;
+  --ref-space-16: 4rem;
+
+  /* Begrenzte Fluidität, linear zwischen 360 und 1240 CSS-px bei
+     16-px-Browserbasis. Wie Utopia: clamp + rem/vw, keine Abhängigkeit.
+     Nur Seitenkomposition: Dialogtitel, Messwerte und Feldabstände
+     verwenden diese Primitive ausdrücklich NICHT. */
+  --ref-fluid-page-title: clamp(1.75rem, 1.647727rem + .454545vw, 2rem);
+  --ref-fluid-page-inset: clamp(1rem, .590909rem + 1.818182vw, 2rem);
+
+  /* Primitive Geometrie/Motion aus Variante A. Konturen in px bleiben
+     unabhängig von der Schriftgröße klar; Höhen sind nur Mindesthöhen. */
+  --ref-line-regular: 2px;
+  --ref-line-strong: 3px;
+  --ref-radius-field: 10px;
+  --ref-radius-surface: 24px;
+  --ref-depth-button: 4px;
+  --ref-duration-press: 70ms;
+  --ref-duration-release: 110ms;
+  --ref-ease-press: cubic-bezier(.16, 1, .3, 1);
+
+  /* Semantische Farbrollen. Paletten ändern nur ref/sys, nie Komponenten.
+     Bei jeder Palette alle tatsächlich genutzten Kontrastpaare neu prüfen. */
+  --sys-color-canvas: var(--ref-color-canvas-cream);
+  --sys-color-surface: var(--ref-color-surface-cream);
+  --sys-color-field: var(--ref-color-field-cream);
+  --sys-color-field-active: var(--ref-color-white);
+  --sys-color-text: var(--ref-color-ink);
+  --sys-color-text-secondary: color-mix(in oklch, var(--ref-color-ink) 85%, var(--ref-color-cream));
+  /* Examples must look visibly different from entered values. */
+  --sys-color-placeholder: color-mix(in oklch, var(--ref-color-ink) 72%, var(--ref-color-cream));
+  --sys-color-border: var(--ref-color-ink);
+  --sys-color-divider: color-mix(in oklch, var(--ref-color-ink) 30%, var(--ref-color-cream));
+  --sys-color-action: var(--ref-color-orange);
+  --sys-color-action-text: var(--ref-color-action-ink);
+  --sys-color-action-hover: var(--ref-color-orange-hover);
+  --sys-color-disabled: color-mix(in oklch, var(--sys-color-surface) 95%, var(--ref-color-ink));
+  --sys-color-disabled-text: var(--sys-color-text-secondary);
+  --sys-color-focus: var(--ref-color-ink);
+  --sys-color-error: var(--ref-color-red);
+  --sys-color-success: var(--ref-color-ink); /* Erfolg zusätzlich benennen. */
+
+  --sys-color-error-surface: color-mix(in oklch, var(--ref-color-red) 6%, var(--sys-color-surface));
+  --sys-color-success-surface: color-mix(in oklch, var(--ref-color-ink) 6%, var(--sys-color-surface));
+  --sys-color-overlay: oklch(25% .02 264 / .48);
+  --sys-color-chart-actual: var(--sys-color-text);
+  --sys-color-chart-projected: var(--sys-color-text-secondary);
+  --sys-color-chart-target: var(--sys-color-text);
+  --sys-shadow-popover: 0 .5rem 1rem oklch(25% .02 264 / .12);
+
+  /* Semantische Typorollen als vollständige CSS-font-Shorthands.
+     Aussehen ist unabhängig vom semantischen HTML-Level.
+     Zusätzliche Farbrolle im Kontext wählen; Überschriften/Text = text,
+     Erläuterung/Metadaten = text-secondary, Fehlermeldung = error. */
+  --sys-font-body: var(--ref-font-weight-regular) var(--ref-font-size-300)/var(--ref-leading-body) var(--ref-font-family);
+  --sys-font-support: var(--ref-font-weight-regular) var(--ref-font-size-200)/var(--ref-leading-body) var(--ref-font-family);
+  --sys-font-meta: var(--ref-font-weight-regular) var(--ref-font-size-100)/var(--ref-leading-body) var(--ref-font-family);
+  --sys-font-label: var(--ref-font-weight-bold) var(--ref-font-size-300)/var(--ref-leading-control) var(--ref-font-family);
+  --sys-font-control: var(--ref-font-weight-semibold) var(--ref-font-size-300)/var(--ref-leading-control) var(--ref-font-family);
+  --sys-font-section: var(--ref-font-weight-bold) var(--ref-font-size-400)/var(--ref-leading-heading) var(--ref-font-family);
+  --sys-font-page-title: var(--ref-font-weight-bold) var(--ref-fluid-page-title)/var(--ref-leading-heading) var(--ref-font-family);
+  --sys-font-title: var(--ref-font-weight-bold) var(--ref-font-size-500)/var(--ref-leading-heading) var(--ref-font-family);
+  --sys-reading-size: var(--ref-font-size-600);
+  --sys-font-reading: var(--ref-font-weight-semibold) var(--sys-reading-size)/var(--ref-leading-reading) var(--ref-font-family);
+  --sys-numeric-variant: lining-nums tabular-nums;
+
+  /* Semantische Abstände: Beziehungen statt Komponentenverzeichnis.
+     group = eng Zusammengehöriges, field = vollständige Feldgruppen,
+     section = voneinander getrennte Bereiche; inset = Containerpolster. */
+  --sys-gap-inline: var(--ref-space-2); /* Icon/Text, Zahl/Einheit: 8 */
+  --sys-gap-label: var(--ref-space-2); /* Label/Eingabe: 8 */
+  --sys-gap-group: var(--ref-space-3); /* Zusammengehöriges: 12 */
+  --sys-gap-field: var(--ref-space-6); /* Feldgruppen: 24 */
+  --sys-gap-section: var(--ref-space-8); /* Abschnitte: 32 */
+  --sys-gap-region: var(--ref-space-12); /* Größere Bereiche: 48 */
+  --sys-inset-page: var(--ref-fluid-page-inset); /* Nur äußere Seite: 16–32 */
+  --sys-inset-surface: var(--ref-space-6); /* Mobil: 24 */
+  --sys-inset-control-inline: var(--ref-space-4); /* 16 */
+  --sys-inset-control-block: var(--ref-space-3); /* 12 */
+
+  --sys-size-target-min: 2.75rem; /* 44 px: unser internes Mindestziel */
+  --sys-size-control-min: 3.5rem; /* 56 px: min-height, nie feste Höhe */
+  --sys-radius-control: var(--ref-radius-field);
+  --sys-radius-surface: var(--ref-radius-surface);
+  --sys-border-width: var(--ref-line-regular);
+  --sys-error-width: var(--ref-line-strong);
+  --sys-focus-width: var(--ref-line-strong);
+  --sys-focus-offset: var(--ref-space-1);
+  --sys-depth-action: var(--ref-depth-button);
+  --sys-duration-press: var(--ref-duration-press);
+  --sys-duration-release: var(--ref-duration-release);
+  --sys-ease-action: var(--ref-ease-press);
+}
+
+/* Explizite Größenschritte: keine animierten oder fluiden Zählerziffern.
+   Die kompakte Stufe hält lange Werte am kleinen Display lesbar.
+   Der Umbruchpunkt ist Teil des Vorschlags, kein Token in Media Queries. */
+@media (max-width: 23.75rem) {
+  :root { --sys-reading-size: var(--ref-font-size-500); }
+}
+@media (min-width: 48rem) {
+  :root {
+    --sys-reading-size: var(--ref-font-size-700);
+    --sys-inset-surface: var(--ref-space-8);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --sys-duration-press: 0ms; --sys-duration-release: 0ms; }
+}

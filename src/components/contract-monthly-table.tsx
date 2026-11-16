@@ -59,7 +59,7 @@ export function ContractMonthlyTable({
                 {Math.round(e.consumption)}
               </TableCell>
               <TableCell className="text-right tabular-nums">
-                {e.cost.toFixed(2)} €
+                {e.cost.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
               </TableCell>
             </TableRow>
           ))}
@@ -73,7 +73,7 @@ export function ContractMonthlyTable({
               {totalConsumption ? Math.round(totalConsumption) : 0} kWh
             </TableCell>
             <TableCell className="text-right tabular-nums">
-              {totalCost ? totalCost.toFixed(2) : 0} €
+              {totalCost.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
             </TableCell>
           </TableRow>
         </TableFooter>

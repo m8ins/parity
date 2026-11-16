@@ -1,0 +1,25 @@
+npm notice run parity@0.1.0 build
+npm notice run next build
+▲ Next.js 16.1.1 (Turbopack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 2.1s
+  Running TypeScript ...
+  Collecting page data using 10 workers ...
+  Generating static pages using 10 workers (0/5) ...
+  Generating static pages using 10 workers (1/5) 
+  Generating static pages using 10 workers (2/5) 
+  Generating static pages using 10 workers (3/5) 
+✓ Generating static pages using 10 workers (5/5) in 135.9ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /contract/[id]
+├ ƒ /design/reading
+└ ƒ /meter/[id]
+
+
+ƒ  (Dynamic)  server-rendered on demand
+

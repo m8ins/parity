@@ -2,114 +2,114 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ReadingDialog } from '../reading-dialog';
+import { localToday } from '@/lib/readings';
 
-// Mock Next.js hooks
-vi.mock('next/navigation', () => ({
-    useRouter: () => ({
-        refresh: vi.fn(),
-    }),
-}));
-
-// Mock Supabase Client
-const mockInsert = vi.fn();
-const mockSelect = vi.fn();
-const mockSingle = vi.fn();
-const mockFrom = vi.fn();
-
+const { insert, single } = vi.hoisted(() => ({ insert: vi.fn(), single: vi.fn() }));
 vi.mock('@/lib/supabase/client', () => ({
-    createClient: () => ({
-        from: mockFrom
-    })
+  createClient: () => ({ from: () => ({ insert }) }),
 }));
+
+async function open(type: 'gas' | 'electricity' = 'electricity') {
+  const onSuccess = vi.fn();
+  const user = userEvent.setup();
+  render(<ReadingDialog meterId="m1" meterName="Keller" meterType={type} onSuccess={onSuccess}>
+    <button>Stand erfassen</button>
+  </ReadingDialog>);
+  await user.click(screen.getByText('Stand erfassen'));
+  expect(screen.getByRole('dialog', { name: 'Zählerstand für Keller' })).toBeVisible();
+  expect(screen.queryByText(/Keller ·/)).not.toBeInTheDocument();
+  return { user, onSuccess, value: screen.getByLabelText(`Neuer Zählerstand (${type === 'gas' ? 'm³' : 'kWh'})`) };
+}
 
 describe('ReadingDialog', () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
-        mockFrom.mockReturnValue({ insert: mockInsert });
-        mockInsert.mockReturnValue({ select: mockSelect });
-        mockSelect.mockReturnValue({ single: mockSingle });
-        mockSingle.mockResolvedValue({
-            data: { id: '1', meter_id: 'm1', date: '2025-01-01', value: 100, created_at: 'now' },
-            error: null
-        });
+  beforeEach(() => {
+    vi.clearAllMocks();
+    insert.mockReturnValue({ select: () => ({ single }) });
+    single.mockResolvedValue({ data: { id: 'r1', meter_id: 'm1', date: localToday(), value: 100, created_at: 'now' }, error: null });
+  });
+
+  it('blocks future dates and associates the message with the field', async () => {
+    const { user, value } = await open();
+    fireEvent.change(screen.getByLabelText('Ablesedatum'), { target: { value: '2999-01-01' } });
+    await user.type(value, '123');
+    await user.click(screen.getByText('Zählerstand speichern'));
+    expect(await screen.findByText('Das Ablesedatum darf nicht in der Zukunft liegen.')).toBeVisible();
+    expect(screen.getByLabelText('Ablesedatum')).toHaveAccessibleDescription('Das Ablesedatum darf nicht in der Zukunft liegen.');
+    expect(insert).not.toHaveBeenCalled();
+  });
+
+  it.each(['', '-1', '1.2', '1,2,3'])('rejects invalid input %s without writing', async input => {
+    const { user, value } = await open();
+    if (input) await user.type(value, input);
+    await user.click(screen.getByText('Zählerstand speichern'));
+    await waitFor(() => expect(value).toHaveAttribute('aria-invalid', 'true'));
+    expect(value).toHaveFocus();
+    expect(insert).not.toHaveBeenCalled();
+  });
+
+  it.each([['electricity', '24.681,7', 24681.7], ['gas', '8.412,365', 8412.365]] as const)(
+    'saves %s independently, closes and returns focus', async (type, input, numeric) => {
+      const { user, value, onSuccess } = await open(type);
+      expect(screen.getByLabelText('Ablesedatum')).toHaveValue(localToday());
+      await user.type(value, input);
+      await user.click(screen.getByText('Zählerstand speichern'));
+      await waitFor(() => expect(onSuccess).toHaveBeenCalledOnce());
+      expect(insert).toHaveBeenCalledWith({ meter_id: 'm1', date: localToday(), value: numeric });
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(screen.getByText('Stand erfassen')).toHaveFocus();
     });
 
-    it('validates strictly future dates', async () => {
-        const user = userEvent.setup();
-        const onSuccess = vi.fn();
+  it('keeps values after a failed request and permits retry', async () => {
+    single.mockRejectedValueOnce(new Error('offline'));
+    const { user, value, onSuccess } = await open('gas');
+    await user.type(value, '8.412,365');
+    await user.click(screen.getByText('Zählerstand speichern'));
+    expect(await screen.findByRole('alert')).toHaveTextContent('erneut speichern');
+    expect(value).toHaveValue('8.412,365');
+    expect(onSuccess).not.toHaveBeenCalled();
+    await user.click(screen.getByText('Erneut speichern'));
+    await waitFor(() => expect(onSuccess).toHaveBeenCalledOnce());
+    expect(insert).toHaveBeenCalledTimes(2);
+  });
 
-        render(
-            <ReadingDialog meterId="m1" onSuccess={onSuccess}>
-                <button>Open Dialog</button>
-            </ReadingDialog>
-        );
+  it('locks the submitted snapshot and prevents repeated submissions and closing while saving', async () => {
+    let resolve!: (value: unknown) => void;
+    single.mockReturnValue(new Promise(done => { resolve = done; }));
+    const { user, value } = await open();
+    await user.type(value, '123,45');
+    await user.click(screen.getByText('Zählerstand speichern'));
+    expect(value).toHaveAttribute('readonly');
+    fireEvent.change(value, { target: { value: '999' } });
+    await user.keyboard('{Escape}');
+    fireEvent.submit(value.closest('form')!);
+    expect(screen.getByRole('dialog')).toBeVisible();
+    expect(screen.getByText('Abbrechen')).toBeDisabled();
+    expect(insert).toHaveBeenCalledTimes(1);
+    expect(insert).toHaveBeenCalledWith(expect.objectContaining({ value: 123.45 }));
+    resolve({ data: { id: 'r1', meter_id: 'm1', date: localToday(), value: 123.45 }, error: null });
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  });
 
-        // Open dialog
-        await user.click(screen.getByText('Open Dialog'));
+  it.each(['Abbrechen', 'Escape'])('protects changed inputs on %s and allows continuing or discarding', async method => {
+    const { user, value } = await open();
+    await user.type(value, '12,3');
+    if (method === 'Escape') await user.keyboard('{Escape}');
+    else await user.click(screen.getByText('Abbrechen'));
+    await screen.findByText('Eingaben verwerfen?');
+    await user.click(screen.getByText('Weiter erfassen'));
+    await waitFor(() => expect(screen.queryByText('Eingaben verwerfen?')).not.toBeInTheDocument());
+    expect(value).toHaveValue('12,3');
+    await user.click(screen.getByText('Abbrechen'));
+    await user.click(screen.getByText('Eingaben verwerfen'));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(insert).not.toHaveBeenCalled();
+    await user.click(screen.getByText('Stand erfassen'));
+    expect(screen.getByLabelText('Neuer Zählerstand (kWh)')).toHaveValue('');
+  });
 
-        // Calculate tomorrow's date
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const tomorrowStr = tomorrow.toISOString().split('T')[0];
-
-        // Fill form with future date
-        const dateInput = screen.getByLabelText('Date');
-        await user.clear(dateInput);
-        await user.type(dateInput, tomorrowStr);
-
-        const valueInput = screen.getByLabelText('Reading Value');
-        await user.type(valueInput, '123');
-
-        // Submit
-        const submitBtn = screen.getByText('Save Reading');
-        await user.click(submitBtn);
-
-        // Check for error
-        await waitFor(() => {
-            expect(screen.getByText('Date cannot be in the future')).toBeInTheDocument();
-            expect(mockInsert).not.toHaveBeenCalled();
-        });
-    });
-
-    it('accepts today\'s date', async () => {
-        const user = userEvent.setup();
-        const onSuccess = vi.fn();
-
-        render(
-            <ReadingDialog meterId="m1" onSuccess={onSuccess}>
-                <button>Open Dialog</button>
-            </ReadingDialog>
-        );
-
-        // Open dialog
-        await user.click(screen.getByText('Open Dialog'));
-
-        // Date defaults to today, but let's be explicit
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const day = String(today.getDate()).padStart(2, '0');
-        const todayStr = `${year}-${month}-${day}`;
-
-        const dateInput = screen.getByLabelText('Date');
-        // Ensure it has today's date (default)
-        expect(dateInput).toHaveValue(todayStr);
-
-        const valueInput = screen.getByLabelText('Reading Value');
-        await user.type(valueInput, '100');
-
-        // Submit
-        const submitBtn = screen.getByText('Save Reading');
-        await user.click(submitBtn);
-
-        // Check success
-        await waitFor(() => {
-            expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({
-                meter_id: 'm1',
-                date: todayStr,
-                value: 100
-            }));
-            expect(onSuccess).toHaveBeenCalled();
-        });
-    });
+  it('dismisses unchanged inputs with Escape', async () => {
+    const { user } = await open();
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
 });

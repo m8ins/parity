@@ -31,7 +31,7 @@ describe('ContractForm', () => {
     it('renders required fields', () => {
         render(<ContractForm user_id="user-1" />);
         expect(screen.getByLabelText('Name')).toBeInTheDocument();
-        expect(screen.getByLabelText('Type')).toBeInTheDocument();
+        expect(screen.getByLabelText('Zählertyp')).toBeInTheDocument();
         expect(screen.getByLabelText('Grundpreis')).toBeInTheDocument();
         expect(screen.getByLabelText('Arbeitspreis')).toBeInTheDocument();
         expect(screen.getByLabelText('Abschlag')).toBeInTheDocument();
@@ -45,7 +45,7 @@ describe('ContractForm', () => {
 
         await user.type(screen.getByLabelText('Name'), 'Hauptzähler');
 
-        const dateInput = screen.getByLabelText('Abrechnungsperiode Start');
+        const dateInput = screen.getByLabelText('Beginn des Abrechnungszeitraums');
         await user.clear(dateInput);
         await user.type(dateInput, '2025-01-01');
 

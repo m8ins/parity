@@ -6,7 +6,7 @@ import { Meter, Reading, MeterData } from "@/lib/types"
 import { loadMeterData } from "@/lib/contracts"
 import { ContractForm } from "./contract-form"
 import { ContractCard } from "./contract-card"
-import { Card } from "@/components/ui/card"
+import { DesignPanel } from "./design-panel"
 import { Plus } from "lucide-react"
 import type { User } from "@supabase/supabase-js"
 import {
@@ -26,6 +26,7 @@ export function Dashboard({
     initialMeters: Meter[]
     initialData: Record<string, MeterData>
 }) {
+    const [error, setError] = useState("")
     const [meters, setMeters] = useState<Meter[]>(initialMeters)
     const [data, setData] = useState<Record<string, MeterData>>(initialData)
     const [isFormExpanded, setIsFormExpanded] = useState(false)
@@ -51,7 +52,7 @@ export function Dashboard({
     const deleteMeter = async (id: string) => {
         const { error } = await supabase.from('meters').delete().eq('id', id)
         if (error) {
-            console.error('Error deleting meter:', error)
+            setError('Der Zähler konnte nicht gelöscht werden. Bitte versuche es erneut.')
         } else {
             fetchData()
         }
@@ -71,8 +72,11 @@ export function Dashboard({
     }
 
     return (
-        <div className="container mx-auto p-4 space-y-8">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <main className="parity-page">
+            <h1>Deine Zähler</h1>
+            {error && <p className="form-error" role="alert">{error}</p>}
+            <p className="page-intro">Zähler finden, Stand erfassen und Ablesungen im Blick behalten.</p>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {meters.map(meter => {
                     const mData = data[meter.id] || { contracts: [], ratesByContract: {}, readings: [] }
 
@@ -91,13 +95,11 @@ export function Dashboard({
                 <div className="md:col-span-2 lg:col-span-1">
                     <Dialog open={isFormExpanded} onOpenChange={setIsFormExpanded}>
                         <DialogTrigger asChild>
-                            <Card className="h-full border-dashed flex flex-col items-center justify-center p-6 text-center hover:bg-neutral-50 dark:hover:bg-slate-900 transition-colors cursor-pointer min-h-[200px]">
-                                <div className="rounded-full bg-slate-100 p-4 dark:bg-slate-800 mb-4">
-                                    <Plus className="h-6 w-6 text-neutral-500" />
-                                </div>
-                                <h3 className="font-semibold text-lg">Zähler hinzufügen</h3>
-                                <p className="text-sm text-muted-foreground mt-1">Strom oder Gas Zähler erfassen</p>
-                            </Card>
+                            <button type="button" className="add-meter">
+                                <Plus className="h-8 w-8" aria-hidden="true" />
+                                <strong>Zähler hinzufügen</strong>
+                                <span className="text-sm">Strom oder Gas erfassen</span>
+                            </button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
@@ -117,6 +119,7 @@ export function Dashboard({
                     </Dialog>
                 </div>
             </div>
-        </div>
+            {process.env.NODE_ENV === "development" && <DesignPanel />}
+        </main>
     )
 }

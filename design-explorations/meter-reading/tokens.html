@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Parity · Typografie und Token-Vorschlag</title>
+  <link rel="stylesheet" href="foundation.tokens.css">
+  <style>
+    *{box-sizing:border-box}html{color-scheme:light}body{overflow-wrap:anywhere;margin:0;background:var(--sys-color-canvas);color:var(--sys-color-text);font:var(--sys-font-body)}
+    main{max-width:68rem;margin-inline:auto;padding:var(--sys-gap-section) var(--sys-inset-page) var(--ref-space-16)}
+    h1{font:var(--sys-font-page-title);margin:0 0 var(--sys-gap-group)}h2{font:var(--sys-font-section);margin:0 0 var(--sys-gap-group)}h3{font:var(--sys-font-label);margin:0 0 var(--sys-gap-group)}p{margin:0;max-width:70ch}a{color:inherit;text-underline-offset:var(--ref-space-1)}
+    :focus-visible{outline:var(--sys-focus-width) solid var(--sys-color-focus);outline-offset:var(--sys-focus-offset)}::selection{color:var(--sys-color-action-text);background:var(--sys-color-text)}
+    .back{display:inline-flex;align-items:center;min-height:var(--sys-size-target-min);margin-bottom:var(--sys-gap-group)}.note{font:var(--sys-font-support);color:var(--sys-color-text-secondary)}
+    section{margin-top:var(--sys-gap-region);padding-top:var(--sys-gap-section);border-top:1px solid var(--sys-color-divider)}
+    .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--sys-gap-section)}.grid>*{min-width:0}.samples{display:grid;gap:var(--sys-gap-field);padding:var(--sys-inset-surface);background:var(--sys-color-surface);border:var(--sys-border-width) solid var(--sys-color-border);border-radius:var(--sys-radius-surface)}
+    .sample{min-width:0}.table-scroll{overflow-x:auto;min-width:0}.sample p:first-child{margin-bottom:var(--sys-gap-label)}.sample code{font:var(--sys-font-meta);color:var(--sys-color-text-secondary)}
+    .title{font:var(--sys-font-title)}.section{font:var(--sys-font-section)}.label{font:var(--sys-font-label)}.control{font:var(--sys-font-control)}.support{font:var(--sys-font-support)}.meta{font:var(--sys-font-meta)}
+    .reading{max-width:100%;overflow-x:auto;font:var(--sys-font-reading);font-variant-numeric:var(--sys-numeric-variant);white-space:nowrap;text-align:right}.reading.small{font:var(--sys-font-control);font-variant-numeric:var(--sys-numeric-variant)}.error{color:var(--sys-color-error)}
+    table{border-collapse:collapse;width:100%;font:var(--sys-font-support)}th,td{padding:var(--sys-gap-group) 0;border-bottom:1px solid var(--sys-color-divider);text-align:left;vertical-align:top}th{font-weight:var(--ref-font-weight-semibold)}td:last-child{text-align:right;font-variant-numeric:var(--sys-numeric-variant);white-space:nowrap}
+    .spacing{display:grid;grid-template-columns:minmax(0,min(10rem,65%)) minmax(0,1fr);align-items:center;gap:var(--sys-gap-group);margin-top:var(--sys-gap-group);font:var(--sys-font-support)}.bar{max-width:100%;height:var(--ref-space-3);width:var(--bar-width);background:var(--sys-color-text)}
+    .colors{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--sys-gap-field);margin-top:var(--sys-gap-field)}.swatch{height:var(--ref-space-12);background:var(--swatch);border:var(--sys-border-width) solid var(--sys-color-border);border-radius:var(--sys-radius-control);margin-bottom:var(--sys-gap-label)}.colors p{font:var(--sys-font-support)}
+    .policy{display:grid;gap:var(--sys-gap-group)}.policy strong{font-weight:var(--ref-font-weight-bold)}.code{overflow-wrap:anywhere;font:var(--sys-font-support)}
+    @media(max-width:59.99rem){.grid{grid-template-columns:minmax(0,1fr)}}@media(max-width:23.75rem){.samples{padding:var(--sys-inset-page)}.reading{font-size:var(--ref-font-size-500)}}
+  </style>
+</head>
+<body><main>
+  <a class="back" href="index.html?view=a">Zur Vergleichsvorschau</a>
+  <h1>Typografie und Abstände</h1>
+  <p>Vereinbarte hybride Richtung: stabile Formular-Typografie und Abstände, begrenzte Fluidität für Seitentitel und äußere Seitenränder. Nordstern ist Variante A mit Atkinson Hyperlegible Next. Die Vergleichsansicht bleibt unverändert.</p>
+  <p class="note" style="margin-top:var(--sys-gap-group)">Quelle: <a href="foundation.tokens.css">foundation.tokens.css</a> · Nur lokale Designexploration.</p>
+  <section aria-labelledby="type-title"><h2 id="type-title">Ein kleines Gerüst für die Typografie</h2>
+    <div class="grid">
+      <div class="samples">
+        <div class="sample"><p class="title">Zählerstand erfassen</p><code>title · 28 / 1,2 · 700</code></div>
+        <div class="sample"><p class="section">Deine Zähler</p><code>section · 22 / 1,2 · 700</code></div>
+        <div class="sample"><p>Hier behältst du deine Ablesungen im Blick.</p><code>body · 18 / 1,5 · 400</code></div>
+        <div class="sample"><p class="label">Neuer Zählerstand</p><code>label · 18 / 1,25 · 700</code></div>
+        <div class="sample"><p class="control">Zählerstand speichern</p><code>control · 18 / 1,25 · 600</code></div>
+        <div class="sample"><p class="support">Eine Nachkommastelle ablesen.</p><code>support · 16 / 1,5 · 400</code></div>
+        <div class="sample"><p class="meta">Zählernummer 1 EMH 0012 3456</p><code>meta · 14 / 1,5 · 400</code></div>
+      </div>
+      <div>
+        <div class="samples">
+          <div class="sample"><p class="reading">24.681,7 kWh</p><code>reading · 28–36 / 1,2 · 600</code></div>
+          <div class="sample"><p class="reading">8.412,365 m³</p><code>Tabellarische Ziffern, feste Größenstufen</code></div>
+          <div class="sample"><p class="reading">999.999,999 m³</p><code>Langer Wert mit ungetrennter Einheit</code></div>
+          <div class="sample"><p class="reading small">−127,45 € · 31,82 ct/kWh</p><code>Zahlen außerhalb des Hauptfelds: control/body</code></div>
+          <div class="sample"><p class="support error">Bitte nur ein Dezimalkomma verwenden.</p><code>Fehlermeldung: support + color-error</code></div>
+        </div>
+        <p class="note" style="margin-top:var(--sys-gap-field)">Dialogtitel bleiben bei 28 px. Nur der Seitentitel oben wächst von 28 auf 32 px, der äußere Seitenrand von 16 auf 32 px (zwischen 360 und 1240 CSS-px). Alle Angaben beziehen sich auf eine Browserbasis von 16 px. Schriftgrößen sind in rem, Zeilenhöhen einheitenlos. Fließtext und Bedienelemente wachsen mit den Nutzereinstellungen; Höhen sind Mindesthöhen.</p>
+      </div>
+    </div>
+  </section>
+  <section aria-labelledby="space-title"><h2 id="space-title">Abstände mit 4-px-Basis</h2><div class="grid"><div>
+    <p>Wenige feste Schritte. Die Primitive beschreiben Maße; semantische Rollen beschreiben Beziehungen.</p>
+    <div class="spacing"><span>4 px · space-1</span><span class="bar" style="--bar-width:var(--ref-space-1)"></span><span>8 px · space-2</span><span class="bar" style="--bar-width:var(--ref-space-2)"></span><span>12 px · space-3</span><span class="bar" style="--bar-width:var(--ref-space-3)"></span><span>16 px · space-4</span><span class="bar" style="--bar-width:var(--ref-space-4)"></span><span>24 px · space-6</span><span class="bar" style="--bar-width:var(--ref-space-6)"></span><span>32 px · space-8</span><span class="bar" style="--bar-width:var(--ref-space-8)"></span><span>48 px · space-12</span><span class="bar" style="--bar-width:var(--ref-space-12)"></span><span>64 px · space-16</span><span class="bar" style="--bar-width:var(--ref-space-16)"></span></div>
+  </div><div class="table-scroll"><table><caption class="note">Semantische Zuordnung</caption><tbody><tr><th>Icon / Text</th><td>8 px</td></tr><tr><th>Label / Eingabe</th><td>8 px</td></tr><tr><th>Eng zusammengehörig</th><td>12 px</td></tr><tr><th>Feldgruppen</th><td>24 px</td></tr><tr><th>Abschnitte</th><td>32 px</td></tr><tr><th>Seitlicher Rand</th><td>16–32 px</td></tr><tr><th>Dialog-Innenabstand</th><td>24 / 32 px</td></tr></tbody></table></div></div></section>
+  <section aria-labelledby="color-title"><h2 id="color-title">Farben nach Bedeutung</h2><p>Die gewählte Palette bleibt erhalten. Gleiche Primitive können mehrere Rollen bedienen; Erfolg braucht keine zusätzliche grüne Farbe.</p>
+    <div class="colors">
+      <div><div class="swatch" style="--swatch:var(--sys-color-text)"></div><p>Text, starke Kontur, Fokus</p></div>
+      <div><div class="swatch" style="--swatch:var(--sys-color-text-secondary)"></div><p>Hinweise und Metadaten</p></div>
+      <div><div class="swatch" style="--swatch:var(--sys-color-surface)"></div><p>Aufgehellte Cremefläche</p></div>
+      <div><div class="swatch" style="--swatch:var(--sys-color-field-active)"></div><p>Aktives Eingabefeld</p></div>
+      <div><div class="swatch" style="--swatch:var(--sys-color-action)"></div><p>Hauptaktion</p></div>
+      <div><div class="swatch" style="--swatch:var(--sys-color-error)"></div><p>Fehlertext und Fehlerkontur</p></div>
+    </div>
+  </section>
+  <section aria-labelledby="rules-title"><h2 id="rules-title">Regeln für die spätere Umsetzung</h2><div class="policy">
+    <p><strong>Quelle:</strong> Primitive → semantische Rollen → Komponenten. Keine parallelen manuell gepflegten Token-Dateien. Eine spätere Tailwind-/shadcn-Anbindung referenziert die Rollen.</p>
+    <p><strong>Semantik:</strong> HTML-Überschriften folgen der Inhaltshierarchie. Schriftrollen bestimmen nur das Aussehen. Keine Schriftgrößen anhand von Farben oder Zahlenstellen ableiten.</p>
+    <p><strong>Zahlen:</strong> Tabellarische Ziffern auf Messwerte, Geld und Vergleiche anwenden. Einheiten zusammenhalten und Zahlenspalten rechts ausrichten. Je Größe die passende Präzision verwenden.</p>
+    <p><strong>Abstände:</strong> Komponenten verwenden Rollen. Neue Werte nur bei begründetem wiederkehrendem Bedarf. Konturen, Radien und optische Icon-Korrekturen sind kein Spacing.</p>
+    <p><strong>Zugänglichkeit:</strong> Schrift- und Abstandsvergrößerungen dürfen Inhalte nicht abschneiden. Tastaturfokus bleibt sichtbar; Fehler werden zusätzlich durch Text vermittelt. Bewegung respektiert Reduced Motion.</p>
+    <p><strong>Dialog-Vorschlag:</strong> Desktop kompakt, mobil bei Platzbedarf bildschirmfüllend. Identisches Formular, klarer Schließen-Weg, Fokus im Dialog und zurück zum Auslöser. Eingaben nicht versehentlich durch einen Klick auf den Hintergrund verlieren. Noch gemeinsam abzustimmen.</p>
+  </div></section>
+</main></body></html>

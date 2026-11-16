@@ -24,18 +24,15 @@ export function Header() {
     const supabase = createClient()
 
     useEffect(() => {
-        const checkUser = async () => {
-            const { data: { session } } = await supabase.auth.getSession()
-            setUser(session?.user ?? null)
-
-            const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-                setUser(session?.user ?? null)
-            })
-
-            return () => subscription.unsubscribe()
-        }
-        checkUser()
-    }, [])
+        let active = true
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (active) setUser(session?.user ?? null)
+        })
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (active) setUser(session?.user ?? null)
+        })
+        return () => { active = false; subscription.unsubscribe() }
+    }, [supabase.auth])
 
     const handleLogout = async () => {
         await supabase.auth.signOut()
@@ -43,17 +40,17 @@ export function Header() {
     }
 
     return (
-        <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="container px-4 flex h-14 items-center max-w-full justify-between">
+        <header className="parity-header">
+            <div className="">
                 <div className="flex items-center gap-2 font-bold text-xl">
                     <Link href="/">Parity</Link>
                 </div>
 
                 {user && (
-                    <div className="flex items-center gap-4">
+                    <div className="account-area">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="gap-2">
+                                <Button variant="ghost" className="account-trigger gap-2" aria-label="Konto öffnen">
                                     <span className="text-sm font-normal">
                                         {user.email}
                                     </span>
@@ -61,15 +58,15 @@ export function Header() {
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                                <DropdownMenuLabel>Mein Konto</DropdownMenuLabel>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem onClick={() => setIsProfileOpen(true)}>
                                     <Lock className="mr-2 h-4 w-4" />
-                                    <span>Change Password</span>
+                                    <span>Passwort ändern</span>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={handleLogout}>
                                     <LogOut className="mr-2 h-4 w-4" />
-                                    <span>Log out</span>
+                                    <span>Abmelden</span>
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>

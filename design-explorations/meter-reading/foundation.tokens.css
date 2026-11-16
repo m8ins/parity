@@ -1,0 +1,4 @@
+/* Gemeinsame Quelle; keine parallel gepflegten Werte. */
+@import "../../src/app/foundation.tokens.css";
+/* Relativer Fontpfad für die isolierte HTTP-Vorschau. */
+@font-face { font-family: "Atkinson Hyperlegible Next"; src: url("fonts/AtkinsonHyperlegibleNext.ttf") format("truetype"); font-style: normal; font-weight: 100 900; font-display: swap; }

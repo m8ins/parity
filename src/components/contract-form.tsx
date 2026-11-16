@@ -47,14 +47,14 @@ import { useLocale } from "@/lib/locale"
 import { GAS_WEIGHTS } from "@/lib/types"
 
 const formSchema = z.object({
-    name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+    name: z.string().min(2, { message: "Bitte einen Namen mit mindestens 2 Zeichen eingeben." }),
     type: z.enum(["electricity", "gas"]),
     provider: z.string().optional(),
-    period_start: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Invalid date" }),
-    grundpreis: z.coerce.number().min(0),
-    arbeitspreis: z.coerce.number().min(0),
-    abschlag: z.coerce.number().min(0),
-    umrechnungsfaktor: z.coerce.number().min(0.0001),
+    period_start: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Bitte ein gültiges Datum eingeben." }),
+    grundpreis: z.coerce.number({ error: "Bitte eine gültige Zahl eingeben." }).min(0, { message: "Bitte einen Wert ab 0 eingeben." }),
+    arbeitspreis: z.coerce.number({ error: "Bitte eine gültige Zahl eingeben." }).min(0, { message: "Bitte einen Wert ab 0 eingeben." }),
+    abschlag: z.coerce.number({ error: "Bitte eine gültige Zahl eingeben." }).min(0, { message: "Bitte einen Wert ab 0 eingeben." }),
+    umrechnungsfaktor: z.coerce.number({ error: "Bitte eine gültige Zahl eingeben." }).min(0.0001, { message: "Der Umrechnungsfaktor muss größer als 0 sein." }),
 })
 
 export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string, onSuccess?: () => void, onCancel?: () => void }) {
@@ -62,6 +62,7 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
     const router = useRouter()
     const locale = useLocale()
     const [loading, setLoading] = useState(false)
+    const [error, setError] = useState("")
 
     type FormValues = z.infer<typeof formSchema>
     const form = useForm<FormValues>({
@@ -94,6 +95,7 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setLoading(true)
+        setError("")
         try {
             // 1. Create Meter
             const { data: meter, error: meterError } = await supabase.from("meters").insert({
@@ -132,9 +134,8 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
             form.reset()
             router.refresh()
             if (onSuccess) onSuccess()
-        } catch (e) {
-            console.error(e)
-            alert("Error saving meter")
+        } catch {
+            setError("Der Zähler konnte nicht vollständig angelegt werden. Bitte prüfe die Übersicht vor einem erneuten Versuch, damit kein doppelter Zähler entsteht.")
         } finally {
             setLoading(false)
         }
@@ -142,7 +143,8 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit, (errors) => console.error(errors))} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit, (errors) => console.error(errors))} className="parity-form" aria-busy={loading}>
+                <fieldset disabled={loading}>
                 <FormField
                     control={form.control}
                     name="name"
@@ -177,12 +179,12 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
                         name="type"
                         render={({ field }) => (
                             <FormItem className="flex-1">
-                                <FormLabel>Type</FormLabel>
+                                <FormLabel>Zählertyp</FormLabel>
                                 <div className="flex items-center gap-2">
                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                                         <FormControl>
                                             <SelectTrigger className="flex-1">
-                                                <SelectValue placeholder="Select type" />
+                                                <SelectValue placeholder="Zählertyp wählen" />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
@@ -194,7 +196,7 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
                                     {form.watch("type") === "gas" && (
                                         <Popover>
                                             <PopoverTrigger asChild>
-                                                <Button variant="ghost" size="icon">
+                                                <Button type="button" variant="ghost" size="icon" aria-label="Saisonale Gasverteilung erklären">
                                                     <Info />
                                                 </Button>
                                             </PopoverTrigger>
@@ -204,7 +206,7 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
                                                     <p className="text-sm text-muted-foreground">
                                                         Gas-Verbrauch ist nicht linear. Wir verwenden ein Standard-Lastprofil (H0) mit höherem Verbrauch in Wintermonaten.
                                                     </p>
-                                                    <div className="grid grid-cols-2 gap-4">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                         <Table>
                                                             <TableBody>
                                                                 {Array.from({ length: 6 }).map((_, i) => {
@@ -249,7 +251,7 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
                     name="period_start"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Abrechnungsperiode Start</FormLabel>
+                            <FormLabel>Beginn des Abrechnungszeitraums</FormLabel>
                             <FormControl>
                                 <Input type="date" {...field} />
                             </FormControl>
@@ -258,7 +260,7 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
                     )}
                 />
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                         control={form.control}
                         name="grundpreis"
@@ -270,7 +272,7 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
                                         <InputGroupInput type="number" step="0.01" {...field} />
                                     </FormControl>
                                     <InputGroupAddon align="inline-end">
-                                        <InputGroupText>€/mo</InputGroupText>
+                                        <InputGroupText>€/Monat</InputGroupText>
                                     </InputGroupAddon>
                                 </InputGroup>
                                 <FormMessage />
@@ -309,7 +311,7 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
                                     <InputGroupInput type="number" step="0.01" {...field} />
                                 </FormControl>
                                 <InputGroupAddon align="inline-end">
-                                    <InputGroupText>€/mo</InputGroupText>
+                                    <InputGroupText>€/Monat</InputGroupText>
                                 </InputGroupAddon>
                             </InputGroup>
                             <FormMessage />
@@ -339,7 +341,8 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
                     />
                 )}
 
-                <div className="flex gap-2">
+                {error && <p className="form-error" role="alert">{error}</p>}
+                <div className="form-actions flex flex-wrap gap-2">
                     {onCancel && (
                         <Button type="button" variant="outline" className="flex-1" onClick={onCancel}>
                             Abbrechen
@@ -349,6 +352,7 @@ export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string
                         {loading ? "Wird gespeichert…" : "Zähler anlegen"}
                     </Button>
                 </div>
+                </fieldset>
             </form>
         </Form>
     )
