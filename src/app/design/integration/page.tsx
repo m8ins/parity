@@ -23,6 +23,6 @@ export default async function IntegrationPreview({ searchParams }: { searchParam
   const initialData = { ...readingFixture.initialData, [meter.id]: data, [gas.id]: { ...readingFixture.initialData[gas.id], contracts: [gasContract], ratesByContract: {} } };
   return <>
     <p className="parity-page text-sm">Designvorschau · synthetische Daten · keine Persistenzabnahme</p>
-    {view === 'login' ? <AuthScreen /> : view === 'detail' ? <ContractDetail initialMeter={meter} initialData={data} /> : view === 'gas' ? <ContractDetail initialMeter={gas} initialData={{ ...initialData[gas.id], ratesByContract: { [gasContract.id]: [{ ...rate, contract_id: gasContract.id, umrechnungsfaktor: 10 }] } }} /> : <Dashboard {...readingFixture} initialData={initialData} />}
+    {view === 'empty' ? <Dashboard {...readingFixture} initialMeters={[]} initialData={{}} /> : view === 'login' ? <AuthScreen /> : view === 'detail' ? <ContractDetail initialMeter={meter} initialData={data} /> : view === 'gas' ? <ContractDetail initialMeter={gas} initialData={{ ...initialData[gas.id], ratesByContract: { [gasContract.id]: [{ ...rate, contract_id: gasContract.id, umrechnungsfaktor: 10 }] } }} /> : <Dashboard {...readingFixture} initialData={initialData} />}
   </>;
 }

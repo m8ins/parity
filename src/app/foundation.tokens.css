@@ -101,6 +101,7 @@
   --sys-color-disabled: color-mix(in oklch, var(--sys-color-surface) 95%, var(--ref-color-ink));
   --sys-color-disabled-text: var(--sys-color-text-secondary);
   --sys-color-focus: var(--ref-color-ink);
+  --sys-color-menu-highlight: color-mix(in oklch, var(--sys-color-text) 8%, var(--sys-color-surface));
   --sys-color-error: var(--ref-color-red);
   --sys-color-success: var(--ref-color-ink); /* Erfolg zusätzlich benennen. */
 

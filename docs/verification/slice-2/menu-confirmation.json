@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "checks": [
+    "Rendered distinct discard and unconfirmed-save confirmations; concrete actions and return path",
+    "Production Select: flat full-row pointer highlight; keyboard underline; selection check preserved",
+    "Production Dropdown: flat full-row highlight; destructive action retains red"
+  ],
+  "screenshots": [
+    "confirmation-unsaved",
+    "confirmation-unconfirmed",
+    "select-hover-flat",
+    "dropdown-hover-flat",
+    "dropdown-destructive-hover-flat"
+  ]
+}

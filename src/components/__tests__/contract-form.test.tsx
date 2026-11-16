@@ -1,68 +1,110 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { ContractForm } from '../contract-form';
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { ContractForm } from '../contract-form'
 
-vi.mock('next/navigation', () => ({
-    useRouter: () => ({ refresh: vi.fn(), push: vi.fn(), back: vi.fn() }),
-}));
+const mockRpc = vi.fn()
+vi.mock('@/lib/supabase/client', () => ({ createClient: () => ({ rpc: mockRpc }) }))
+async function firstSteps() {
+  fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Wohnung Strom' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+  fireEvent.change(await screen.findByLabelText('Beginn des Abrechnungszeitraums'), { target: { value: '2025-03-01' } })
+  fireEvent.change(screen.getByLabelText('Ende des Abrechnungszeitraums (optional)'), { target: { value: '2025-07-01' } })
+  for (const [label, value] of [['Grundpreis', '12,5'], ['Arbeitspreis', '32,456'], ['Abschlag', '0']]) fireEvent.change(screen.getByLabelText(label), { target: { value } })
+  fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+  fireEvent.change(await screen.findByLabelText('Datum der Anfangsablesung'), { target: { value: '2025-03-01' } })
+  fireEvent.change(screen.getByLabelText('Anfangszählerstand'), { target: { value: '12345,6' } })
+}
 
-const mockInsert = vi.fn();
-const mockSelect = vi.fn();
-const mockSingle = vi.fn();
-const mockFrom = vi.fn();
-
-vi.mock('@/lib/supabase/client', () => ({
-    createClient: () => ({ from: mockFrom })
-}));
-
-describe('ContractForm', () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
-        mockFrom.mockReturnValue({ insert: mockInsert });
-        mockInsert.mockReturnValue({ select: mockSelect });
-        mockSelect.mockReturnValue({ single: mockSingle });
-        mockSingle.mockResolvedValue({
-            data: { id: 'new-id' },
-            error: null
-        });
-    });
-
-    it('renders required fields', () => {
-        render(<ContractForm user_id="user-1" />);
-        expect(screen.getByLabelText('Name')).toBeInTheDocument();
-        expect(screen.getByLabelText('Zählertyp')).toBeInTheDocument();
-        expect(screen.getByLabelText('Grundpreis')).toBeInTheDocument();
-        expect(screen.getByLabelText('Arbeitspreis')).toBeInTheDocument();
-        expect(screen.getByLabelText('Abschlag')).toBeInTheDocument();
-    });
-
-    it('submits and creates meter, contract, and rate', async () => {
-        const user = userEvent.setup();
-        const onSuccess = vi.fn();
-
-        render(<ContractForm user_id="user-1" onSuccess={onSuccess} />);
-
-        await user.type(screen.getByLabelText('Name'), 'Hauptzähler');
-
-        const dateInput = screen.getByLabelText('Beginn des Abrechnungszeitraums');
-        await user.clear(dateInput);
-        await user.type(dateInput, '2025-01-01');
-
-        await user.type(screen.getByLabelText('Grundpreis'), '9');
-        await user.type(screen.getByLabelText('Arbeitspreis'), '34');
-        await user.type(screen.getByLabelText('Abschlag'), '70');
-
-        const form = screen.getByLabelText('Name').closest('form');
-        if (form) fireEvent.submit(form);
-
-        await waitFor(() => {
-            expect(mockFrom).toHaveBeenCalledWith('meters');
-            expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({
-                user_id: 'user-1',
-                name: 'Hauptzähler',
-                type: 'electricity',
-            }));
-        });
-    });
-});
+describe('ContractForm setup', () => {
+  beforeEach(() => { Element.prototype.scrollIntoView = vi.fn(); vi.clearAllMocks(); sessionStorage.clear(); mockRpc.mockResolvedValue({ data: 'new-meter', error: null }) })
+  it('tabs from name to meter type and keeps cancel quieter than back', async () => {
+    const user = userEvent.setup()
+    render(<ContractForm user_id="user-1" onCancel={vi.fn()} />)
+    await user.click(screen.getByLabelText('Name'))
+    await user.tab()
+    expect(screen.getByRole('combobox', { name: 'Zählertyp' })).toHaveFocus()
+    expect(screen.getByRole('combobox')).toHaveAttribute('tabindex', '0')
+    expect(screen.getByRole('button', { name: 'Abbrechen' })).toHaveAttribute('data-variant', 'ghost')
+    await firstSteps()
+    expect(screen.getByRole('button', { name: 'Zurück' })).toHaveAttribute('data-variant', 'outline')
+  })
+  it('checks each step, preserves values when going back and focuses the error', async () => {
+    render(<ContractForm user_id="user-1" />)
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+    expect(await screen.findByText('Bitte einen Namen mit mindestens 2 Zeichen eingeben.')).toBeVisible()
+    await waitFor(() => expect(screen.getByLabelText('Name')).toHaveFocus())
+    await firstSteps()
+    fireEvent.click(screen.getByRole('button', { name: 'Zurück' }))
+    expect(screen.getByLabelText('Arbeitspreis')).toHaveValue('32,456')
+    expect(mockRpc).not.toHaveBeenCalled()
+  })
+  it('sends one atomic request including explicit zero, arbitrary end and initial reading; waits for explicit success dismissal', async () => {
+    const onSuccess = vi.fn()
+    render(<ContractForm user_id="user-1" onSuccess={onSuccess} />)
+    await firstSteps()
+    fireEvent.click(screen.getByRole('button', { name: 'Zähler anlegen' }))
+    expect(await screen.findByText('Dein Zähler ist eingerichtet')).toBeVisible()
+    expect(mockRpc).toHaveBeenCalledTimes(1)
+    expect(mockRpc).toHaveBeenCalledWith('setup_meter', { p_request_id: expect.any(String), p_payload: expect.objectContaining({ name: 'Wohnung Strom', type: 'electricity', period_start: '2025-03-01', period_end: '2025-07-01', arbeitspreis: 32.456, abschlag: 0, reading_value: 12345.6, reading_date: '2025-03-01', umrechnungsfaktor: 1 }) })
+    expect(onSuccess).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: 'Zur Übersicht' }))
+    expect(onSuccess).toHaveBeenCalledOnce()
+  })
+  it('retains and protects an ambiguous request across remount and safely retries the identical key and payload', async () => {
+    mockRpc.mockRejectedValueOnce(new Error('lost response'))
+    const { unmount } = render(<ContractForm user_id="user-1" />)
+    await firstSteps()
+    fireEvent.click(screen.getByRole('button', { name: 'Zähler anlegen' }))
+    await screen.findByRole('alert')
+    const firstCall = mockRpc.mock.calls[0]
+    expect(screen.getByLabelText('Anfangszählerstand')).toBeDisabled()
+    unmount()
+    render(<ContractForm user_id="user-1" />)
+    expect(await screen.findByRole('button', { name: 'Speicherung prüfen' })).toBeVisible()
+    expect(screen.getByLabelText('Anfangszählerstand')).toHaveValue('12345,6')
+    fireEvent.click(screen.getByRole('button', { name: 'Speicherung prüfen' }))
+    await screen.findByText('Dein Zähler ist eingerichtet')
+    expect(mockRpc.mock.calls[1]).toEqual(firstCall)
+    expect(sessionStorage.getItem('parity:meter-setup:user-1')).toBeNull()
+  })
+  it('locks duplicate submits while pending and does not leak a request into another account', async () => {
+    let release!: (value: unknown) => void
+    mockRpc.mockReturnValue(new Promise(resolve => { release = resolve }))
+    const { unmount } = render(<ContractForm user_id="user-1" />)
+    await firstSteps()
+    const form = screen.getByLabelText('Anfangszählerstand').closest('form')!
+    fireEvent.submit(form); fireEvent.submit(form)
+    expect(mockRpc).toHaveBeenCalledOnce()
+    expect(screen.getByRole('button', { name: 'Wird gespeichert…' })).toBeDisabled()
+    release({ error: new Error('connection lost') })
+    await screen.findByRole('alert')
+    unmount()
+    render(<ContractForm user_id="user-2" />)
+    expect(screen.getByLabelText('Name')).toHaveValue('')
+    expect(screen.queryByRole('button', { name: 'Speicherung prüfen' })).toBeNull()
+  })
+  it('does not send when the durable retry key cannot be stored', async () => {
+    render(<ContractForm user_id="user-1" />)
+    await firstSteps()
+    const storage = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('blocked') })
+    fireEvent.click(screen.getByRole('button', { name: 'Zähler anlegen' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Erlaube Sitzungsspeicher')
+    expect(screen.getByLabelText('Anfangszählerstand')).toHaveValue('12345,6')
+    expect(mockRpc).not.toHaveBeenCalled()
+    storage.mockRestore()
+  })
+  it('supports gas and requires a deliberate conversion factor', async () => {
+    const user = userEvent.setup()
+    render(<ContractForm user_id="user-1" />)
+    await user.type(screen.getByLabelText('Name'), 'Heizung')
+    screen.getByRole('combobox').focus()
+    await user.keyboard('{ArrowDown}')
+    await user.keyboard('{End}{Enter}')
+    await user.click(screen.getByRole('button', { name: 'Weiter' }))
+    expect(screen.getByLabelText('Umrechnungsfaktor')).toHaveValue('')
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }))
+    expect(await screen.findByText('Bitte einen Umrechnungsfaktor größer als 0 eingeben.')).toBeVisible()
+    expect(mockRpc).not.toHaveBeenCalled()
+  })
+})

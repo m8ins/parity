@@ -34,6 +34,7 @@ function SelectTrigger({
 }) {
   return (
     <SelectPrimitive.Trigger
+      tabIndex={0}
       data-slot="select-trigger"
       data-size={size}
       className={cn(

@@ -1,6 +1,6 @@
 # Frontend-Neugestaltung: OOUX und vertikale Slices
 
-Stand: 16. November 2026. Status: fachliche Richtung und Slice-Zuschnitt abgestimmt; Slice 1 und Slice 1b implementiert, technische und synthetische visuelle Prüfungen bestanden. Reale Persistenz-/Geräteabnahme und Nutzerreview bleiben offen. Slices 2–6 nicht begonnen.
+Stand: 16. November 2026. Status: fachliche Richtung und Slice-Zuschnitt abgestimmt; Slice 1 und Slice 1b implementiert, technische und synthetische visuelle Prüfungen bestanden. Slice 2 ist implementiert und zusätzlich mit echter lokaler Supabase-Persistenz und Zwei-Konten-RLS geprüft. Physische Geräteabnahme und Nutzerreview bleiben offen. Slices 3–6 nicht begonnen.
 
 Diese Datei ist der Arbeits- und Übergabeplan für spätere Implementierungsagenten. Sie enthält verbindliche Gesprächsentscheidungen und ausdrücklich offene Gestaltungsfragen. Die Dokumentation allein ist kein Auftrag, jetzt Anwendungscode zu ändern.
 
@@ -89,7 +89,7 @@ Für Slice 1 sind Palette, Schrift, hybride Skalierung und Modal/Sheet entschied
 
 ## Slice 1b — Visuelle Integration und Konsolidierung
 
-**Status:** Implementiert und am 16.11.2026 technisch/visuell mit synthetischen Daten geprüft. Die reale Abnahme bleibt offen; Slices 2–6 sind nicht begonnen. Gewählt und integriert: C „Sanftes Creme + Signalorange“. Ausgangsbefunde: `docs/verification/visual-integration-critique.md`; Ergebnis, Matrix und Grenzen: `docs/verification/slice-1b/README.md`.
+**Status:** Implementiert und am 16.11.2026 technisch/visuell mit synthetischen Daten geprüft. Die historische reale Abnahme von Slice 1b bleibt separat; Slice 2 ist inzwischen lokal real geprüft, Slices 3–6 sind nicht begonnen. Gewählt und integriert: C „Sanftes Creme + Signalorange“. Ausgangsbefunde: `docs/verification/visual-integration-critique.md`; Ergebnis, Matrix und Grenzen: `docs/verification/slice-1b/README.md`.
 
 **Nutzerziel:** Vom Einstieg und Login über Zählerübersicht und Erfassung bis zu bestehenden Detail- und Verwaltungsansichten eine zusammenhängende, verständliche Oberfläche erleben.
 
@@ -287,7 +287,8 @@ Der Modellname im Prompt allein ersetzt die explizite Modellauswahl nicht.
 | Visuelle Richtung und Ablauf Slice 1 | Form/Interaktion aus A, Farbrichtung C + Orange seit 1b; Modal und Bottom Sheet implementiert |
 | Slice 1 | Implementiert; Tests und Browsermatrix bestanden, reale Persistenz- und Geräteabnahme sowie Nutzerreview offen |
 | Slice 1b | Implementiert; technische und synthetische visuelle Prüfungen bestanden, reale Abnahme/Nutzerreview offen |
-| Slice 2–6 | Nicht begonnen; nach Review von Slice 1 und visueller Integration 1b |
+| Slice 2 | Implementiert; 65 Tests, synthetische Browsermatrix sowie echte lokale API-/SQL-/Browser-Persistenz und RLS bestanden; unabhängiges Finishreview abgeschlossen: zwei materielle Korrekturen im gezielten Nachreview als behoben bewertet (ship) |
+| Slice 3–6 | Nicht begonnen |
 
 Nach jedem Slice Status und tatsächliche Design-/Integrationsentscheidungen hier aktualisieren. Fachliche Änderungen gegenüber den Gesprächsentscheidungen ausdrücklich sichtbar machen.
 
@@ -312,3 +313,14 @@ Gemeinsamer `InteractionMode` ergänzt Zeiger-/Tastaturfokus: weißes aktives Fe
 Nachweis: `docs/verification/slice-1b/README.md` mit 69 Integrationsaufnahmen in zehn Prüfgruppen und 25 gemessenen Kontrastpaaren; Erfassungsregression mit zehn Prüfungen/17 Aufnahmen. 54 Tests in elf Dateien, TypeScript und Produktionsbuild bestanden; Lint ohne Fehler mit zwei vorbestehenden Warnungen. Review und Folgekorrekturen: `docs/verification/slice-1b/REVIEW.md`. Screenshots und Logs liegen im selben Nachweisverzeichnis.
 
 Offen bleiben reale Supabase-Anmeldung/E-Mailzustellung, Passwortänderung, Persistenz nach echtem Reload, Zwei-Konten-RLS, physische iOS-/Android-Tastaturen, Hardware-Safe-Areas und Screenreader; Chromium/Brave ersetzt keine Safari-/Firefox-Abnahme. Nicht jede Viewport-/Fehler-/Pending-Kombination wurde geprüft. Das technische/visuelle Ergebnis ist kein vollständiger Produktionsfreigabenachweis und ersetzt nicht die reale Slice-1-/1b-Abnahme.
+
+
+### Slice 2 · tatsächliche Integration (16.11.2026)
+
+Bestehender Einrichtungsdialog erweitert: Zähler → Zeitraum/Konditionen → Anfangsablesung/Prüfung → explizit geschlossener Erfolg. Leerer Einstieg erklärt benötigte Unterlagen. Strom/Gas unabhängig, deutsche Zahlen mit voller bisheriger Genauigkeit; Anbieter und Ende optional, keine Jahresvorgabe. Die exklusive Endgrenze wird erklärt, Ende nach Beginn validiert. Preise/Abschlag erfordern bewusst eingegebene Werte (0 erlaubt), Gas einen positiven Faktor aus der Abrechnung; kein stiller Null- oder geschätzter Faktorwert. Bereichs-/Datumsvalidierung vor Speicherung und im Server. Tagesgrenze dieses Flows konsistent Europe/Berlin.
+
+Neue additive Migration `20261116000001_atomic_meter_setup.sql`: atomare kontogebundene RPC mit allen vier Anfangsdatensätzen; konto-/requestgebundener Beleg und Transaktionslock machen paralleles Wiederholen serverseitig idempotent. Browser schreibt Request/Angaben vor Senden in kontogebundenen Sitzungsspeicher. Unklare Antwort schützt Angaben und ermöglicht denselben Retry auch nach echtem Reload; gesperrter Sitzungsspeicher sendet nichts. Bestehende RLS, Historie und Berechnungen bewahrt. Übersicht-Ladefehler nach erfolgreichem Setup erhält explizite Recovery statt stumm leerer Übersicht/erneuter Einrichtung.
+
+Nachweise `docs/verification/slice-2/README.md`: 65 Tests/13 Dateien, Typecheck und Lint ohne Fehler (2 bestehende Warnungen), Detektor ohne Befunde. 19 synthetische Aufnahmen einschließlich Gas, Abbruch, Pending/Fehler/Erfolg, 320px/200 % und reduzierte Höhe. Zusätzlich echte lokale Supabase: zwei Konten/RLS, acht parallele identische Aufrufe, Nutzlastkonflikt, wiederaufgefundenes Ergebnis, alle Relationen/Präzision und erzwungener später Fehler mit Rollback. Echte Browseranmeldung, absichtlich verlorene Antwort nach tatsächlichem Commit, Reload/Retry ohne Duplikat, Strom- und Gasanlage/weitere Ablesungen nach Reload. Kein Reset; eigene Testkonten/-daten bereinigt. Physische Geräte, Safari/Firefox, Screenreader und Nutzerabnahme offen; unabhängiges Finishreview abgeschlossen: zwei materielle Korrekturen im gezielten Nachreview als behoben bewertet (ship). Kein Push/Merge/Deployment.
+
+Nachkorrekturen nach Nutzerreview: Safari-Tabnavigation bestätigt, Abbrechen als Ghost. Freigegebene flache Menühervorhebung zentral für Select/Dropdown übernommen; Schließbestätigung trennt ungespeicherte Eingaben von unbestätigter Speicherung ohne technischen Auftragstext. 65 Tests/14 Dateien, Lint/Typecheck/Build und aktualisierte Browsermatrix bestanden; Nachweise im Slice-2-Verzeichnis.

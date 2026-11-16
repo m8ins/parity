@@ -67,7 +67,7 @@ components:
 
 **Creative North Star: „Das freundliche kleine Messgerät“**
 
-Dieses Dokument hält die vereinbarte Richtung und das nach Slice 1b integrierte Frontend fest. Die freigegebene Farbrichtung ist C „Sanftes Creme + Signalorange“. Variante A bleibt Herkunft der Form- und Interaktionssprache: Atkinson, klare Konturen, Druckknöpfe und geschützte Erfassung im Modal/Sheet. Slices 2–6 sind nicht begonnen. Technische und synthetische visuelle Prüfungen sind bestanden; reale Anmeldung, Persistenz, RLS und physische Geräteabnahme bleiben offen.
+Dieses Dokument hält die vereinbarte Richtung und das nach Slice 1b integrierte Frontend fest. Die freigegebene Farbrichtung ist C „Sanftes Creme + Signalorange“. Variante A bleibt Herkunft der Form- und Interaktionssprache: Atkinson, klare Konturen, Druckknöpfe und geschützte Erfassung im Modal/Sheet. Slice 2 erweitert inzwischen die Einrichtung; Slices 3–6 sind nicht begonnen. Technische und synthetische visuelle Prüfungen sind bestanden. Für Slice 2 sind zusätzlich reale lokale Anmeldung, Persistenz und Zwei-Konten-RLS geprüft; die historischen Nachweise von Slice 1b bleiben separat. Physische Geräte-, Screenreader- und Cross-Browser-Abnahme bleiben offen.
 
 Parity soll verständlich, haptisch und etwas verspielt wirken. Basecamps „Fisher Price“-Philosophie steht für deutlich erkennbare Bedienmöglichkeiten; PostHog ist die Referenz für leicht comichafte, herausragende Knöpfe. Teenage Engineering und das vom Nutzer beschriebene Handheld mit Kurbel inspirieren die freundliche Geräteanmutung.
 
@@ -168,3 +168,15 @@ Don't:
 - Lesbarkeit für dekorative Schrift oder Animation opfern.
 - Status ausschließlich durch Farbe oder Bewegung ausdrücken.
 - Offene Schrift-, Token- oder Layoutentscheidungen als bereits freigegeben ausgeben.
+
+
+## Einrichtung · Slice 2
+
+Die Einrichtung erweitert die bestehende Übersicht und den geschützten Radix-Dialog im gleichen Operate-System. Drei Schritte ordnen Zähleridentität, Zeitraum/Konditionen und Anfangsablesung mit Zusammenfassung; Zurück erhält Angaben. Keine neue Token-, Farb- oder Typografieentscheidung. Lange Formulare bleiben vertikal scrollbar, Aktionen umbrechen beziehungsweise stapeln bei schmaler Breite und 200 % Schrift. Der leere Einstieg nennt Aufgabe und benötigte Unterlagen.
+
+Sichtbare Labels/Einheiten, Feldfehler mit Fokus und Verknüpfung, Schutz beim Verlassen, gesperrte Übermittlung und explizit geschlossener Erfolg gehören zum Ablauf. Bei unklarer Speicherantwort werden Eingaben bis zur Bestätigung geschützt und derselbe Auftrag auch nach Reload wiederaufgenommen. „Abbrechen“ ist im Einrichtungsdialog eine Ghost-Aktion, „Zurück“ bleibt Outline und die Fortsetzung primär. Select-Auslöser haben einen expliziten Tabstopp und sichtbaren Fokus im Tastaturmodus. Der Abschluss erklärt die nächste Stand-Erfassung. Fehlgeschlagener Listenabruf erhält eine konkrete Wiederladeaktion. Exklusive Endgrenze, ausdrückliche Null und bewusst eingetragener Gasfaktor vermeiden irreführende Anfangsdaten.
+
+Nachweise: `docs/verification/slice-2/README.md` und Browser-/Integrationsprotokolle. Im Unterschied zu den rein synthetischen Nachweisen von Slice 1b wurden hier echte lokale Supabase-Anmeldung, transaktionale Speicherung, Zwei-Konten-RLS, verlorene Antwort nach Commit und tatsächliche Browserreloads für Strom/Gas geprüft. Geräte-/Screenreader-/Cross-Browser-Abnahme bleibt offen; unabhängiges Finishreview ist separat zu bewerten. Vorbestehender Sidecar-Drift bleibt unverändert.
+
+
+Menüeinträge in Selects und Dropdowns verwenden nach Nutzerfreigabe eine flache Hervorhebung über die ganze Zeilenbreite (`--sys-color-menu-highlight`), ohne innere Kontur oder Rundung. Tastaturfokus erhält zusätzlich eine Unterstreichung, die Auswahl weiterhin den Haken; destruktive Einträge behalten ihre Fehlerfarbe. Die Schließbestätigung der Einrichtung benennt ausschließlich den aktuellen Zustand: ungespeicherte Eingaben verwerfen oder eine unbestätigte Speicherung später prüfen. Safari-Tabnavigation wurde vom Nutzer bestätigt.

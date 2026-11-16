@@ -1,359 +1,179 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-import { createClient } from "@/lib/supabase/client"
-import type { Resolver } from "react-hook-form"
-import { Button } from "@/components/ui/button"
-import { Info } from "lucide-react"
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover"
-import {
-    Form,
-    FormControl,
-    FormDescription,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import {
-    InputGroup,
-    InputGroupAddon,
-    InputGroupText,
-    InputGroupInput,
-} from "@/components/ui/input-group"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableRow,
-} from "@/components/ui/table"
-import { useRouter } from "next/navigation"
-import { useLocale } from "@/lib/locale"
-import { GAS_WEIGHTS } from "@/lib/types"
+import { useEffect, useRef, useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from '@/components/ui/input-group'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { formatDate } from '@/lib/date-utils'
+import { initialSetupValues, localToday, setupPayload, setupStepFields, validateSetup, type SetupValues } from '@/lib/meter-setup'
 
-const formSchema = z.object({
-    name: z.string().min(2, { message: "Bitte einen Namen mit mindestens 2 Zeichen eingeben." }),
-    type: z.enum(["electricity", "gas"]),
-    provider: z.string().optional(),
-    period_start: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Bitte ein gültiges Datum eingeben." }),
-    grundpreis: z.coerce.number({ error: "Bitte eine gültige Zahl eingeben." }).min(0, { message: "Bitte einen Wert ab 0 eingeben." }),
-    arbeitspreis: z.coerce.number({ error: "Bitte eine gültige Zahl eingeben." }).min(0, { message: "Bitte einen Wert ab 0 eingeben." }),
-    abschlag: z.coerce.number({ error: "Bitte eine gültige Zahl eingeben." }).min(0, { message: "Bitte einen Wert ab 0 eingeben." }),
-    umrechnungsfaktor: z.coerce.number({ error: "Bitte eine gültige Zahl eingeben." }).min(0.0001, { message: "Der Umrechnungsfaktor muss größer als 0 sein." }),
-})
+type Draft = { values: SetupValues; requestId: string; submitted: boolean; step: number }
 
-export function ContractForm({ user_id, onSuccess, onCancel }: { user_id: string, onSuccess?: () => void, onCancel?: () => void }) {
-    const supabase = createClient()
-    const router = useRouter()
-    const locale = useLocale()
-    const [loading, setLoading] = useState(false)
-    const [error, setError] = useState("")
+export function ContractForm({ user_id, onSuccess, onCancel, onProtectionChange }: {
+  user_id: string; onSuccess?: () => void; onCancel?: () => void;
+  onProtectionChange?: (dirty: boolean, pending: boolean, unconfirmed: boolean) => void;
+}) {
+  const [values, setValues] = useState(initialSetupValues)
+  const [step, setStep] = useState(0)
+  const [errors, setErrors] = useState<Partial<Record<keyof SetupValues, string>>>({})
+  const [loading, setLoading] = useState(false)
+  const [uncertain, setUncertain] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [error, setError] = useState('')
+  const [storageReady, setStorageReady] = useState(false)
+  const [storageError, setStorageError] = useState(false)
+  const requestId = useRef('')
+  const inFlight = useRef(false)
+  const heading = useRef<HTMLHeadingElement>(null)
+  const storageKey = `parity:meter-setup:${user_id}`
+  const dirty = Object.entries(values).some(([key, value]) => value !== initialSetupValues()[key as keyof SetupValues])
 
-    type FormValues = z.infer<typeof formSchema>
-    const form = useForm<FormValues>({
-        resolver: zodResolver(formSchema) as Resolver<FormValues>,
-        defaultValues: {
-            name: "",
-            type: "electricity",
-            provider: "",
-            period_start: new Date().toISOString().split('T')[0],
-            grundpreis: 0,
-            arbeitspreis: 0,
-            abschlag: 0,
-            umrechnungsfaktor: 1,
-        },
-    })
-
-    useEffect(() => {
-        const subscription = form.watch((value, { name }) => {
-            if (name === 'type') {
-                const currentFactor = form.getValues('umrechnungsfaktor');
-                if (value.type === 'gas' && currentFactor === 1) {
-                    form.setValue('umrechnungsfaktor', 10);
-                } else if (value.type === 'electricity' && currentFactor === 10) {
-                    form.setValue('umrechnungsfaktor', 1);
-                }
-            }
-        });
-        return () => subscription.unsubscribe();
-    }, [form]);
-
-    async function onSubmit(values: z.infer<typeof formSchema>) {
-        setLoading(true)
-        setError("")
-        try {
-            // 1. Create Meter
-            const { data: meter, error: meterError } = await supabase.from("meters").insert({
-                user_id,
-                name: values.name,
-                type: values.type,
-                monthly_distribution: values.type === 'gas'
-                    ? GAS_WEIGHTS
-                    : Array(12).fill(1 / 12),
-            }).select().single()
-
-            if (meterError) throw meterError
-            if (!meter) throw new Error("No meter returned")
-
-            // 2. Create Contract (billing period)
-            const { data: contract, error: contractError } = await supabase.from("contracts").insert({
-                meter_id: meter.id,
-                period_start: values.period_start,
-                provider: values.provider?.trim() || null,
-            }).select().single()
-
-            if (contractError) throw contractError
-            if (!contract) throw new Error("No contract returned")
-
-            // 3. Create initial Rate
-            const { error: rateError } = await supabase.from("rates").insert({
-                contract_id: contract.id,
-                effective_from: values.period_start,
-                grundpreis: values.grundpreis,
-                arbeitspreis: values.arbeitspreis,
-                abschlag: values.abschlag,
-                umrechnungsfaktor: values.type === 'gas' ? values.umrechnungsfaktor : 1,
-            })
-            if (rateError) throw rateError
-
-            form.reset()
-            router.refresh()
-            if (onSuccess) onSuccess()
-        } catch {
-            setError("Der Zähler konnte nicht vollständig angelegt werden. Bitte prüfe die Übersicht vor einem erneuten Versuch, damit kein doppelter Zähler entsteht.")
-        } finally {
-            setLoading(false)
+  useEffect(() => {
+    requestId.current = crypto.randomUUID()
+    try {
+      const raw = sessionStorage.getItem(storageKey)
+      if (raw) {
+        const draft = JSON.parse(raw) as Draft
+        if (draft.requestId && draft.values && typeof draft.step === 'number') {
+          requestId.current = draft.requestId
+          setValues(draft.values)
+          setStep(draft.submitted ? 2 : Math.min(2, Math.max(0, draft.step)))
+          setUncertain(draft.submitted)
+          if (draft.submitted) setError('Eine frühere Speicherung ist noch nicht bestätigt. Prüfe denselben Auftrag erneut; es wird kein zweiter Zähler angelegt.')
         }
+      }
+    } catch { setStorageError(true) }
+    setStorageReady(true)
+  }, [storageKey])
+
+  useEffect(() => { onProtectionChange?.(!success && (dirty || uncertain), loading, uncertain) }, [dirty, loading, onProtectionChange, success, uncertain])
+  useEffect(() => {
+    if (!dirty && !uncertain) return
+    const protect = (event: BeforeUnloadEvent) => { event.preventDefault() }
+    window.addEventListener('beforeunload', protect)
+    return () => window.removeEventListener('beforeunload', protect)
+  }, [dirty, uncertain])
+
+  function change(key: keyof SetupValues, value: string) {
+    setValues(previous => ({ ...previous, [key]: value, ...(key === 'type' ? { umrechnungsfaktor: value === 'gas' ? '' : '1' } : {}) }))
+    setErrors(previous => ({ ...previous, [key]: undefined }))
+  }
+  function goTo(next: number) {
+    setStep(next)
+    setErrors({})
+    requestAnimationFrame(() => heading.current?.focus())
+  }
+  function check(keys: (keyof SetupValues)[]) {
+    const all = validateSetup(values)
+    const selected = Object.fromEntries(keys.filter(key => all[key]).map(key => [key, all[key]]))
+    setErrors(selected)
+    const first = keys.find(key => all[key])
+    if (first) requestAnimationFrame(() => document.getElementById(`setup-${first}`)?.focus())
+    return !first
+  }
+  async function submit(event: React.FormEvent) {
+    event.preventDefault()
+    if (inFlight.current || !storageReady || success) return
+    if (step < 2) {
+      if (check(setupStepFields[step])) goTo(step + 1)
+      return
     }
+    if (!uncertain) {
+      const all = validateSetup(values)
+      const badStep = setupStepFields.findIndex(keys => keys.some(key => all[key]))
+      if (badStep >= 0) { setStep(badStep); check(setupStepFields[badStep]); return }
+    }
+    // Persist the exact request before sending. A reload can recover a committed
+    // transaction whose response was lost, using the same account-bound key.
+    try {
+      const draft: Draft = { values, requestId: requestId.current, submitted: true, step: 2 }
+      sessionStorage.setItem(storageKey, JSON.stringify(draft))
+      setStorageError(false)
+    } catch {
+      setStorageError(true)
+      setError('Der Wiederholschutz konnte nicht gespeichert werden. Erlaube Sitzungsspeicher im Browser und versuche es erneut. Es wurde nichts gesendet.')
+      return
+    }
+    inFlight.current = true
+    setLoading(true)
+    setError('')
+    setUncertain(true)
+    try {
+      const result = await createClient().rpc('setup_meter', { p_request_id: requestId.current, p_payload: setupPayload(values) })
+      if (result.error) throw result.error
+      if (!result.data) throw new Error('Keine Speicherbestätigung')
+      setSuccess(true)
+      setUncertain(false)
+      try { sessionStorage.removeItem(storageKey) } catch { /* committed outcome remains recoverable by the same receipt */ }
+      requestAnimationFrame(() => heading.current?.focus())
+    } catch {
+      setError('Die Speicherung ist noch nicht bestätigt. Deine Angaben bleiben erhalten. Mit „Speicherung prüfen“ wird derselbe Auftrag sicher wiederholt. Wenn der Fehler bleibt, prüfe deine Verbindung oder melde dich erneut an.')
+    } finally {
+      inFlight.current = false
+      setLoading(false)
+    }
+  }
+  function field(key: keyof SetupValues, label: string, options: { type?: string; unit?: string; hint?: string; optional?: boolean; placeholder?: string } = {}) {
+    const props = { id: `setup-${key}`, value: values[key], onChange: (event: React.ChangeEvent<HTMLInputElement>) => change(key, event.target.value),
+      type: options.type || 'text', inputMode: options.unit ? 'decimal' as const : undefined,
+      'aria-invalid': Boolean(errors[key]), 'aria-describedby': [options.hint ? `setup-${key}-hint` : '', errors[key] ? `setup-${key}-error` : ''].filter(Boolean).join(' ') || undefined,
+      max: options.type === 'date' && key !== 'period_end' ? localToday() : undefined, placeholder: options.placeholder }
+    return <div className="setup-field" key={key}>
+      <label htmlFor={props.id}>{label}{options.optional ? ' (optional)' : ''}</label>
+      {options.unit ? <InputGroup><InputGroupInput {...props} /><InputGroupAddon align="inline-end"><InputGroupText>{options.unit}</InputGroupText></InputGroupAddon></InputGroup> : <Input {...props} />}
+      {options.hint && <p className="text-sm text-muted-foreground" id={`setup-${key}-hint`}>{options.hint}</p>}
+      {errors[key] && <p className="form-error" id={`setup-${key}-error`}>{errors[key]}</p>}
+    </div>
+  }
+  if (success) return <div className="parity-form setup-success" role="status">
+    <h2 ref={heading} tabIndex={-1}>Dein Zähler ist eingerichtet</h2>
+    <p><strong>{values.name}</strong> hat jetzt einen Abrechnungszeitraum, Konditionen und einen Anfangsstand von {values.reading_value} {values.type === 'gas' ? 'm³' : 'kWh'}.</p>
+    <p>Den nächsten Stand erfasst du in der Übersicht mit „Stand erfassen“. Für eine Prognose brauchst du mindestens zwei Ablesungen im Zeitraum.</p>
+    <Button onClick={onSuccess}>Zur Übersicht</Button>
+  </div>
 
-    return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit, (errors) => console.error(errors))} className="parity-form" aria-busy={loading}>
-                <fieldset disabled={loading}>
-                <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Name</FormLabel>
-                            <FormControl>
-                                <Input placeholder="Hauptzähler Strom" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <FormField
-                    control={form.control}
-                    name="provider"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Anbieter (optional)</FormLabel>
-                            <FormControl>
-                                <Input placeholder="z. B. e.on, Vattenfall" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <div className="flex items-center gap-2">
-                    <FormField
-                        control={form.control}
-                        name="type"
-                        render={({ field }) => (
-                            <FormItem className="flex-1">
-                                <FormLabel>Zählertyp</FormLabel>
-                                <div className="flex items-center gap-2">
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl>
-                                            <SelectTrigger className="flex-1">
-                                                <SelectValue placeholder="Zählertyp wählen" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="electricity">Strom</SelectItem>
-                                            <SelectItem value="gas">Gas</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-
-                                    {form.watch("type") === "gas" && (
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button type="button" variant="ghost" size="icon" aria-label="Saisonale Gasverteilung erklären">
-                                                    <Info />
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-80" side="right" align="start">
-                                                <div className="space-y-4">
-                                                    <h4 className="font-medium leading-none">Saisonale Gasverteilung</h4>
-                                                    <p className="text-sm text-muted-foreground">
-                                                        Gas-Verbrauch ist nicht linear. Wir verwenden ein Standard-Lastprofil (H0) mit höherem Verbrauch in Wintermonaten.
-                                                    </p>
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                        <Table>
-                                                            <TableBody>
-                                                                {Array.from({ length: 6 }).map((_, i) => {
-                                                                    const monthName = new Date(0, i).toLocaleString(locale, { month: 'short' });
-                                                                    return (
-                                                                        <TableRow key={i} className="h-6">
-                                                                            <TableCell className="py-0.5 text-xs">{monthName}</TableCell>
-                                                                            <TableCell className="py-0.5 text-xs text-right">{(GAS_WEIGHTS[i] * 100).toFixed(0)}%</TableCell>
-                                                                        </TableRow>
-                                                                    )
-                                                                })}
-                                                            </TableBody>
-                                                        </Table>
-                                                        <Table>
-                                                            <TableBody>
-                                                                {Array.from({ length: 6 }).map((_, i) => {
-                                                                    const idx = i + 6;
-                                                                    const monthName = new Date(0, idx).toLocaleString(locale, { month: 'short' });
-                                                                    return (
-                                                                        <TableRow key={idx} className="h-6">
-                                                                            <TableCell className="py-0.5 text-xs">{monthName}</TableCell>
-                                                                            <TableCell className="py-0.5 text-xs text-right">{(GAS_WEIGHTS[idx] * 100).toFixed(0)}%</TableCell>
-                                                                        </TableRow>
-                                                                    )
-                                                                })}
-                                                            </TableBody>
-                                                        </Table>
-                                                    </div>
-                                                </div>
-                                            </PopoverContent>
-                                        </Popover>
-                                    )}
-                                </div>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-
-                <FormField
-                    control={form.control}
-                    name="period_start"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Beginn des Abrechnungszeitraums</FormLabel>
-                            <FormControl>
-                                <Input type="date" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormField
-                        control={form.control}
-                        name="grundpreis"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Grundpreis</FormLabel>
-                                <InputGroup>
-                                    <FormControl>
-                                        <InputGroupInput type="number" step="0.01" {...field} />
-                                    </FormControl>
-                                    <InputGroupAddon align="inline-end">
-                                        <InputGroupText>€/Monat</InputGroupText>
-                                    </InputGroupAddon>
-                                </InputGroup>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="arbeitspreis"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Arbeitspreis</FormLabel>
-                                <InputGroup>
-                                    <FormControl>
-                                        <InputGroupInput type="number" step="0.01" {...field} />
-                                    </FormControl>
-                                    <InputGroupAddon align="inline-end">
-                                        <InputGroupText>ct/kWh</InputGroupText>
-                                    </InputGroupAddon>
-                                </InputGroup>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-
-                <FormField
-                    control={form.control}
-                    name="abschlag"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Abschlag</FormLabel>
-                            <InputGroup>
-                                <FormControl>
-                                    <InputGroupInput type="number" step="0.01" {...field} />
-                                </FormControl>
-                                <InputGroupAddon align="inline-end">
-                                    <InputGroupText>€/Monat</InputGroupText>
-                                </InputGroupAddon>
-                            </InputGroup>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                {form.watch("type") === "gas" && (
-                    <FormField
-                        control={form.control}
-                        name="umrechnungsfaktor"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Umrechnungsfaktor</FormLabel>
-                                <InputGroup>
-                                    <FormControl>
-                                        <InputGroupInput type="number" step="0.01" {...field} />
-                                    </FormControl>
-                                    <InputGroupAddon align="inline-end">
-                                        <InputGroupText>kWh/m³</InputGroupText>
-                                    </InputGroupAddon>
-                                </InputGroup>
-                                <FormDescription>Standard ~10. Auf der Jahresabrechnung angegeben.</FormDescription>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                )}
-
-                {error && <p className="form-error" role="alert">{error}</p>}
-                <div className="form-actions flex flex-wrap gap-2">
-                    {onCancel && (
-                        <Button type="button" variant="outline" className="flex-1" onClick={onCancel}>
-                            Abbrechen
-                        </Button>
-                    )}
-                    <Button type="submit" className="flex-1" disabled={loading}>
-                        {loading ? "Wird gespeichert…" : "Zähler anlegen"}
-                    </Button>
-                </div>
-                </fieldset>
-            </form>
-        </Form>
-    )
+  return <form onSubmit={submit} className="parity-form meter-setup" aria-busy={loading} noValidate>
+    <p className="text-sm text-muted-foreground">Schritt {step + 1} von 3 · {['Zähler', 'Zeitraum und Konditionen', 'Anfangsablesung'][step]}</p>
+    <h2 ref={heading} tabIndex={-1}>{['Welchen Zähler möchtest du einrichten?', 'Was gilt zu Beginn?', 'Mit welchem Stand startest du?'][step]}</h2>
+    {uncertain && !loading && <p className="text-sm">Die Angaben bleiben bis zur Speicherbestätigung geschützt, damit eine Wiederholung keinen anderen Auftrag sendet.</p>}
+    <fieldset disabled={loading || uncertain}>
+      {step === 0 && <>
+        {field('name', 'Name', { placeholder: 'z. B. Strom Wohnung', hint: 'Ein eindeutiger Name hilft dir später, den richtigen Zähler zu finden.' })}
+        <div className="setup-field"><label id="setup-type-label" htmlFor="setup-type">Zählertyp</label>
+          <Select value={values.type} onValueChange={value => change('type', value)}><SelectTrigger id="setup-type" aria-labelledby="setup-type-label"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="electricity">Strom</SelectItem><SelectItem value="gas">Gas</SelectItem></SelectContent></Select>
+          <p className="text-sm text-muted-foreground">{values.type === 'gas' ? 'Gasstände werden in m³ erfasst und für Kosten in kWh umgerechnet.' : 'Stromstände werden in kWh erfasst.'}</p>
+        </div>
+      </>}
+      {step === 1 && <>
+        <p>Übernimm die Angaben aus deinem Vertrag oder der Abrechnung. Die Konditionen gelten ab dem Beginn dieses Zeitraums.</p>
+        {field('provider', 'Anbieter', { optional: true, placeholder: 'z. B. Stadtwerke' })}
+        {field('period_start', 'Beginn des Abrechnungszeitraums', { type: 'date' })}
+        {field('period_end', 'Ende des Abrechnungszeitraums', { type: 'date', optional: true, hint: 'Jede Dauer ist möglich. Das Enddatum ist der Beginn der nächsten Periode (z. B. 01.01. für die Abrechnung bis 31.12.). Unbekannt? Lass es offen.' })}
+        {field('grundpreis', 'Grundpreis', { unit: '€/Monat', placeholder: 'z. B. 12,50' })}
+        {field('arbeitspreis', 'Arbeitspreis', { unit: 'ct/kWh', placeholder: 'z. B. 32,45' })}
+        {field('abschlag', 'Abschlag', { unit: '€/Monat', placeholder: 'z. B. 85', hint: 'Trage 0 ein, wenn du keinen monatlichen Abschlag zahlst. Leere Felder werden nicht als 0 gespeichert.' })}
+        {values.type === 'gas' && field('umrechnungsfaktor', 'Umrechnungsfaktor', { unit: 'kWh/m³', placeholder: 'z. B. 10,7', hint: 'Brennwert × Zustandszahl aus deiner Gasabrechnung. Kein geschätzter Wert wird automatisch eingetragen.' })}
+      </>}
+      {step === 2 && <>
+        <p>Nutze einen abgelesenen Stand innerhalb des Zeitraums. Er bildet die Basis für deinen späteren Verbrauch.</p>
+        {field('reading_date', 'Datum der Anfangsablesung', { type: 'date' })}
+        {field('reading_value', 'Anfangszählerstand', { unit: values.type === 'gas' ? 'm³' : 'kWh', placeholder: 'z. B. 12345,6' })}
+        <div className="setup-summary"><h3>Das wird angelegt</h3><dl>
+          <dt>Zähler</dt><dd>{values.name} · {values.type === 'gas' ? 'Gas' : 'Strom'}</dd>
+          <dt>Zeitraum</dt><dd>{formatDate(values.period_start, 'de-DE')} bis {values.period_end ? formatDate(values.period_end, 'de-DE') + ' (Beginn nächste Periode)' : 'offen'}{values.provider ? ` · ${values.provider}` : ''}</dd>
+          <dt>Konditionen ab Beginn</dt><dd>{values.grundpreis} €/Monat Grundpreis · {values.arbeitspreis} ct/kWh · {values.abschlag} €/Monat Abschlag</dd>
+          {values.type === 'gas' && <><dt>Gasumrechnung</dt><dd>{values.umrechnungsfaktor} kWh/m³</dd></>}
+        </dl></div>
+      </>}
+    </fieldset>
+    {storageError && !error && <p className="text-sm">Sitzungsspeicher ist nicht verfügbar. Zum sicheren Speichern muss er im Browser erlaubt sein.</p>}
+    {error && <p className="form-error" role="alert">{error}</p>}
+    <div className="form-actions setup-actions">
+      {onCancel && <Button type="button" variant="ghost" disabled={loading} onClick={onCancel}>{uncertain ? 'Später prüfen' : 'Abbrechen'}</Button>}
+      {step > 0 && !uncertain && <Button type="button" variant="outline" disabled={loading} onClick={() => goTo(step - 1)}>Zurück</Button>}
+      <Button type="submit" disabled={loading || !storageReady}>{loading ? 'Wird gespeichert…' : uncertain ? 'Speicherung prüfen' : step < 2 ? 'Weiter' : 'Zähler anlegen'}</Button>
+    </div>
+  </form>
 }

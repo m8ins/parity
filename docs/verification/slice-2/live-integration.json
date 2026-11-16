@@ -1,0 +1,16 @@
+{
+  "source": "Real local Supabase Auth + PostgREST + PostgreSQL; no mocks",
+  "checks": [
+    "Two synthetic accounts authenticated through real local Auth",
+    "Eight concurrent identical requests return exactly one meter",
+    "Consumed request rejects changed payload",
+    "Fresh client recovers committed result after discarded response",
+    "Fresh authenticated reads retain period, provider, rates, precision and initial reading",
+    "Second account cannot read first account rows or attach readings",
+    "Same request key independently creates gas on second account",
+    "Existing reading insert works after setup",
+    "Invalid setup leaves no extra meter",
+    "Receipt table is inaccessible and anonymous RPC execution is denied"
+  ],
+  "cleanup": true
+}

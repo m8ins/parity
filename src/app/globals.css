@@ -176,3 +176,18 @@ input { caret-color: var(--sys-color-text); }
   .reading-dialog[data-slot=dialog-content] { padding-inline: var(--sys-gap-group); }
   .reading-actions button { padding-inline: var(--sys-gap-inline); overflow-wrap: normal; word-break: normal; }
 }
+
+/* Setup extends the shared Operate controls; no independent palette. */
+.meter-setup-dialog { max-width: 40rem; }
+.meter-setup fieldset { display: grid; gap: var(--sys-gap-field); min-width: 0; }
+.meter-setup h2, .setup-success h2 { font: var(--sys-font-section); }
+.setup-field { display: grid; gap: var(--sys-gap-label); min-width: 0; }
+.setup-field label { font: var(--sys-font-label); }
+.setup-actions { display: flex; flex-wrap: wrap; gap: var(--sys-gap-inline); }
+.setup-actions > button { flex: 1 1 9rem; white-space: normal; height: auto; min-height: var(--sys-size-control-min); }
+.setup-summary { border-top: var(--sys-border-width) solid var(--sys-color-divider); padding-top: var(--sys-gap-group); overflow-wrap: anywhere; }
+.setup-summary dl { display: grid; gap: var(--sys-gap-label); }
+.setup-summary dt { font-weight: var(--ref-font-weight-semibold); margin-top: var(--sys-gap-inline); }
+.setup-summary dd { font-variant-numeric: lining-nums tabular-nums; }
+.setup-empty { max-width: 65ch; margin-bottom: var(--sys-gap-section); display: grid; gap: var(--sys-gap-group); }
+@media (max-width: 359px) { .meter-setup-dialog { padding-inline: var(--sys-gap-group); } }

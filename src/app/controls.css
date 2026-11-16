@@ -27,7 +27,7 @@
   background: var(--sys-color-disabled); color: var(--sys-color-disabled-text);
   border-color: var(--sys-color-divider); box-shadow: none; opacity: 1; cursor: not-allowed;
 }
-.parity-control:focus-visible, html[data-keyboard=true] .parity-input:focus, .parity-select:focus-visible,
+.parity-control:focus-visible, html[data-keyboard=true] .parity-input:focus, html[data-keyboard=true] .parity-select:focus, .parity-select:focus-visible,
 .parity-tab:focus-visible, .parity-close:focus-visible, a:focus-visible, summary:focus-visible {
   outline: var(--sys-focus-width) solid var(--sys-color-focus); outline-offset: var(--sys-focus-offset);
 }
@@ -58,8 +58,20 @@ html[data-keyboard=true] .parity-input-group:focus-within { outline: var(--sys-f
 .parity-tabs-list { display: flex; flex-wrap: wrap; align-items: stretch; gap: var(--ref-space-1); width: fit-content; max-width: 100%; padding: var(--ref-space-1); background: var(--sys-color-canvas); border-radius: var(--sys-radius-control); }
 .parity-tab { min-width: 0; min-height: var(--sys-size-target-min); padding: var(--sys-gap-inline) var(--sys-inset-control-inline); border: var(--sys-border-width) solid transparent; border-radius: var(--sys-radius-control); background: transparent; color: var(--sys-color-text); font: var(--sys-font-control); white-space: normal; overflow-wrap: normal; cursor: pointer; }
 .parity-tab[data-state=active] { background: var(--sys-color-surface); border-color: var(--sys-color-border); }
-[data-slot=select-item], [data-slot=dropdown-menu-item] { min-height: var(--sys-size-target-min); font: var(--sys-font-support); white-space: normal; overflow-wrap: anywhere; }
-[data-slot=select-item]:focus, [data-slot=dropdown-menu-item]:focus { outline: var(--sys-border-width) solid var(--sys-color-focus); outline-offset: -2px; }
+[data-slot=select-content] [data-radix-select-viewport],
+[data-slot=dropdown-menu-content], [data-slot=dropdown-menu-sub-content] { padding: var(--ref-space-1) 0; }
+:is([data-slot=select-item], [data-slot^=dropdown-menu-][role^=menuitem]) {
+  min-height: var(--sys-size-target-min); font: var(--sys-font-support); white-space: normal; overflow-wrap: anywhere;
+  border-radius: 0; outline: none; box-shadow: none;
+}
+:is([data-slot=select-item], [data-slot^=dropdown-menu-][role^=menuitem])[data-highlighted],
+[data-slot=dropdown-menu-sub-trigger][data-state=open] { background: var(--sys-color-menu-highlight); color: var(--sys-color-text); }
+:is([data-slot=select-item], [data-slot^=dropdown-menu-][role^=menuitem]):focus-visible,
+html[data-keyboard=true] :is([data-slot=select-item], [data-slot^=dropdown-menu-][role^=menuitem])[data-highlighted] {
+  text-decoration: underline; text-underline-offset: .2em; text-decoration-thickness: 2px;
+}
+[data-slot=dropdown-menu-item][data-variant=destructive] { color: var(--sys-color-error); }
+[data-slot=dropdown-menu-item][data-variant=destructive][data-highlighted] { background: var(--sys-color-error-surface); color: var(--sys-color-error); }
 [data-slot=table] { font-variant-numeric: var(--sys-numeric-variant); }
 [data-slot=card], [data-slot=card-content], [data-slot=card-header], [data-slot=card-footer], [data-slot=tabs-content] { min-width: 0; }
 [data-slot=dialog-header], [data-slot=dialog-description], [data-slot=form-message] { overflow-wrap: anywhere; }

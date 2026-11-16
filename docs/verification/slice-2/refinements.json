@@ -1,0 +1,16 @@
+{
+  "checks": [
+    "Chromium: name -> Tab -> select -> Shift+Tab -> name, explicit tabindex0",
+    "Keyboard opens select; gas chosen",
+    "Cancel ghost; shared production menu styling unchanged"
+  ],
+  "proposal": "Flat full-row tinted highlight, no inner outline/rounding; keyboard highlight also underlined",
+  "limitations": "Safari not automated; explicit tabindex0 is the targeted Safari correction. Menu proposal is browser-injected only.",
+  "screenshots": [
+    "setup-ghost-cancel",
+    "select-hover-before",
+    "select-hover-proposal",
+    "dropdown-hover-before",
+    "dropdown-hover-proposal"
+  ]
+}
