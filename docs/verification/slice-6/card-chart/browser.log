@@ -1,0 +1,36 @@
+{
+  "synthetic": true,
+  "checks": [
+    "1440px: compact consumption curve before financial summary and last reading; two >=44px detail links; h2 semantics; compact setup action opens existing flow; full forecast curve/end visible without horizontal scroll",
+    "1024px: compact consumption curve before financial summary and last reading; two >=44px detail links; h2 semantics; compact setup action opens existing flow; full forecast curve/end visible without horizontal scroll",
+    "768px: compact consumption curve before financial summary and last reading; two >=44px detail links; h2 semantics; compact setup action opens existing flow; full forecast curve/end visible without horizontal scroll",
+    "390px: compact consumption curve before financial summary and last reading; two >=44px detail links; h2 semantics; compact setup action opens existing flow; full forecast curve/end visible without horizontal scroll",
+    "320px: compact consumption curve before financial summary and last reading; two >=44px detail links; h2 semantics; compact setup action opens existing flow; full forecast curve/end visible without horizontal scroll",
+    "Gas, absent/single reading, missing prices, zero usage and large readings: curve or honest next-step state; no horizontal page overflow",
+    "Empty setup invitation retained; 320px/200% text and extra spacing stay within document/chart; keyboard focus visible under reduced motion"
+  ],
+  "screenshots": [
+    "screenshots/overview-1440.png",
+    "screenshots/detail-1440.png",
+    "screenshots/overview-1024.png",
+    "screenshots/detail-1024.png",
+    "screenshots/overview-768.png",
+    "screenshots/detail-768.png",
+    "screenshots/overview-390.png",
+    "screenshots/detail-390.png",
+    "screenshots/overview-320.png",
+    "screenshots/detail-320.png",
+    "screenshots/empty-390.png",
+    "screenshots/overview-200percent.png",
+    "screenshots/detail-200percent.png",
+    "screenshots/overview-reduced-motion-focus.png",
+    "screenshots/card-gas-390.png",
+    "screenshots/card-none-390.png",
+    "screenshots/card-one-390.png",
+    "screenshots/card-missing-390.png",
+    "screenshots/card-zero-390.png",
+    "screenshots/card-large-390.png"
+  ],
+  "errors": [],
+  "passed": true
+}

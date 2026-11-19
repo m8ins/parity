@@ -1,6 +1,6 @@
 # Frontend-Neugestaltung: OOUX und vertikale Slices
 
-Stand: 16. November 2026. Status: fachliche Richtung und Slice-Zuschnitt abgestimmt; Slice 1 und Slice 1b implementiert, technische und synthetische visuelle Prüfungen bestanden. Slice 2 ist implementiert und zusätzlich mit echter lokaler Supabase-Persistenz und Zwei-Konten-RLS geprüft. Physische Geräteabnahme und Nutzerreview bleiben offen. Slice 3 ist implementiert und synthetisch geprüft; Slices 4–6 nicht begonnen.
+Stand: 19. November 2026. Status: fachliche Richtung und Slice-Zuschnitt abgestimmt; Slice 1 und Slice 1b implementiert, technische und synthetische visuelle Prüfungen bestanden. Slice 2 ist implementiert und zusätzlich mit echter lokaler Supabase-Persistenz und Zwei-Konten-RLS geprüft. Physische Geräteabnahme und Nutzerreview bleiben offen. Slice 3 ist implementiert und synthetisch geprüft; Slice 4 ist implementiert und separat unter `docs/verification/slice-4/` nachgewiesen; Slice 5 ist implementiert und einschließlich echter lokaler Persistenz-/Konkurrenztests unter `docs/verification/slice-5/` nachgewiesen; Slice 6 ist implementiert; tatsächliche Nachweise und offene Abnahmen unter `docs/verification/slice-6/`.
 
 Diese Datei ist der Arbeits- und Übergabeplan für spätere Implementierungsagenten. Sie enthält verbindliche Gesprächsentscheidungen und ausdrücklich offene Gestaltungsfragen. Die Dokumentation allein ist kein Auftrag, jetzt Anwendungscode zu ändern.
 
@@ -162,6 +162,8 @@ Für Slice 1 sind Palette, Schrift, hybride Skalierung und Modal/Sheet entschied
 
 ## Slice 4 — Konditionen ändern
 
+**Status:** Implementiert auf `codex/slice-4-conditions`, aus dem vollständigen sauberen Slice-3-Stand `d49901e`. Vorschlag und Fachregeln vor UI-Implementierung mit dem Nutzer abgestimmt. Nachweise, Migration und Einschränkungen: `docs/verification/slice-4/README.md`. Nutzerabnahme des gerenderten Ergebnisses steht aus.
+
 **Nutzerziel:** Neue Preise oder Abschläge ab einem bestimmten Datum hinterlegen.
 
 **Umfang:** Konditionshistorie, datierte Änderung, Speicherung und nachvollziehbare Auswirkung. Bestehende Verwaltungsmöglichkeiten erhalten.
@@ -179,6 +181,8 @@ Für Slice 1 sind Palette, Schrift, hybride Skalierung und Modal/Sheet entschied
 **Einstiegspunkte:** `src/components/history-lists.tsx`, `contract-detail.tsx`, `src/lib/calculations.ts`, `src/lib/types.ts`.
 
 ## Slice 5 — Abrechnen und fortführen
+
+**Status:** Implementiert auf `codex/slice-5-billing-periods`, aufgebaut auf dem vollständigen uncommittierten Slice-4-Stand. Fachregeln vor Umsetzung vom Nutzer bestätigt. 138 Tests, Typecheck/Lint/Build, fünf Browsermatrizen und echte lokale DB-/Browser-Persistenz bestanden. Gerenderte Nutzerabnahme und physische Geräteprüfung offen. Nachweise: `docs/verification/slice-5/README.md`.
 
 **Nutzerziel:** Eine tatsächliche Abrechnung festhalten und einen weiteren Zeitraum beginnen.
 
@@ -215,6 +219,33 @@ Für Slice 1 sind Palette, Schrift, hybride Skalierung und Modal/Sheet entschied
 **Abhängigkeit:** UI-Grundlage aus Slice 1. Abschlussprüfung erfolgt nach Integration aller Slices; Authentifizierung wird bis dahin weiterverwendet.
 
 **Einstiegspunkte:** `src/components/auth-screen.tsx`, `profile-dialog.tsx`, `header.tsx`, `src/app/layout.tsx`, `src/lib/locale.tsx`.
+
+## Slice 7 — Schreibwege und Wiederholschutz absichern
+
+**Status:** Am 16.11.2026 zusätzlich beauftragt; noch nicht umgesetzt. Nach den fachlichen Slices 5–6 und vor der Veröffentlichung abschließen. Neue Schreibwege aus Slice 5 von Anfang an in die Prüfung aufnehmen.
+
+**Nutzerziel:** Speichern und Wiederholen bleiben zuverlässig; Korrekturhistorie und Datenregeln gelten unabhängig davon, über welchen erlaubten API-Weg geschrieben wird.
+
+**Umfang:** Gezielte Konsolidierung der Supabase-Schreibwege aus Slices 2, 4 und 5. Transaktionen und zweckgebundene Request-Belege grundsätzlich erhalten; kein generisches Request-Framework entwickeln.
+
+1. **Lebensdauer und Datenumfang der Request-Belege:** `meter_setup_requests`, `condition_requests` und `billing_continuation_requests` um eine nachvollziehbare Zeitinformation ergänzen und die Aufbewahrungsstrategie dokumentieren. Bestehende Einträge besitzen keinen verlässlichen historischen Erstellungszeitpunkt; beim Nachtragen keinen solchen vortäuschen. Prüfen, welche Nutzlast tatsächlich zum Vergleich benötigt wird, insbesondere vollständige `expected_rates`-Snapshots. Reduzierung oder Fingerprint nur mit eindeutig definierter Vergleichssemantik und sicherer Behandlung bestehender Belege. Fachliches Fassungsarchiv und technische Wiederholbelege getrennt behandeln.
+2. **Erlaubte Schreibwege:** Grants, RLS, Trigger und RPCs gemeinsam inventarisieren. Direkte Änderungen an eigenen `rates` sind derzeit durch ältere Policies möglich und können das Korrekturarchiv umgehen. Festlegen und technisch durchsetzen, welche Änderungen ausschließlich durch die geprüften RPCs erfolgen dürfen. Einrichtung, Folgezeitraum und andere legitime Verbraucher müssen weiter funktionieren. `SECURITY DEFINER`, Kontozuordnung und `search_path` mitprüfen.
+3. **Eindeutige Konditionsdaten:** Die Triggerlösung gegen doppelte `(contract_id, effective_from)` prüfen. Ziel ist eine deklarative Unique-Constraint, sobald vorhandene Dubletten kontrolliert aufgelöst sind. Vorher nur lesend inventarisieren; keine automatische Auswahl, Löschung oder Zusammenführung bestehender Haushaltsdaten. Bei vorhandenen Konflikten einen konkreten Bereinigungs-/Rolloutplan erstellen und die Constraint-Abnahme bis zur Auflösung offen lassen.
+
+**Außerhalb:** Frontend-Redesign, neues Prognosemodell, allgemeines Event-Sourcing, generische Job-/Request-Infrastruktur, ungefragte Datenbereinigung oder produktive Migration.
+
+**Abnahme:**
+- Aufbewahrung, Kontolöschung, Objektlöschung und spätes Wiederholen sind ausdrücklich geregelt. Kein pauschaler Cleanup, durch den ein alter Auftrag unbemerkt erneut ausgeführt werden kann. Dauerhaft minimale Belege zu behalten ist eine zulässige bewusste Entscheidung.
+- Gleicher Schlüssel/gleiche Angaben führt auch parallel oder nach verlorener Antwort zu keiner zweiten Mutation; gleicher Schlüssel/andere Angaben wird abgewiesen. Übergang für vorhandene Belege ist regressionsgeprüft.
+- Direkte API-Schreibversuche können bestätigte Archiv-/Validierungsregeln nicht umgehen. Kontofremde und anonyme Aufrufe bleiben abgewiesen; autorisierte Einrichtung, Konditionspflege, Zeitraumfortführung und Endeänderung funktionieren weiterhin.
+- Neue doppelte Gültigkeitsdaten werden auch unter konkurrierenden Schreibversuchen zuverlässig verhindert. Der Umgang mit Altdubletten ist dokumentiert und keine unbekannten Bestandsdaten wurden automatisch verändert.
+- Änderung, Archiv und Beleg bleiben atomar; ein erzwungener Fehler erzeugt weder Teilmutation noch falschen Erfolgsbeleg.
+- Additive Migrationen mit Upgradeprüfung auf bestehendem Schema und echter lokaler Supabase-Integration testen. Keine bereits angewandten Migrationen umschreiben; kein Reset unbekannter Datenbanken.
+- Ergebnisse, erlaubte Schreibwege, Aufbewahrungsentscheidung, Migrationsreihenfolge und verbleibende Rolloutvoraussetzungen unter `docs/verification/slice-7/` festhalten. Tests/Lint/Typecheck und Releasebuild nach gemeinsamer Definition of Done.
+
+**Abhängigkeit:** Tatsächliche Schreibwege aus Slices 2, 4 und 5; Abschluss vor Produktionsfreigabe. Dieser Slice ist eine technische Absicherung bestehender Nutzerabläufe, kein zusätzlicher UI-Flow.
+
+**Einstiegspunkte:** `supabase/migrations/20261116000001_atomic_meter_setup.sql`, `20261116000002_dated_conditions.sql`, `20261116000003_open_billing_periods.sql`, ältere `rates`-Policies, weitere Migrationen aus Slice 5 und die zugehörigen lokalen API-/SQL-/Browserprüfungen.
 
 ## Gemeinsame Prüfdaten und Definition of Done
 
@@ -290,7 +321,11 @@ Der Modellname im Prompt allein ersetzt die explizite Modellauswahl nicht.
 | Slice 1 | Implementiert; Tests und Browsermatrix bestanden, reale Persistenz- und Geräteabnahme sowie Nutzerreview offen |
 | Slice 1b | Implementiert; technische und synthetische visuelle Prüfungen bestanden, reale Abnahme/Nutzerreview offen |
 | Slice 2 | Implementiert; 65 Tests, synthetische Browsermatrix sowie echte lokale API-/SQL-/Browser-Persistenz und RLS bestanden; unabhängiges Finishreview abgeschlossen: zwei materielle Korrekturen im gezielten Nachreview als behoben bewertet (ship) |
-| Slice 3–6 | Nicht begonnen |
+| Slice 3 | Implementiert; spätere Nutzerkorrekturen der reduzierten Ansicht und Standvorbelegung maßgeblich; Nachweise unter `docs/verification/slice-3/` |
+| Slice 4 | Implementiert; datierte Pflege, Korrekturarchiv, bestätigte Löschung und idempotente Speicherung; Nachweise unter `docs/verification/slice-4/`; Nutzerreview offen |
+| Slice 5 | Implementiert; atomare Fortführung, Abrechnung, 138 Tests, Browser-/echte lokale Persistenz- und Konkurrenzprüfungen bestanden; Nutzerabnahme offen |
+| Slice 6 | Implementiert; Designreview umgesetzt, 174 Tests, Typecheck/Lint/Build, fünf Browserregressionen sowie echte lokale Verwaltung/Auth mit Code-Mail und RLS bestanden; Nutzer-/Geräte-/Cross-Browserabnahmen und gehostete Mailvorlage offen |
+| Slice 7 | Geplant: Request-Belege, erlaubte Schreibwege und Konditions-Constraints vor Veröffentlichung absichern |
 
 Nach jedem Slice Status und tatsächliche Design-/Integrationsentscheidungen hier aktualisieren. Fachliche Änderungen gegenüber den Gesprächsentscheidungen ausdrücklich sichtbar machen.
 
@@ -326,3 +361,66 @@ Neue additive Migration `20261116000001_atomic_meter_setup.sql`: atomare kontoge
 Nachweise `docs/verification/slice-2/README.md`: 65 Tests/13 Dateien, Typecheck und Lint ohne Fehler (2 bestehende Warnungen), Detektor ohne Befunde. 19 synthetische Aufnahmen einschließlich Gas, Abbruch, Pending/Fehler/Erfolg, 320px/200 % und reduzierte Höhe. Zusätzlich echte lokale Supabase: zwei Konten/RLS, acht parallele identische Aufrufe, Nutzlastkonflikt, wiederaufgefundenes Ergebnis, alle Relationen/Präzision und erzwungener später Fehler mit Rollback. Echte Browseranmeldung, absichtlich verlorene Antwort nach tatsächlichem Commit, Reload/Retry ohne Duplikat, Strom- und Gasanlage/weitere Ablesungen nach Reload. Kein Reset; eigene Testkonten/-daten bereinigt. Physische Geräte, Safari/Firefox, Screenreader und Nutzerabnahme offen; unabhängiges Finishreview abgeschlossen: zwei materielle Korrekturen im gezielten Nachreview als behoben bewertet (ship). Kein Push/Merge/Deployment.
 
 Nachkorrekturen nach Nutzerreview: Safari-Tabnavigation bestätigt, Abbrechen als Ghost. Freigegebene flache Menühervorhebung zentral für Select/Dropdown übernommen; Schließbestätigung trennt ungespeicherte Eingaben von unbestätigter Speicherung ohne technischen Auftragstext. 65 Tests/14 Dateien, Lint/Typecheck/Build und aktualisierte Browsermatrix bestanden; Nachweise im Slice-2-Verzeichnis.
+
+
+### Slice 4 · tatsächliche Integration (16.11.2026)
+
+Bestehender Konditionen-Tab mit ruhiger Standardansicht und aufklappbarer Historie. Geschütztes Formular/Prüfung/Erfolg, echtes datumsabhängiges Vorbelegen und Übernehmen unveränderter Werte, Vorher/Nachher nur für Änderungen. Bestehende Einschätzung wird aus bestätigten Konditionen aktualisiert; Rückweg bleibt im gewählten Zeitraum. Die reduzierte Verstehen-Ansicht und die letzte bestätigte Ablesevorbelegung bleiben erhalten.
+
+Verbindlich bestätigt: genau ein aktiver Satz pro Datum; Korrekturen archivieren die alte Fassung. Vergangene und abgerechnete Zeiträume sind mit Hinweis bearbeitbar; erfasste Schlussabrechnung bleibt unabhängig. Löschen bleibt auch ohne Vorgänger erlaubt, verlangt aber die ausdrückliche Bestätigung der Lücke. Neue Datumsgrenzen sind startinklusiv/endexklusiv; bekannte zukünftige Änderungen sind erlaubt. Nach weiterem Nutzerreview bleibt ein Zeitraum ohne eingetragenes Ende offen. Die Jahresannahme dient ausschließlich als Berechnungsbereich und begrenzt keine neuen Konditionen. Bestehende außerhalb liegende Datensätze bleiben zur Korrektur/Löschung zugänglich, ihre Datierung wird dabei nicht verschoben.
+
+Additive Migration `20261116000002_dated_conditions.sql`: kontogebundene atomare RPC, dauerhafte Wiederholbelege und lesegeschütztes Fassungsarchiv. Erwartete Historie/Zeitraum werden vor Änderung auf Konflikte geprüft. Ein Trigger verhindert neue doppelte Datumsstände auch auf bestehenden Insertwegen; Altdubletten werden nicht automatisch verändert. Berechnung priorisiert Altdubletten nicht zufällig. Kein neues Prognosemodell, kein neuer Zeitraum, keine Auth-/Einrichtungsänderung und kein produktiver Datenzugriff.
+
+
+### Slice 4 · Vereinfachung nach Nutzerreview
+
+Kein zusätzliches fachliches Vertragsobjekt: Zähler → Abrechnungszeitraum → datierte Konditionen. `Contract` bleibt ausschließlich der historische technische Name des Abrechnungszeitraums. Offene Zeiträume werden nicht anhand der Jahresannahme als beendet behandelt. Header und Zeitraumwahl zeigen „offen“, aktuell gültige Konditionen werden zum tatsächlichen Stichtag ermittelt. Der normale Weg speichert ausdrücklich „Neue Konditionen“; Korrektur bleibt in der Historie.
+
+„Ende festlegen“ beziehungsweise „Ende ändern“ ist direkt im Kopf erreichbar. Eingabe als „Bis einschließlich“, Umrechnung auf die exklusive technische Grenze intern. Sichere absolute Speicherung mit Bestätigung, Wiederholschutz durch Zielwert-/Versionsvergleich und Konto-/Überlappungsprüfung. Migration `20261116000003_open_billing_periods.sql` wurde nur lokal angewandt, keine Haushaltsdaten verändert. Der bestehende einjährige Berechnungsbereich bleibt unverändert; außerhalb liegende neue Konditionen sind erlaubt und werden gezielt als noch nicht in dieser Schätzung enthalten erklärt. Keine neue Prognoselogik. Nachweise: `docs/verification/slice-4/open-periods/README.md`.
+
+
+### Slice 5 · tatsächliche Integration (18.11.2026)
+
+Zwei unabhängige Aufgaben unter „Verwalten“; keine Rechnung als Voraussetzung für die Fortführung. Nutzerbestätigt: Abrechnung erst nach tatsächlichem Ende über den bestehenden Enddialog; neuester Zeitraum fortführbar, Rückdatierung nach altem Beginn erlaubt, Lücke nach Bestätigung erhalten. Spätere Konditionen werden geprüft zusätzlich übernommen, Originale bleiben unverändert. Ohne eindeutige Anfangskonditionen bewusste Werteingabe. Ein neues Ende darf keine späteren Sätze still ausschließen.
+
+Abrechnung speichert absolute Zielwerte mit Konto-/Konfliktprüfung, expliziter Null und Datum. Fortführung ersetzt die alte Drei-Schritt-Funktion durch eine atomare RPC mit zweckgebundenem Beleg und geprüften Snapshots. Additive Migration `20261118000001_billing_periods.sql` ausschließlich lokal angewandt; neue Trigger sichern geänderte/neue Zeitraumgrenzen auch auf Legacy-Wegen und sperren Rate-Eltern gegen konkurrierende Änderungen. Konto-/Zähler-/Ablesungszuordnung, Genauigkeit und reduzierte Verstehen-Ansicht bleiben erhalten. Alte unsichere Fortführungsfunktion entfernt. Keine Altdaten bereinigt, frühere Migrationen nicht umgeschrieben.
+
+138 Tests/21 Dateien, Typecheck/Lint/Produktionsbuild, neue 27-Aufnahmen-Matrix und vier gemeinsame Regressionen bestanden. Echte lokale DB-Prüfung enthält erzwungenen Fehler nach erstem Schreibschritt, Rollback, parallelen Retry, Konkurrenz und Kontoisolation. Echter Browserweg beweist verlorene Commit-Antwort → Reload → identischen Retry ohne Duplikat sowie alle Ergebnisvorzeichen nach Reload. Separate Review ohne bestätigte materielle Befunde. Grenzen, Schreibwege und Slice-7-Prüfauftrag einschließlich der neuen privaten Requesttabelle: `docs/verification/slice-5/README.md`. Physische Geräte, Screenreader, Cross-Browser und Nutzerabnahme offen. Kein Push/Merge/Deployment.
+
+Nutzerreview Slice 5 am 19.11.2026: Zweiteilige segmentierte Ergebnisauswahl, bewusster Nullbetrag für ausgeglichene Abrechnung, Euro-Addon im Betragsfeld und zweistelliger Placeholder. Bestehende Token-/Bewegungswelt und Speichersicherheit erhalten; Nachweise im Slice-5-Verzeichnis.
+
+
+Nutzerentscheidung am 19.11.2026: Segment-Control-Stil „Tinte“ bestätigt und integriert; dunkle Auswahlfläche mit heller Schrift im bündigen gemeinsamen Rahmen. Bestehende semantische Tokens und Tastaturbedienung erhalten.
+
+Technischer Abschluss Slice 5 am 19.11.2026 auf dem bestätigten Tinte-Stand: 138 Tests, Typecheck/Lint, frischer isolierter Produktionsbuild, alle fünf Browsermatrizen sowie erneut echte lokale DB- und Browserprüfungen bestanden. Die zwischenzeitlich blockierte lokale Wiederholprüfung ist erledigt; 10 DB-Prüfgruppen einschließlich gleichem Anbieter bei eintägiger und jährlicher Fortführung, Rollback, Retry, Konkurrenz und Kontoisolation bestanden. Fachliche Nutzerabnahme und dokumentierte Geräte-/Screenreader-/Cross-Browsergrenzen bleiben offen. Nachweise unter `docs/verification/slice-5/`.
+
+
+### Slice 6 · tatsächliche Integration (19.11.2026)
+
+Ausgangspunkt ist der vollständige uncommittierte Slice-5-Stand im selben Arbeitsbaum; Branch `codex/slice-6-management`, kein Verwerfen/Reset. Lückeninventar vor Änderungen; vorhandene 1b-Oberflächen und Nutzerkorrekturen der Slices 3–5 bewahrt. Gemeinsame Umbenennung mit bestehender Namensregel und bestätigter Serverzeile, explizite Zählerlöschung mit tatsächlichen Kaskaden und Abwesenheitsprüfung, sichere Wiederholung nach verlorener Antwort. Menü-/Dialog-Fokusübergang gezielt abgesichert; keine Neugestaltung der Übersicht oder Verstehen-Ansicht.
+
+Sitzungswechsel entfernt alte lokale Kontoformulare und lädt den ursprünglichen Link neu; gesicherte kontoabhängige Speicheraufträge bleiben erhalten. Abmelden behandelt Fehler/Pending/Wiederholung, Codeanforderung fokussiert das Eingabefeld, Passwortänderung erklärt Sitzungsablauf und leert geschlossene Entwürfe. Zeitraumwahl wird im Link abgebildet; ungültige/gelöschte/fremde IDs haben einen neutralen Rückweg. Legacy-Vertrags-ID wird unter RLS zum zugehörigen Zähler/Zeitraum aufgelöst. Abruffehler werden nicht mehr als leere oder fehlende Daten ausgegeben; Retry fordert neue Serverdaten an.
+
+Unmittelbarer Kontoisolationsbefund: vier unabhängige historische Migrationsbackups hatten Clientrechte ohne RLS. Neue additive Migration `20261119000001_protect_migration_backups.sql` entzieht diese Rechte und aktiviert RLS; ausschließlich lokal angewandt/journalisiert, keine historischen Zeilen gelesen oder verändert. Keine andere Migration umgeschrieben, kein Reset. Echte Kaskaden lassen Setupbelege mit NULL-ID sowie Konditionsbelege bestehen; Aufbewahrung/gezielte Bereinigung bleibt Produktentscheidung für Slice 7. Kein Papierkorb oder neues Auth-/Exportkonzept.
+
+Nachweise: `docs/verification/slice-6/README.md` mit Inventar, Logs, echten lokalen DB-/Browserprüfungen, getrennt benannter Fehler-Injektion und Regressionen aus Slices 1–5. Nur tatsächlich bestandene Endläufe zählen. Nutzerabnahme, physische Geräte, Screenreader und Safari/Firefox bleiben offen. Kein Push/Merge/Deployment.
+
+
+Weiterer realer Slice-6-Befund: Lokale Standardmail lieferte nur einen Magic Link statt des in der Oberfläche verlangten Codes. Vorhandenen Codeweg durch deutsche `{{ .Token }}`-Vorlage und lokale Konfigurationsbindung vervollständigt. Lokale Aktivierung benötigt regulären Stop/Start mit erhaltenen Datenvolumes, keinen Reset. Eine gehostete Authkonfiguration wird dadurch nicht geändert; deren Übernahme/Zustellungsabnahme bleibt offen. Doppelter Auth-Seitenwechsel (Router-Refresh plus Kontoschutz-Reload) beseitigt, damit unmittelbar nach Login eröffnete Entwürfe bestehen bleiben.
+
+
+Technischer Abschluss Slice 6: 169 Tests / 25 Dateien, Typecheck, Lint (zwei bestehende Warnungen), isolierter Produktionsbuild und alle fünf Regressionen bestanden. Echte lokale DB/API bestätigt Löschkaskaden, Belegverhalten und Kontoisolation. Vollständiger Browserweg: 7 Gruppen/16 Aufnahmen, beide Anmeldewege einschließlich tatsächlicher lokaler Codezustellung, Passwortänderung, Zwei-Tab-Abmeldung, Namenfehler/Retry/Reload, bestätigte Löschung samt verlorener Commitantwort und Fokus, Mobil/200 %/Reduced Motion. Separate Serverfehler-/Link-Prüfung einschließlich echtem Ladezustand und unbekannter Sitzung bestanden. Endberichte mit `passed: true`/`cleanup: true`; lokale Datenvolumes beim Konfigurationsneustart erhalten, kein Reset. Gehostete Vorlagenübernahme, externe Zustellung, Geräte, Screenreader, Safari/Firefox und Nutzerabnahme bleiben offen.
+
+
+### Slice 6 · Designreview umgesetzt (19.11.2026)
+
+Finanzielles Ergebnis auf der Karte priorisiert und direkt mit dem tatsächlichen Zeitraum verlinkt; größere erkennbare Namensverknüpfung, korrekte Überschriftensemantik und Fokus. Kompakter Hinzufügen-Button bei vorhandenen Zählern; leerer Einstieg bewahrt. Vollständige mobile Prognose statt initial abgeschnittenem 640-px-Chart, kurze deutsche Monatslabels und kompakte Beschriftung großer Y-Werte ohne Daten-/Berechnungsänderung. Kurze Löschaufgabe mit vollständigem Namen in der zugänglichen Beschreibung; scrollender Dialog beginnt oben im Kontext, Abbrechen/Bestätigung bleiben sicher. Expliziter Stift für Umbenennen, bestätigter Enddialog weiterhin am bisherigen Platz.
+
+174 Tests / 26 Dateien, Typecheck/Lint/isolierter Build, alle fünf Regressionen sowie gezielte Design-/200-%-/Fokusprüfung bestanden. Echter lokaler Browserweg erneut bestanden, einschließlich Ergebnislink mit richtiger Zeitraum-ID, Rename/Reload, Löschfehler/verlorener Commitantwort/Retry, Kontowechsel und Codezustellung; eigene Testdaten bereinigt. Kurzzeitiger lokaler CLI-/HTTP-Timeout war vor Testkontoanlage, späterer Lauf erfolgreich. Keine weitere Migration, kein Reset oder Deployment. Vorher-/Nachher-Bilder, Skill-Checker-Grenzen und offene physische Abnahmen: `docs/verification/slice-6/design-followup/README.md`.
+
+
+### Slice 6 · Verbrauchskurve wieder auf der Karte (19.11.2026)
+
+Spätere Nutzerfreigabe setzt die frühere Kartenreduktion außer Kraft: kompakter Verbrauchsverlauf als Hauptinhalt, finanzielle Einschätzung und letzter Stand darunter; „Stand erfassen“ bleibt Hauptaktion. Dieselben Daten und Kurven wie in „Verstehen“, keine neue Prognoselogik. Grafik außerhalb des Ergebnislinks; richtige Zeitraumverknüpfung erhalten. Fehlende Preise verhindern den Verbrauchsverlauf nicht; fehlende Ablesungen erhalten den ehrlichen nächsten Schritt.
+
+179 Tests / 27 Dateien, Typecheck, Lint (zwei bestehende Warnungen), isolierter Produktionsbuild bestanden. Neue synthetische Browsermatrix: 20 Aufnahmen, fünf Breiten 1440–320 px, 200 % Text und Textabstände, Reduced Motion/Fokus, sechs Datenzustände. Separater Tooltip-/Tastaturweg und die bestehenden Verstehen- sowie Ableseregressionen bestanden. Keine erneute DB-/RLS-Abnahme für diese Darstellungsänderung; bestehende reale Slice-6-Nachweise bleiben separat. Geräte-, Screenreader- und weitere Browserabnahme offen. Bericht: `docs/verification/slice-6/card-chart/README.md`.

@@ -19,7 +19,7 @@ describe('Bestehende Anmeldewege', () => {
     await user.type(await screen.findByLabelText('Anmeldecode'), '123456');
     await user.click(screen.getByRole('button', { name: 'Code bestätigen' }));
     expect(auth.verifyOtp).toHaveBeenCalledWith({ email: 'demo@parity.example', token: '123456', type: 'email' });
-    expect(refresh).toHaveBeenCalledOnce();
+    expect(screen.getByText('Angemeldet. Deine Zähler werden geladen …')).toBeVisible();
   });
   it('behält Passwort-Eingaben nach einem Fehler und erlaubt Wiederholen', async () => {
     auth.signInWithPassword.mockResolvedValueOnce({ error: { code: 'invalid_credentials', message: 'raw backend error' } });
@@ -32,7 +32,7 @@ describe('Bestehende Anmeldewege', () => {
     expect(screen.getByLabelText('Passwort', { exact: true, selector: 'input' })).toHaveValue('test-passwort');
     expect(screen.queryByText('raw backend error')).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Anmelden' }));
-    expect(auth.signInWithPassword).toHaveBeenCalledTimes(2); expect(refresh).toHaveBeenCalledOnce();
+    expect(auth.signInWithPassword).toHaveBeenCalledTimes(2); expect(screen.getByText('Angemeldet. Deine Zähler werden geladen …')).toBeVisible();
   });
   it('sperrt Felder, Wechsel und Mehrfachübermittlung während der Anmeldung', async () => {
     let finish!: (value: { error: null }) => void;
@@ -69,5 +69,32 @@ describe('Profil', () => {
     await user.click(screen.getByRole('button', { name: 'Passwort ändern' }));
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('konnte nicht geändert'));
     expect(screen.getByLabelText('Neues Passwort', { exact: true })).toHaveValue('test-passwort');
+  });
+});
+
+describe('Sitzung und Formularabschluss', () => {
+  it('fokussiert nach erfolgreicher Codeanforderung das Codefeld', async () => {
+    const user = userEvent.setup(); render(<AuthScreen />);
+    await user.type(screen.getByLabelText('E-Mail-Adresse'), 'demo@parity.example');
+    await user.click(screen.getByRole('button', { name: 'Code anfordern' }));
+    expect(await screen.findByLabelText('Anmeldecode')).toHaveFocus();
+  });
+  it('erklärt eine abgelaufene Sitzung ohne Erfolg und erhält die Passworteingaben', async () => {
+    auth.updateUser.mockResolvedValue({ error: { code: 'session_not_found', status: 400 } });
+    const user = userEvent.setup(); render(<ProfileDialog open />);
+    await user.type(screen.getByLabelText('Neues Passwort', { exact: true }), 'test-passwort');
+    await user.type(screen.getByLabelText('Neues Passwort bestätigen'), 'test-passwort');
+    await user.click(screen.getByRole('button', { name: 'Passwort ändern' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Sitzung ist abgelaufen');
+    expect(screen.getByLabelText('Neues Passwort', { exact: true })).toHaveValue('test-passwort');
+    expect(screen.queryByText('Dein Passwort wurde geändert.')).toBeNull();
+  });
+  it('entfernt Passwortentwürfe auch beim expliziten Schließen', async () => {
+    const user = userEvent.setup(); render(<ProfileDialog />);
+    await user.click(screen.getByRole('button', { name: 'Konto öffnen' }));
+    await user.type(screen.getByLabelText('Neues Passwort', { exact: true }), 'alter-entwurf');
+    await user.click(screen.getAllByRole('button', { name: 'Schließen' })[0]);
+    await user.click(screen.getByRole('button', { name: 'Konto öffnen' }));
+    expect(screen.getByLabelText('Neues Passwort', { exact: true })).toHaveValue('');
   });
 });

@@ -1,0 +1,200 @@
+npm notice run parity@0.1.0 dev
+npm notice run next dev --webpack --hostname 127.0.0.1 --port 3005
+▲ Next.js 16.1.1 (webpack)
+- Local:         http://127.0.0.1:3005
+- Network:       http://127.0.0.1:3005
+
+✓ Starting...
+✓ Ready in 843ms
+○ Compiling / ...
+ GET / 200 in 3.9s (compile: 3.7s, render: 143ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=electricity 200 in 2.6s (compile: 2.4s, render: 242ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=electricity 200 in 70ms (compile: 4ms, render: 67ms)
+ GET /design/integration?view=understand&scenario=electricity 200 in 22ms (compile: 4ms, render: 18ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=electricity 200 in 42ms (compile: 1945µs, render: 41ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=electricity&period=period-previous 200 in 34ms (compile: 1426µs, render: 33ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=gas-open 200 in 32ms (compile: 1318µs, render: 30ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=electricity 200 in 28ms (compile: 1099µs, render: 27ms)
+ GET /design/integration?view=understand&scenario=electricity 200 in 13ms (compile: 3ms, render: 10ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=electricity 200 in 22ms (compile: 1130µs, render: 21ms)
+ GET /design/integration?view=understand&scenario=electricity 200 in 10ms (compile: 2ms, render: 8ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=electricity 200 in 26ms (compile: 1439µs, render: 25ms)
+ GET /design/integration?view=understand&scenario=electricity 200 in 11ms (compile: 1927µs, render: 9ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=electricity 200 in 26ms (compile: 1374µs, render: 25ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=gas 200 in 26ms (compile: 1364µs, render: 24ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=gas 200 in 33ms (compile: 1651µs, render: 31ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=large 200 in 24ms (compile: 1279µs, render: 23ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=large 200 in 28ms (compile: 1608µs, render: 26ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=gas 200 in 27ms (compile: 1633µs, render: 26ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=electricity 200 in 27ms (compile: 1387µs, render: 26ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=electricity 200 in 30ms (compile: 1635µs, render: 28ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=gas&period=period-previous 200 in 24ms (compile: 1084µs, render: 23ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=gas 200 in 26ms (compile: 1413µs, render: 25ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=large 200 in 25ms (compile: 1228µs, render: 24ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=gas-open 200 in 29ms (compile: 1658µs, render: 27ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=gas-open 200 in 30ms (compile: 1697µs, render: 28ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=electricity 200 in 23ms (compile: 1273µs, render: 22ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=gas&period=period-previous 200 in 22ms (compile: 1281µs, render: 21ms)
+ GET /design/integration?view=understand&scenario=none 200 in 18ms (compile: 1268µs, render: 17ms)
+ GET /design/integration?view=understand&scenario=one 200 in 17ms (compile: 1111µs, render: 16ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=missing 200 in 22ms (compile: 1552µs, render: 21ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=zero 200 in 20ms (compile: 1015µs, render: 19ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=short 200 in 19ms (compile: 1049µs, render: 18ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=large 200 in 22ms (compile: 1129µs, render: 21ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=gas-custom 200 in 25ms (compile: 977µs, render: 24ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=electricity 200 in 25ms (compile: 973µs, render: 24ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=gas&period=period-previous 200 in 23ms (compile: 1045µs, render: 22ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=short 200 in 21ms (compile: 1097µs, render: 19ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=large 200 in 22ms (compile: 964µs, render: 21ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=large 200 in 23ms (compile: 1071µs, render: 22ms)
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET /design/integration?view=understand&scenario=gas&period=period-previous 200 in 23ms (compile: 1097µs, render: 22ms)
+ GET /design/integration 200 in 24ms (compile: 1399µs, render: 23ms)
+ GET /design/integration?view=empty 200 in 16ms (compile: 1098µs, render: 15ms)
+ GET /design/integration?view=empty 200 in 20ms (compile: 1905µs, render: 19ms)
+ GET /design/integration?view=empty 200 in 18ms (compile: 1683µs, render: 17ms)
+ GET /design/reading 200 in 402ms (compile: 227ms, render: 174ms)
+ GET /design/reading 200 in 25ms (compile: 1326µs, render: 23ms)
+ GET /design/reading 200 in 25ms (compile: 1423µs, render: 24ms)
+ GET /design/reading 200 in 23ms (compile: 1454µs, render: 21ms)
+ GET /design/reading 200 in 21ms (compile: 1250µs, render: 19ms)
+ GET /design/reading 200 in 19ms (compile: 1850µs, render: 18ms)
+ GET /design/reading 200 in 17ms (compile: 1029µs, render: 16ms)
+ GET /design/reading 200 in 22ms (compile: 1434µs, render: 21ms)
+ GET /design/reading 200 in 28ms (compile: 1281µs, render: 26ms)
+[?25h

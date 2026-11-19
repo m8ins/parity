@@ -1,0 +1,43 @@
+{
+  "synthetic": true,
+  "errors": [],
+  "checks": [
+    "Keyboard/focus, date-specific baseline, date/discard protection, exact double-submit guard, pending close protection, error, reload and identical retry, same-period estimate return",
+    "Explicit correction at same date; historical settled period is editable; actual refund retained; delete explains gap",
+    "390px gas, validation/zero/factor precision, 320px/200% plus text spacing and long values, accessible scroll/actions, reduced motion",
+    "Pending, unconfirmed response, safe retry and success also at 320px/200%",
+    "Open period beyond one year, direct inclusive end editing, confirmed header update, keyboard focus return, mobile and 200% end dialog"
+  ],
+  "screenshots": [
+    "desktop-current",
+    "desktop-edit-keyboard",
+    "desktop-date-protection",
+    "desktop-discard",
+    "desktop-review",
+    "desktop-pending",
+    "desktop-uncertain",
+    "desktop-success",
+    "desktop-updated-estimate",
+    "desktop-history",
+    "desktop-historical-correction",
+    "desktop-delete-gap",
+    "mobile-gas-edit",
+    "mobile-validation",
+    "mobile-review",
+    "mobile-large-200percent-current",
+    "mobile-200percent-edit-top",
+    "mobile-200percent-edit-bottom",
+    "mobile-200percent-review-top",
+    "mobile-200percent-review-bottom",
+    "mobile-200percent-pending-bottom",
+    "mobile-200percent-error-bottom",
+    "mobile-200percent-success",
+    "open-desktop-current",
+    "open-desktop-end",
+    "open-mobile-current",
+    "open-mobile-end",
+    "open-200percent-end-top",
+    "open-200percent-end-bottom"
+  ],
+  "status": "pass"
+}

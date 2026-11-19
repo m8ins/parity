@@ -1,0 +1,18 @@
+{
+  "source": "Real local app/API with forwarding proxy; labelled server GET fault injection",
+  "checks": [
+    "Legacy period resolves correct meter and period; foreign meter/period/legacy IDs and malformed period are unavailable without disclosing foreign name",
+    "Server list/meter/history GET failure is a load error, never empty/not-found; explicit retry re-fetches actual records",
+    "Auth-user GET failure hides protected content and offers retry instead of repeated reload or false missing-session claim",
+    "Delayed server meter query renders real loading state, then actual overview"
+  ],
+  "screenshots": [
+    "screenshots/desktop-unavailable-period.png",
+    "screenshots/desktop-overview-network-error.png",
+    "screenshots/desktop-meter-network-error.png",
+    "screenshots/desktop-session-network-error.png",
+    "screenshots/desktop-loading.png"
+  ],
+  "passed": true,
+  "cleanup": true
+}

@@ -1,0 +1,62 @@
+ M DESIGN.md
+ M docs/frontend-redesign-plan.md
+ M src/app/contract/[id]/page.tsx
+ M src/app/globals.css
+ M src/app/layout.tsx
+ M src/app/meter/[id]/page.tsx
+ M src/app/page.tsx
+ M src/components/PeriodUnderstanding.tsx
+ M src/components/__tests__/auth-screen.test.tsx
+ M src/components/__tests__/period-understanding.test.tsx
+ M src/components/__tests__/rate-history.test.tsx
+ M src/components/__tests__/reading-flow.test.tsx
+ M src/components/__tests__/setup-confirmation.test.tsx
+ M src/components/__tests__/setup-overview.test.tsx
+ M src/components/auth-screen.tsx
+ M src/components/contract-card.tsx
+ M src/components/contract-detail.tsx
+ M src/components/dashboard.tsx
+ M src/components/header.tsx
+ M src/components/history-lists.tsx
+ M src/components/profile-dialog.tsx
+ M src/lib/calculations.ts
+ M src/lib/contracts.test.ts
+ M src/lib/contracts.ts
+ M src/lib/types.ts
+ M src/lib/understanding-fixture.ts
+ M supabase/config.toml
+?? .agents/skills/design-taste-frontend/
+?? .claude/skills/design-taste-frontend
+?? docs/verification/slice-4/
+?? docs/verification/slice-5/
+?? docs/verification/slice-6/
+?? skills-lock.json
+?? src/app/error.tsx
+?? src/app/loading.tsx
+?? src/app/not-found.tsx
+?? src/components/AccountBoundary.tsx
+?? src/components/BillingContinuation.tsx
+?? src/components/BillingSettlement.tsx
+?? src/components/DeleteMeterDialog.tsx
+?? src/components/PeriodEndDialog.tsx
+?? src/components/RenameMeterDialog.tsx
+?? src/components/RouteState.tsx
+?? src/components/__tests__/account-session.test.tsx
+?? src/components/__tests__/billing-actions.test.tsx
+?? src/components/__tests__/management-routes.test.tsx
+?? src/components/__tests__/meter-management.test.tsx
+?? src/components/__tests__/period-end.test.tsx
+?? src/lib/access.ts
+?? src/lib/billing-actions.test.ts
+?? src/lib/billing-actions.ts
+?? src/lib/billing-period.test.ts
+?? src/lib/billing-period.ts
+?? src/lib/conditions.test.ts
+?? src/lib/conditions.ts
+?? src/lib/meter-management.test.ts
+?? src/lib/meter-management.ts
+?? supabase/migrations/20261116000002_dated_conditions.sql
+?? supabase/migrations/20261116000003_open_billing_periods.sql
+?? supabase/migrations/20261118000001_billing_periods.sql
+?? supabase/migrations/20261119000001_protect_migration_backups.sql
+?? supabase/templates/

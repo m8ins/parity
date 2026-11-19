@@ -1,0 +1,32 @@
+ M DESIGN.md
+ M docs/frontend-redesign-plan.md
+ M src/app/globals.css
+ M src/components/PeriodUnderstanding.tsx
+ M src/components/__tests__/rate-history.test.tsx
+ M src/components/contract-detail.tsx
+ M src/components/history-lists.tsx
+ M src/lib/calculations.ts
+ M src/lib/contracts.test.ts
+ M src/lib/contracts.ts
+ M src/lib/types.ts
+ M src/lib/understanding-fixture.ts
+?? .agents/skills/design-taste-frontend/
+?? .claude/skills/design-taste-frontend
+?? docs/verification/slice-4/
+?? docs/verification/slice-5/
+?? docs/verification/slice-6/
+?? skills-lock.json
+?? src/components/BillingContinuation.tsx
+?? src/components/BillingSettlement.tsx
+?? src/components/PeriodEndDialog.tsx
+?? src/components/__tests__/billing-actions.test.tsx
+?? src/components/__tests__/period-end.test.tsx
+?? src/lib/billing-actions.test.ts
+?? src/lib/billing-actions.ts
+?? src/lib/billing-period.test.ts
+?? src/lib/billing-period.ts
+?? src/lib/conditions.test.ts
+?? src/lib/conditions.ts
+?? supabase/migrations/20261116000002_dated_conditions.sql
+?? supabase/migrations/20261116000003_open_billing_periods.sql
+?? supabase/migrations/20261118000001_billing_periods.sql

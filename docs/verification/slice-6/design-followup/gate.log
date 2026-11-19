@@ -1,0 +1,2 @@
+gate: no build is active in /Users/martin/git/parity (no .taste-skill/build.json); begin one with: node "/Users/martin/git/parity/.agents/skills/design-taste-frontend/scripts/gate.mjs" --start index.html
+GATE: OFF (no build active)

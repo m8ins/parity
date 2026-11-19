@@ -1,0 +1,13 @@
+{
+  "localOnly": true,
+  "localStackRestarted": true,
+  "noReset": true,
+  "previousDatabaseVolumes": [
+    "supabase_db_Parity"
+  ],
+  "currentDatabaseVolumes": [
+    "supabase_db_Parity"
+  ],
+  "templateConfigured": true,
+  "databaseVolumesPreserved": true
+}

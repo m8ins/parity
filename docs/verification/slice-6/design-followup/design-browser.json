@@ -1,0 +1,29 @@
+{
+  "synthetic": true,
+  "checks": [
+    "1440px: financial result before smaller last reading; two >=44px detail links; h2 semantics; compact setup action opens existing flow; full forecast curve/end visible without horizontal scroll",
+    "1024px: financial result before smaller last reading; two >=44px detail links; h2 semantics; compact setup action opens existing flow; full forecast curve/end visible without horizontal scroll",
+    "768px: financial result before smaller last reading; two >=44px detail links; h2 semantics; compact setup action opens existing flow; full forecast curve/end visible without horizontal scroll",
+    "390px: financial result before smaller last reading; two >=44px detail links; h2 semantics; compact setup action opens existing flow; full forecast curve/end visible without horizontal scroll",
+    "320px: financial result before smaller last reading; two >=44px detail links; h2 semantics; compact setup action opens existing flow; full forecast curve/end visible without horizontal scroll",
+    "Empty setup invitation retained; 320px/200% text and extra spacing stay within document/chart; keyboard focus visible under reduced motion"
+  ],
+  "screenshots": [
+    "screenshots/overview-1440.png",
+    "screenshots/detail-1440.png",
+    "screenshots/overview-1024.png",
+    "screenshots/detail-1024.png",
+    "screenshots/overview-768.png",
+    "screenshots/detail-768.png",
+    "screenshots/overview-390.png",
+    "screenshots/detail-390.png",
+    "screenshots/overview-320.png",
+    "screenshots/detail-320.png",
+    "screenshots/empty-390.png",
+    "screenshots/overview-200percent.png",
+    "screenshots/detail-200percent.png",
+    "screenshots/overview-reduced-motion-focus.png"
+  ],
+  "errors": [],
+  "passed": true
+}

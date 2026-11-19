@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useRef, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Meter, Reading, MeterData } from "@/lib/types"
 import { loadMeterData } from "@/lib/contracts"
@@ -28,9 +29,12 @@ export function Dashboard({
     initialMeters: Meter[]
     initialData: Record<string, MeterData>
 }) {
-    const [error, setError] = useState("")
+    const [message, setMessage] = useState("")
+    const heading = useRef<HTMLHeadingElement>(null)
+    const router = useRouter()
     const [meters, setMeters] = useState<Meter[]>(initialMeters)
     const [data, setData] = useState<Record<string, MeterData>>(initialData)
+    useEffect(() => { setMeters(initialMeters); setData(initialData) }, [initialMeters, initialData])
     const [overviewLoadError, setOverviewLoadError] = useState(false)
     const [isFormExpanded, setIsFormExpanded] = useState(false)
 
@@ -70,13 +74,12 @@ export function Dashboard({
         }
     }
 
-    const deleteMeter = async (id: string) => {
-        const { error } = await supabase.from('meters').delete().eq('id', id)
-        if (error) {
-            setError('Der Zähler konnte nicht gelöscht werden. Bitte versuche es erneut.')
-        } else {
-            fetchData()
-        }
+    const deleteMeter = (id: string) => {
+        setMeters(previous => previous.filter(meter => meter.id !== id))
+        setData(previous => { const next = { ...previous }; delete next[id]; return next })
+        setMessage('Der Zähler ist entfernt. Andere Zähler bleiben erhalten.')
+        router.refresh()
+        requestAnimationFrame(() => heading.current?.focus())
     }
 
     const handleReadingAdded = (meterId: string, reading: Reading) => {
@@ -94,19 +97,18 @@ export function Dashboard({
 
     return (
         <main className="parity-page">
-            <h1>Deine Zähler</h1>
+            <h1 ref={heading} tabIndex={-1}>Deine Zähler</h1>
             {overviewLoadError && <div className="parity-form" role="alert">
                 <p>Die Übersicht konnte nicht geladen werden. Bereits gespeicherte Zähler bleiben erhalten. Lade die Übersicht erneut, bevor du einen weiteren Zähler einrichtest.</p>
                 <Button type="button" variant="outline" onClick={fetchData}>Übersicht neu laden</Button>
             </div>}
-            {error && <p className="form-error" role="alert">{error}</p>}
-            <p className="page-intro">Zähler finden, Stand erfassen und Ablesungen im Blick behalten.</p>
+            <p role="status">{message}</p>
             {meters.length === 0 && !overviewLoadError && <section className="setup-empty">
                 <h2>Dein erster Zähler</h2>
                 <p>Lege einen Strom- oder Gaszähler mit Zeitraum, Konditionen und Anfangsstand an. Danach kannst du weitere Stände erfassen und deinen Verbrauch verfolgen.</p>
                 <p className="text-sm text-muted-foreground">Halte deinen Vertrag oder die letzte Abrechnung und einen abgelesenen Zählerstand bereit.</p>
             </section>}
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className={`grid grid-cols-1 gap-6 md:grid-cols-2 ${meters.length > 2 ? 'lg:grid-cols-3' : ''}`}>
                 {meters.map(meter => {
                     const mData = data[meter.id] || { contracts: [], ratesByContract: {}, readings: [] }
 
@@ -115,42 +117,42 @@ export function Dashboard({
                             key={meter.id}
                             meter={meter}
                             meterData={mData}
-                            onUpdate={fetchData}
+                            onUpdate={saved => { setMeters(previous => previous.map(item => item.id === saved.id ? saved : item)); router.refresh() }}
                             onReadingAdded={handleReadingAdded}
                             onDelete={deleteMeter}
                         />
                     )
                 })}
 
-                {!overviewLoadError && <div className="md:col-span-2 lg:col-span-1">
-                    <Dialog open={isFormExpanded} onOpenChange={open => open ? setIsFormExpanded(true) : closeSetup()}>
-                        <DialogTrigger asChild>
-                            <button type="button" className="add-meter">
-                                <Plus className="h-8 w-8" aria-hidden="true" />
-                                <strong>Zähler hinzufügen</strong>
-                                <span className="text-sm">Strom oder Gas erfassen</span>
-                            </button>
-                        </DialogTrigger>
-                        <DialogContent className="meter-setup-dialog max-h-[90dvh] overflow-y-auto" showCloseButton={!setupPending} onEscapeKeyDown={event => { event.preventDefault(); closeSetup() }} onPointerDownOutside={event => { event.preventDefault(); closeSetup() }}>
-                            <DialogHeader>
-                                <DialogTitle>Zähler einrichten</DialogTitle>
-                                <DialogDescription>Strom oder Gas mit Anfangsdaten in drei Schritten einrichten.</DialogDescription>
-                            </DialogHeader>
-                            <div className="py-4">
-                                <ContractForm
-                                    user_id={user.id}
-                                    onProtectionChange={protectSetup}
-                                    onSuccess={() => {
-                                        fetchData();
-                                        setIsFormExpanded(false);
-                                    }}
-                                    onCancel={closeSetup}
-                                />
-                            </div>
-                        </DialogContent>
-                    </Dialog>
-                </div>}
             </div>
+            {!overviewLoadError && <div className={meters.length ? "meter-add-action" : "meter-add-empty"}>
+                <Dialog open={isFormExpanded} onOpenChange={open => open ? setIsFormExpanded(true) : closeSetup()}>
+                    <DialogTrigger asChild>
+                        {meters.length === 0 ? <button type="button" className="add-meter">
+                            <Plus className="h-8 w-8" aria-hidden="true" />
+                            <strong>Zähler hinzufügen</strong>
+                            <span className="text-sm">Strom oder Gas erfassen</span>
+                        </button> : <Button type="button" variant="outline"><Plus aria-hidden="true" />Zähler hinzufügen</Button>}
+                    </DialogTrigger>
+                    <DialogContent className="meter-setup-dialog max-h-[90dvh] overflow-y-auto" showCloseButton={!setupPending} onEscapeKeyDown={event => { event.preventDefault(); closeSetup() }} onPointerDownOutside={event => { event.preventDefault(); closeSetup() }}>
+                        <DialogHeader>
+                            <DialogTitle>Zähler einrichten</DialogTitle>
+                            <DialogDescription>Strom oder Gas mit Anfangsdaten in drei Schritten einrichten.</DialogDescription>
+                        </DialogHeader>
+                        <div className="py-4">
+                            <ContractForm
+                                user_id={user.id}
+                                onProtectionChange={protectSetup}
+                                onSuccess={() => {
+                                    fetchData();
+                                    setIsFormExpanded(false);
+                                }}
+                                onCancel={closeSetup}
+                            />
+                        </div>
+                    </DialogContent>
+                </Dialog>
+            </div>}
             <Dialog open={discardOpen} onOpenChange={setDiscardOpen}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>

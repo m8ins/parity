@@ -1,0 +1,11 @@
+{
+  "errors": [],
+  "checks": [
+    "320px, 200% plus text spacing: complete chart, all SVG labels contained and actual bottom-axis labels non-overlapping"
+  ],
+  "shots": [
+    "narrow-large-200percent",
+    "narrow-gas-200percent"
+  ],
+  "synthetic": true
+}

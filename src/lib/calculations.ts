@@ -41,8 +41,12 @@ export function readingsInPeriod(contract: Contract, readings: Reading[]) {
     .sort((a, b) => a.date.localeCompare(b.date));
 }
 export function activeRate(rates: Rate[], date: string): Rate | undefined {
-  return [...rates].sort((a, b) => a.effective_from.localeCompare(b.effective_from))
-    .filter(r => r.effective_from <= date).at(-1);
+  const applicable = rates.filter(r => r.effective_from <= date);
+  const latest = applicable.reduce<string | undefined>((last, r) => !last || r.effective_from > last ? r.effective_from : last, undefined);
+  const matches = applicable.filter(r => r.effective_from === latest);
+  // Legacy duplicates have no defensible precedence. Surface missing/ambiguous
+  // conditions rather than changing costs with an incidental database ordering.
+  return matches.length === 1 ? matches[0] : undefined;
 }
 function daysInYear(date: Date) {
   const year = date.getUTCFullYear();

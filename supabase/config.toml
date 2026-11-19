@@ -220,6 +220,11 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
+# The existing email-code UI requires a visible OTP, not a magic-link-only email.
+[auth.email.template.magic_link]
+subject = "Dein Anmeldecode für Parity"
+content_path = "./supabase/templates/sign-in-code.html"
+
 # Uncomment to customize email template
 # [auth.email.template.invite]
 # subject = "You have been invited"

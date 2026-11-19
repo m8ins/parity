@@ -1,0 +1,32 @@
+{
+  "errors": [],
+  "checks": [
+    "Keyboard period change replaces retrospective settlement with current estimate",
+    "Existing management, rate and reading views remain reachable",
+    "320px, 200% text plus spacing, local table scrolling, no document/text/control overflow"
+  ],
+  "shots": [
+    "desktop-default",
+    "desktop-electricity",
+    "desktop-gas-completed",
+    "desktop-management",
+    "desktop-rates",
+    "desktop-readings",
+    "desktop-none",
+    "desktop-one",
+    "desktop-missing",
+    "desktop-zero",
+    "desktop-short",
+    "desktop-large",
+    "desktop-gas-custom",
+    "mobile-electricity",
+    "mobile-gas",
+    "mobile-short",
+    "mobile-large",
+    "mobile-large-200percent",
+    "mobile-gas-200percent",
+    "desktop-cards",
+    "mobile-cards"
+  ],
+  "synthetic": true
+}

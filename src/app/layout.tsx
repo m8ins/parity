@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { isMissingSession } from "@/lib/access";
+import { AccountBoundary } from "@/components/AccountBoundary";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { Header } from "@/components/header";
 import { LocaleProvider } from "@/lib/locale";
 import "./globals.css";
@@ -27,6 +30,9 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createServerSupabaseClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const accountId = authError && !isMissingSession(authError) ? undefined : user?.id ?? null;
   const locale = pickLocale((await headers()).get("accept-language"));
 
   return (
@@ -37,8 +43,10 @@ export default async function RootLayout({
       >
         <LocaleProvider locale={locale}>
           <InteractionMode />
-          <Header />
-          {children}
+          <AccountBoundary initialUserId={accountId} previewEnabled={process.env.NODE_ENV === "development" && process.env.PARITY_DESIGN_PREVIEW === "1"}>
+            <Header />
+            {children}
+          </AccountBoundary>
         </LocaleProvider>
       </body>
     </html>

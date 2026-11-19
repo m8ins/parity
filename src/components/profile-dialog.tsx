@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { isMissingSession } from '@/lib/access';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
@@ -29,12 +30,17 @@ export function ProfileDialog({ open: controlledOpen, onOpenChange: setControlle
     busy.current = true; setLoading(true);
     try {
       const { error: updateError } = await supabase.auth.updateUser({ password });
-      if (updateError) setError('Das Passwort konnte nicht geändert werden. Bitte versuche es erneut.');
+      if (updateError) setError(isMissingSession(updateError) ? 'Deine Sitzung ist abgelaufen. Bitte melde dich erneut an und versuche es dann noch einmal.' : 'Das Passwort konnte nicht geändert werden. Bitte versuche es erneut.');
       else { setMessage('Dein Passwort wurde geändert.'); setPassword(''); setConfirmPassword(''); }
     } catch { setError('Keine Verbindung möglich. Bitte versuche es erneut.'); }
     finally { busy.current = false; setLoading(false); }
   };
-  return <Dialog open={open} onOpenChange={value => { if (!busy.current) { onOpenChange(value); if (!value) { setPassword(''); setConfirmPassword(''); setError(''); setMessage(''); } } }}>
+  const changeOpen = (value: boolean) => {
+    if (busy.current) return;
+    if (!value) { setPassword(''); setConfirmPassword(''); setError(''); setMessage(''); }
+    onOpenChange(value);
+  };
+  return <Dialog open={open} onOpenChange={changeOpen}>
     {showTrigger && <DialogTrigger asChild><Button variant="ghost" size="icon" aria-label="Konto öffnen"><Settings /></Button></DialogTrigger>}
     <DialogContent showCloseButton={!loading} onEscapeKeyDown={event => { if (busy.current) event.preventDefault(); }} onPointerDownOutside={event => { if (busy.current) event.preventDefault(); }}>
       <DialogHeader><DialogTitle>Passwort ändern</DialogTitle><DialogDescription>Ändere das Passwort für dein Parity-Konto.</DialogDescription></DialogHeader>
@@ -45,7 +51,7 @@ export function ProfileDialog({ open: controlledOpen, onOpenChange: setControlle
           {error && <p id="profile-error" className="form-error" role="alert">{error}</p>}
           <p className="form-success" role="status">{message}</p>
           <Button type="submit">{loading ? 'Wird geändert …' : 'Passwort ändern'}</Button>
-          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Schließen</Button>
+          <Button type="button" variant="ghost" onClick={() => changeOpen(false)}>Schließen</Button>
         </fieldset>
       </form>
     </DialogContent>

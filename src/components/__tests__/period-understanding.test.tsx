@@ -6,7 +6,7 @@ import { ContractDetail } from '../contract-detail';
 import { understandingFixture, UNDERSTANDING_AS_OF } from '@/lib/understanding-fixture';
 
 vi.mock('@/lib/supabase/client', () => ({ createClient: () => ({}) }));
-vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn(), back: vi.fn() }) }));
+vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn(), push: vi.fn(), back: vi.fn() }) }));
 vi.mock('../contract-chart', () => ({ ContractChart: () => <div>Verbrauchsdiagramm</div> }));
 // jsdom lacks scrolling; keyboard-driven Radix selection scrolls its option.
 Element.prototype.scrollIntoView = vi.fn();

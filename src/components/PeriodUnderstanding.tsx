@@ -1,8 +1,12 @@
 'use client';
 
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { Contract, Meter, Rate, Reading } from '@/lib/types';
 import { calculateProjection, periodEnd, readingsInPeriod } from '@/lib/calculations';
 import { formatDate } from '@/lib/date-utils';
+import { periodIsFinished } from '@/lib/billing-period';
 import { formatReading } from '@/lib/readings';
 import { ContractChart } from './contract-chart';
 import { ContractMonthlyTable } from './contract-monthly-table';
@@ -12,13 +16,16 @@ const quantity = (value: number) => value.toLocaleString('de-DE', { maximumFract
 const date = (value: string) => formatDate(value, 'de-DE');
 const outcome = (value: number) => value === 0 ? 'Keine Nachzahlung erwartet' : `${money(Math.abs(value))} ${value > 0 ? 'Erstattung' : 'Nachzahlung'}`;
 
-export function PeriodUnderstanding({ meter, contract, readings, rates, compact = false, asOf }: {
-  meter: Meter; contract: Contract | null; readings: Reading[]; rates: Rate[]; compact?: boolean; asOf?: string;
+export function PeriodUnderstanding({ meter, contract, readings, rates, compact = false, asOf, detailsHref }: {
+  meter: Meter; contract: Contract | null; readings: Reading[]; rates: Rate[]; compact?: boolean; asOf?: string; detailsHref?: string;
 }) {
-  if (!contract) return <div className="forecast-empty"><p>Für die Prognose fehlt ein Abrechnungszeitraum.</p></div>;
+  const summaryLink = (children: ReactNode) => compact && detailsHref
+    ? <Link className="meter-outcome-link" href={detailsHref}><div className="meter-outcome-summary">{children}</div><ArrowRight className="meter-outcome-arrow" aria-hidden="true" /><span className="sr-only">Einschätzung ansehen</span></Link>
+    : children;
+  if (!contract) return summaryLink(<div className="forecast-empty"><p>Für die Prognose fehlt ein Abrechnungszeitraum.</p></div>);
   const end = periodEnd(contract);
   const today = asOf ?? new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Berlin' }).format(new Date());
-  const completed = end <= today;
+  const completed = periodIsFinished(contract, today);
   const samples = readingsInPeriod(contract, readings).filter(r => r.date <= today);
   const first = samples[0], last = samples.at(-1);
   const result = calculateProjection(meter, contract, samples, rates);
@@ -27,21 +34,30 @@ export function PeriodUnderstanding({ meter, contract, readings, rates, compact 
   const difference = result?.difference;
   const outcomeValue = hasSettlement ? settlement! : difference;
   const resultClass = `understand-result ${outcomeValue == null || outcomeValue === 0 ? 'understand-result-neutral' : outcomeValue < 0 ? 'understand-result-due' : 'understand-result-refund'}`;
-  const hint = samples.length < 2
+  const ambiguous = rates.some((rate, index) => rates.some((other, otherIndex) => index !== otherIndex && rate.effective_from === other.effective_from));
+  const hint = ambiguous ? 'Konditionen sind für dasselbe Datum mehrfach erfasst. Bitte die Konditionshistorie prüfen.' : samples.length < 2
     ? samples.length === 1 ? 'Noch eine Ablesung für die Prognose nötig.' : 'Erfasse zwei Zählerstände für eine Prognose.'
     : !result ? 'Ablesungen und Gasfaktoren prüfen: Die Prognose ist noch nicht möglich.'
       : result.projectedYearlyCost === null ? 'Preise fehlen. Die Kosten sind noch nicht schätzbar.'
         : difference == null ? 'Abschläge fehlen. Eine Nachzahlung ist noch nicht schätzbar.' : null;
+  const OutcomeTitle = compact ? 'p' : 'h2';
   const lastDay = new Date(Date.parse(end) - 86400000).toISOString().slice(0, 10);
-  return <section className={`understand ${compact ? 'understand-compact' : ''}`} aria-label="Verbrauch und Kosten verstehen">
-    {compact && <p className="text-sm text-muted-foreground">{date(contract.period_start)} – {date(lastDay)}{!contract.period_end ? ' · Ende vorläufig' : ''}</p>}
-    {hasSettlement ? <div className={resultClass}>
-      <h2 className="numeric">{settlement === 0 ? 'Abrechnung ausgeglichen' : outcome(settlement!)}</h2>
+  return <section className={`understand ${compact ? 'understand-compact' : ''}`} aria-label={compact ? undefined : 'Verbrauch und Kosten verstehen'}>
+    {compact && <p className="text-sm text-muted-foreground">{contract.period_end ? `${date(contract.period_start)} – ${date(lastDay)}` : `Ab ${date(contract.period_start)} · offen`}</p>}
+    {compact && result && <section className="meter-card-chart" aria-label="Verbrauchsverlauf">
+      <div className="understand-legend meter-chart-legend"><span>Aus Ablesungen</span><span>Hochrechnung</span></div>
+      {first.date !== contract.period_start && <p className="text-sm text-muted-foreground">Ohne Anfangsablesung ist nur die Hochrechnung sichtbar.</p>}
+      <ContractChart data={result.chartData} unit="kWh" isGood compact />
+    </section>}
+    {summaryLink(<>
+      {hasSettlement ? <div className={resultClass}>
+      <OutcomeTitle className="understand-outcome numeric">{settlement === 0 ? 'Abrechnung ausgeglichen' : outcome(settlement!)}</OutcomeTitle>
       <p className="text-sm text-muted-foreground">Erfasste Schlussabrechnung{contract.settlement_date ? ` · ${date(contract.settlement_date)}` : ''}</p>
     </div> : difference != null ? <div className={resultClass}>
-      <h2 className="numeric">{difference === 0 ? outcome(difference) : `Voraussichtlich ${outcome(difference)}`}</h2>
+      <OutcomeTitle className="understand-outcome numeric">{difference === 0 ? outcome(difference) : `Voraussichtlich ${outcome(difference)}`}</OutcomeTitle>
     </div> : null}
     {!hasSettlement && hint && <div className="understand-result understand-result-neutral"><p>{hint}</p></div>}
+    </>)}
     {!compact && <>
       {result && <section className="understand-chart" aria-label="Verbrauchsverlauf">
         <div className="understand-legend text-sm"><span>Aus Ablesungen</span><span>Hochrechnung</span></div>
@@ -77,7 +93,7 @@ export function PeriodUnderstanding({ meter, contract, readings, rates, compact 
         {meter.monthly_distribution?.length === 12 && <p className="numeric">Jan–Dez: {meter.monthly_distribution.map(w => `${quantity(w * 100)} %`).join(' · ')}</p>}
         <p>Preise und Abschläge gelten ab ihrem Gültigkeitstag. Monatsbeträge werden pro Tag mit × 12 / Kalendertage des Jahres verrechnet. Der monatliche Orientierungswert gilt für den ganzen Zeitraum, nicht nur die Restmonate.</p>
         <p>Monatswerte sind linear interpoliert. Ihre Kostensumme kann bei Preiswechseln von der saisonalen Hochrechnung abweichen. Eine erfasste Schlussabrechnung zeigt das tatsächliche Ergebnis.</p>
-        <p>Endgrenze: {date(end)} (exklusiv). Eine Ablesung an diesem Tag zählt als Abschlussstand.{!contract.period_end ? ' Ohne bekanntes Ende rechnen wir vorläufig mit einem Jahr.' : ''}</p>
+        <p>{contract.period_end ? `Abrechnungszeitraum bis einschließlich ${date(lastDay)}. Eine Ablesung am Folgetag zählt als Abschlussstand.` : `Das Zeitraumende ist offen. Für diese Schätzung rechnen wir vom ${date(contract.period_start)} bis einschließlich ${date(lastDay)} mit einem Jahr. Das ist kein eingetragenes Ende; spätere Konditionen bleiben gespeichert und werden bei einer Erweiterung des Berechnungszeitraums berücksichtigt.`}</p>
       </details>
     </>}
   </section>;

@@ -1,0 +1,18 @@
+{
+  "source": "Real local Supabase, no mocks; only own synthetic accounts",
+  "checks": [
+    "Open period cannot record an actual settlement",
+    "Foreign account, missing confirmations and a too-short new end rejected atomically",
+    "Forced failure after old-end update and new-period insert rolls back every write and receipt; same key succeeds after test trigger removal",
+    "Eight exact retries create one period; original conditions retained; exact-start not duplicated; later full values copied; private purpose-bound receipt",
+    "Settlement stores explicit zero and negative precision; same absolute retry succeeds; stale amount, period, foreign access and invalid dates fail",
+    "End RPC and legacy direct interval writes cannot overlap; full period snapshot catches direct detail changes; old retry returns current records",
+    "Confirmed gap preserves old end; backdated transition and full gas factor precision persist",
+    "Real parallel differing continuations/end/condition/detail writes reject conflicts or rollback deadlocks; concurrent direct inserts never introduce overlaps",
+    "Same supplier persists across a one-day and an annual period; exclusive boundaries are adjacent without overlap",
+    "Anonymous execution denied and second account sees no synthetic household rows"
+  ],
+  "checked_at": "2026-11-19T12:33:19.414Z",
+  "cleanup": true,
+  "passed": true
+}

@@ -1,0 +1,32 @@
+{
+  "branch": "codex/slice-6-management",
+  "tests": 174,
+  "testFiles": 26,
+  "regressionSuites": 5,
+  "designBrowser": {
+    "passed": true,
+    "checks": 6,
+    "screenshots": 14
+  },
+  "narrowBrowser": {
+    "checks": 1,
+    "screenshots": 2,
+    "errors": []
+  },
+  "liveBrowser": {
+    "passed": true,
+    "cleanup": true,
+    "screenshots": 16
+  },
+  "gate": "OFF (no build active)",
+  "sourceSHA256": {
+    "src/app/globals.css": "f0f431d0e28c1634692883fa9f4a3de0af618c8a1d0ae9b76a8e7fc1f1f4d214",
+    "src/components/contract-card.tsx": "09d1063a83cf388d1b66dd72292996a1c87098e456de05a0ed15315a759e20ee",
+    "src/components/contract-chart.tsx": "4f4cce78679aded24dd4d6f6fb3f60c6200ccb17e981268404fea0a979085d12",
+    "src/components/dashboard.tsx": "c5b2ea9ac9861daca6458a9f21e6960149678275a195ae68fba7c3c2482c98c9",
+    "src/components/contract-detail.tsx": "3d250c19769ee5c96d6ccc0a5a187069566a51d52b24a46bec83d438a3af4c1c",
+    "src/components/PeriodUnderstanding.tsx": "cb8700f30db6fd2bc197ff3c654664b994fd550fe9dc6bd401d2183e3d78c0be",
+    "src/components/DeleteMeterDialog.tsx": "99f75e4bc7f773d18a8793f13b1690234406bd1d3cfeb5dd6b7fb3924592d74c",
+    "src/components/__tests__/design-followup.test.tsx": "eeaee0b3367a607084357e313d1c99a24987c8c29bee02ecf81901d697497bd7"
+  }
+}

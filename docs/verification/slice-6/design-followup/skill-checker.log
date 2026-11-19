@@ -1,0 +1,226 @@
+consistency  http://127.0.0.1:3010/design/integration?view=overview
+--quick: not checked: scroll-linked (stepping), scroll-reveal (the reveal walk; IntersectionObserver reveals are read), hover-spill, hidden-visual, loop-pause, forms, reduced-motion, the dead-IntersectionObserver walk (hidden content is read with scripts off and under reduced motion), hover-move. Still told: IntersectionObserver reveals (scroll-reveal), held sections (pinned) and CSS scroll timelines (scroll-linked); faults inside held or [data-big-scene] sections are WARNs
+
+1440x900  1 screens  38 FAIL  6 WARN
+  FAIL shader-lint     app/error.js  "__webpack_require__"
+       a shader uses "__webpack_require__" as a name (line 1: __webpack_require__.r(__webpack_exports__);): GLSL ES reserves it, so a strict GPU rejects the whole shader and the picture stays empty
+       fix: rename it (flat, smooth, centroid, sample, patch, input, output, filter and the rest are GLSL ES reserved words)
+  FAIL shader-lint     app/error.js  "__webpack_exports__"
+       a shader uses "__webpack_exports__" as a name (line 1: __webpack_require__.r(__webpack_exports__);): GLSL ES reserves it, so a strict GPU rejects the whole shader and the picture stays empty
+       fix: rename it (flat, smooth, centroid, sample, patch, input, output, filter and the rest are GLSL ES reserved words)
+  FAIL shader-lint     app/error.js  "__proto__"
+       a shader uses "__proto__" as a name (line 568: __proto__: null,): GLSL ES reserves it, so a strict GPU rejects the whole shader and the picture stays empty
+       fix: rename it (flat, smooth, centroid, sample, patch, input, output, filter and the rest are GLSL ES reserved words)
+  FAIL shader-lint     app/error.js  "double"
+       a shader uses "double" as a name (line 665: const scaleLineStyle = () => ['solid', 'dashed', 'dotted', 'double'];): GLSL ES reserves it, so a strict GPU rejects the whole shader and the picture stays empty
+       fix: rename it (flat, smooth, centroid, sample, patch, input, output, filter and the rest are GLSL ES reserved words)
+  FAIL shader-lint     app/error.js  "inline"
+       a shader uses "inline" as a name (line 761: display: ['block', 'inline-block', 'inline', 'flex', 'inline-flex', 'table', 'inline-table): GLSL ES reserves it, so a strict GPU rejects the whole shader and the picture stays empty
+       fix: rename it (flat, smooth, centroid, sample, patch, input, output, filter and the rest are GLSL ES reserved words)
+  FAIL shader-lint     app/error.js  "static"
+       a shader uses "static" as a name (line 846: position: ['static', 'fixed', 'absolute', 'relative', 'sticky'],): GLSL ES reserves it, so a strict GPU rejects the whole shader and the picture stays empty
+       fix: rename it (flat, smooth, centroid, sample, patch, input, output, filter and the rest are GLSL ES reserved words)
+  FAIL shader-lint     app/error.js  "fixed"
+       a shader uses "fixed" as a name (line 846: position: ['static', 'fixed', 'absolute', 'relative', 'sticky'],): GLSL ES reserves it, so a strict GPU rejects the whole shader and the picture stays empty
+       fix: rename it (flat, smooth, centroid, sample, patch, input, output, filter and the rest are GLSL ES reserved words)
+  FAIL shader-lint     app/error.js  "filter"
+       a shader uses "filter" as a name (line 2320: filter: [{): GLSL ES reserves it, so a strict GPU rejects the whole shader and the picture stays empty
+       fix: rename it (flat, smooth, centroid, sample, patch, input, output, filter and the rest are GLSL ES reserved words)
+  FAIL hero-fill       main.parity-page > div.meter-add-action  "Zähler hinzufügen"
+       the next section shows on the first screen: it starts at 713px on a 900px screen (the hero ends at 681px)  [1440-01-hero-fill.jpg]
+       fix: let the hero fill the first screen alone (min-height: 100svh, less above it): nothing of the next section on load
+  FAIL flush           main.parity-page > div.grid.grid-cols-1 > div.bg-card.text-card-foreground:nth-of-type(1)  "Strom · Keller 1. Jan. 2026 – 31. Dez. 2"
+       its last line sits 0px above the lower edge of div.grid.grid-cols-1, where the ground changes to div.meter-add-action  [1440-02-flush.jpg]
+       fix: give the section its padding at the edge where the ground changes (the closing call keeps a clear gap above the footer)
+  FAIL no-visual       main.parity-page > div.grid.grid-cols-1  "Strom · Keller"
+       no picture, effect or mock in this section; a feature section needs a visual  [1440-03-no-visual.jpg]
+       fix: give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits
+  FAIL cta             main.parity-page > details.design-panel.mt-8  "Designvorschau (Entwicklung)"
+       the last section before the footer ends with no button  [1440-04-cta.jpg]
+       fix: add the action: a button in the hero, one on every priced item, one in the closing section
+  FAIL off-grid        main.parity-page > details.design-panel.mt-8 > summary.cursor-pointer.py-3  "Designvorschau (Entwicklung)"
+       left edge at 129px, 17px off the page margin at 112px (4 elements, like button.parity-control.inline-flex)  [1440-05-off-grid.jpg]
+       fix: move it onto the page margin, or the column edge its section uses
+  FAIL focus-ring      .parity-input-group .parity-input:focus-visible
+       ".parity-input-group .parity-input:focus-visible" in layout.css?v=1795114310222 removes the focus outline and sets nothing in its place
+       fix: keep the kit's :focus-visible ring, or put a change of the same strength (a 2px line in --action) in the rule that removes it
+  WARN copy-buttons    div.grid.grid-cols-1 > div.bg-card.text-card-foreground:nth-of-type(1) > div.items-center.px-6:nth-of-type(3) > button.parity-control.inline-flex  "Stand erfassen"
+       "Stand erfassen" does not start with a verb (book, buy, try, start, get, see...)  [1440-06-copy-buttons.jpg]
+       fix: label buttons with a verb and what the visitor gets ("Book a room", "Start free trial")
+  WARN copy-actions    (the page)
+       the main action "Stand erfassen" does not read word for word the same in the closing section
+       fix: few actions, one wording: at most 2 in the hero, the main action word for word in nav, hero and close
+  WARN moment-none     (the page)
+       a software page (--type) deals no moment: every kind carries one, two on a long page (moments.md)
+       fix: deal one (moments.mjs pick --page software) and mount it in its own section
+  WARN skip-link       header.parity-header > div > div.flex.items-center > a  "Parity"
+       the first Tab stop is "Parity", not a skip link: a keyboard user tabs through the whole nav on every visit
+       fix: add the starter's skip link as the header's first child: <a class="skip-link" href="#top">Skip to content</a>
+  WARN share-meta      head
+       the head lacks og:title, og:description, og:image, twitter:card, theme-color: a shared link shows no picture or title of its own
+       fix: copy the head block of starter.html: og tags, twitter:card, the icon and theme-color (references/system.md, Head)
+  FAIL hero-screen     main.parity-page > h1  "Deine Zähler"
+       the hero ends at 234px on a 900px screen, 666px above the fold: it ends at the fold, 1px either way (SR-1)  [1440-rhythm-01-hero-screen.jpg]
+       fix: make the hero exactly one screen (height: 100svh, its content fitted inside), never taller or shorter
+  FAIL hero-screen     main.parity-page > div.grid.grid-cols-1  "Strom · Keller1. Jan. 2026 – 31. Dez. 20"
+       658px of the next section shows on the first screen (from 242px on a 900px screen): nothing below the hero shows at load (SR-1)
+       fix: end the hero at the fold so nothing of the next section shows at load (hero height: 100svh)
+  FAIL section-height  main.parity-page > details.design-panel.mt-8  "Designvorschau (Entwicklung)Vorhandene P"
+       the section is 47px tall (0.1 screens), 853px short of one screen (900px): every section after the hero is one screen or two, 2px either way (SR-2)  [1440-rhythm-02-section-height.jpg]
+       fix: set the section to one screen or two (height: calc(var(--h,1) * 100vh), --h 1 or 2) and cut or split its content to fit
+  FAIL section-height  main.parity-page > div.meter-add-action  "Zähler hinzufügen"
+       the section is 56px tall (0.1 screens), 844px short of one screen (900px): every section after the hero is one screen or two, 2px either way (SR-2)
+       fix: set the section to one screen or two (height: calc(var(--h,1) * 100vh), --h 1 or 2) and cut or split its content to fit
+  FAIL section-height  main.parity-page > div.grid.grid-cols-1  "Strom · Keller1. Jan. 2026 – 31. Dez. 20"
+       the section is 438px tall (0.5 screens), 462px short of one screen (900px): every section after the hero is one screen or two, 2px either way (SR-2)
+       fix: set the section to one screen or two (height: calc(var(--h,1) * 100vh), --h 1 or 2) and cut or split its content to fit
+  FAIL section-height  main.parity-page > div.grid.grid-cols-1  "Strom · Keller1. Jan. 2026 – 31. Dez. 20"
+       the section starts at 242px, 242px below the screen grid (0 x 900px): sections start on whole screens (SR-2)
+       fix: make every section above it exactly one or two screens tall, so this one starts on a whole screen
+  FAIL section-height  main.parity-page > h1  "Deine Zähler"
+       the section starts at 196px, 196px below the screen grid (0 x 900px): sections start on whole screens (SR-2)
+       fix: make every section above it exactly one or two screens tall, so this one starts on a whole screen
+  FAIL section-height  main.parity-page > div.meter-add-action  "Zähler hinzufügen"
+       the section starts at 713px, 187px above the screen grid (1 x 900px): sections start on whole screens (and 1 more like it: "Designvorschau (Entwickl") (SR-2)
+       fix: make every section above it exactly one or two screens tall, so this one starts on a whole screen
+  FAIL section-height  main.parity-page > div.meter-add-action  "Zähler hinzufügen"
+       the section's content does not fit it: its lowest content ends 56px below its top, past -16px (the section less 72px of bottom padding) (SR-2)
+       fix: fit the content above the section's bottom padding (--padb), or make it two screens (.g2) in two groups
+  FAIL section-height  main.parity-page > details.design-panel.mt-8  "Designvorschau (Entwicklung)Vorhandene P"
+       the section's content does not fit it: its lowest content ends 33px below its top, past -25px (the section less 72px of bottom padding) (and 1 more like it: "Strom · Keller1. Jan. 20") (SR-2)
+       fix: fit the content above the section's bottom padding (--padb), or make it two screens (.g2) in two groups
+  FAIL section-air     main.parity-page > div.meter-add-action / main.parity-page > details.design-panel.mt-8
+       44px of air between the content of these two sections: 128-480px (64-600px WARN) (every gap out of the band at 1440px, top to bottom: 62px after "Strom · Keller1. Jan", 44px after "Zähler hinzufügen") (SR-3)  [1440-rhythm-03-section-air.jpg]
+       fix: keep 128-480px of air between the content of neighbouring sections (112-420px on a phone): the sections' padding (--padt, --padb)
+  FAIL section-air     main.parity-page > div.grid.grid-cols-1 / main.parity-page > div.meter-add-action
+       62px of air between the content of these two sections: 128-480px (64-600px WARN) (SR-3)
+       fix: keep 128-480px of air between the content of neighbouring sections (112-420px on a phone): the sections' padding (--padt, --padb)
+  WARN section-air     main.parity-page > details.design-panel.mt-8  "Designvorschau (Entwicklung)Vorhandene P"
+       the content fills 44.8% of the section's height (21 of 47px): 55% or more (40% WARN) (SR-3)
+       fix: fill the section to 55%: more content, a picture or a background layer, or merge it into the section above as its last block
+  FAIL one-section     main.parity-page > div.meter-add-action  "Zähler hinzufügen"
+       the screen at scroll 0px (stride 0) shows 56px of section 3 and the content of 2 sections, over 24px each beside section 2: a screen shows one section (another may peek 8px, 24px WARN) (SR-4)  [1440-rhythm-04-one-section.jpg]
+       fix: make each section exactly one screen or two, so a screen shows one section and no neighbour peeks
+  FAIL one-section     main.parity-page > h1  "Deine Zähler"
+       a <h1> sits directly in <main>: every part of <main> is a <section> (SR-4)
+       fix: put every block of <main> in a <section>, and give a band its own section instead of a ground inside one
+  FAIL one-section     main.parity-page > div.grid.grid-cols-1  "Strom · Keller1. Jan. 2026 – 31. Dez. 20"
+       a <div> sits directly in <main>: every part of <main> is a <section> (SR-4)
+       fix: put every block of <main> in a <section>, and give a band its own section instead of a ground inside one
+  FAIL one-section     main.parity-page > div.meter-add-action  "Zähler hinzufügen"
+       a <div> sits directly in <main>: every part of <main> is a <section> (and 1 more like it: "Designvorschau (Entwickl") (SR-4)
+       fix: put every block of <main> in a <section>, and give a band its own section instead of a ground inside one
+  FAIL one-heading     div.bg-card.text-card-foreground:nth-of-type(2) > div.auto-rows-min.gap-2 > div.flex.min-w-0 > h2.meter-card-title  "Gas · Hauswirtschaft"
+       the section holds 2 h2 headings: one per section, first in its .wrap (SR-5)  [1440-rhythm-05-one-heading.jpg]
+       fix: give each section one h2, first in its .wrap, and the hero only its h1
+  FAIL container-edges header.parity-header  "Parity"
+       the nav's content runs 32px from the left and 1347px from the right (read from its outermost blocks: no .wrap): the page's container starts at 112px; 32 and 1347px are not one margin; the margin is 64-120px at 1440px (one container, equal margins, 2px either way) (SR-6)  [1440-rhythm-06-container-edges.jpg]
+       fix: use one container on every section and the nav (.wrap): one margin left and right, 64-120px on a desktop, 16-24px on a phone
+  FAIL container-edges header.parity-header  "Parity"
+       a <header> at the top of the page, outside header.nav, main, footer.closing and nav.actionbar (SR-6)
+       fix: build the page as header.nav, a main of sections (each one in-flow .wrap plus background layers) and footer.closing
+  FAIL container-edges p.parity-page.text-sm  "Designvorschau · synthetische Daten · ke"
+       a <p> at the top of the page, outside header.nav, main, footer.closing and nav.actionbar (SR-6)
+       fix: build the page as header.nav, a main of sections (each one in-flow .wrap plus background layers) and footer.closing
+  FAIL container-edges main.parity-page > h1  "Deine Zähler"
+       the section needs exactly one in-flow child .wrap (it has 0 in-flow children, 0 .wrap) (and 3 more like it: "Strom · Keller1. Jan. 20", "Zähler hinzufügen", "Designvorschau (Entwickl") (SR-6)
+       fix: build the page as header.nav, a main of sections (each one in-flow .wrap plus background layers) and footer.closing
+  FAIL container-edges header.parity-header > div > div.flex.items-center > a  "Parity"
+       "Parity" runs 32-93px, outside the container lines of the nav at 112-1328px: full width is for background layers and grounds only (SR-6)
+       fix: keep it inside the container lines (.wrap): full width is for background layers and grounds only
+  FAIL container-edges div.bg-card.text-card-foreground:nth-of-type(2) > div.auto-rows-min.gap-2 > div.flex.min-w-0 > h2.meter-card-title  "Gas · Hauswirtschaft"
+       the h2 starts 670px right of the container's left: every h1 and h2 starts on it, 2px either way (SR-6)
+       fix: start the text on the container's left, or on the one split line every split shares
+  FAIL container-edges div.bg-card.text-card-foreground:nth-of-type(1) > div.auto-rows-min.gap-2 > div.flex.min-w-0 > h2.meter-card-title  "Strom · Keller"
+       the h2 starts 50px right of the container's left: every h1 and h2 starts on it, 2px either way (SR-6)
+       fix: start the text on the container's left, or on the one split line every split shares
+  (probe error) effect-kind: 4 files not read: layout.js (over 3 MB (3.7 MB)), page.js (over 3 MB (11.3 MB)), main-app.js (over 3 MB (11.6 MB)), ...
+
+390x844  2 screens  6 FAIL  2 WARN
+  FAIL flush           main.parity-page > div.grid.grid-cols-1 > div.bg-card.text-card-foreground:nth-of-type(2)  "Gas · Hauswirtschaft 1. Jan. 2026 – 31. "
+       its last line sits 0px above the lower edge of div.grid.grid-cols-1, where the ground changes to div.meter-add-action  [390-02-flush.jpg]
+       fix: give the section its padding at the edge where the ground changes (the closing call keeps a clear gap above the footer)
+  FAIL flush           main.parity-page > div.meter-add-action > button.parity-control.inline-flex  "Zähler hinzufügen"
+       its first line sits 0px under the top edge of div.meter-add-action, where the ground changes  [390-03-flush.jpg]
+       fix: give the section its padding at the edge where the ground changes (the closing call keeps a clear gap above the footer)
+  FAIL flush           main.parity-page > div.meter-add-action > button.parity-control.inline-flex  "Zähler hinzufügen"
+       its button sits 0px above the lower edge of div.meter-add-action, where the ground changes to details.design-panel.mt-8  [390-04-flush.jpg]
+       fix: give the section its padding at the edge where the ground changes (the closing call keeps a clear gap above the footer)
+  FAIL no-visual       main.parity-page > div.grid.grid-cols-1  "Strom · Keller"
+       no picture, effect or mock in this section; a feature section needs a visual  [390-05-no-visual.jpg]
+       fix: give the section a visual: a UI fragment on a ground, real icons, or a photograph that fits
+  FAIL cta             main.parity-page > details.design-panel.mt-8  "Designvorschau (Entwicklung)"
+       the last section before the footer ends with no button  [390-06-cta.jpg]
+       fix: add the action: a button in the hero, one on every priced item, one in the closing section
+  FAIL off-grid        main.parity-page > details.design-panel.mt-8 > summary.cursor-pointer.py-3  "Designvorschau (Entwicklung)"
+       left edge at 33.5px, 16.5px off the page margin at 17px (6 elements, like button.parity-control.inline-flex)  [390-07-off-grid.jpg]
+       fix: move it onto the page margin, or the column edge its section uses
+  WARN tap-size        header.parity-header > div > div.flex.items-center > a  "Parity"
+       a 61x31px tap target: under the 44px a phone needs  [390-01-tap-size.jpg]
+       fix: make every link and control outside running text 44px tall on a phone: display: inline-flex; align-items: center; min-height: 44px (a footer list then needs no gap), a 44px small button, or a transparent ::before laid past the box
+  WARN fold-action     div.grid.grid-cols-1 > div.bg-card.text-card-foreground:nth-of-type(2) > div.items-center.px-6:nth-of-type(3) > button.parity-control.inline-flex
+       the hero's second button "Stand erfassen" starts 218px below the first screen (844px tall): it is not seen on load  [390-08-fold-action.jpg]
+       fix: bring the hero's buttons onto the first screen: a shorter headline or line, the picture under the buttons
+
+first screen at 1280, 1152, 1024, 896, 768  0 FAIL  0 WARN
+
+the page at 320x640, walked for what runs past the screen's edge  0 FAIL
+  WARN fold-cut        [320] div.grid.grid-cols-1 > div.bg-card.text-card-foreground:nth-of-type(1) > div.items-center.px-6:nth-of-type(3) > button.parity-control.inline-flex  "Stand erfassen"
+       the hero's button "Stand erfassen" is cut by the bottom of the first screen (8px of its 75px below the fold)  [narrow-320-01-fold-cut.jpg]
+       fix: size the hero so the heading ends above the fold, or starts below it
+  WARN tap-size        [320] header.parity-header > div > div.flex.items-center > a  "Parity"
+       a 61x31px tap target: under the 44px a phone needs  [narrow-320-02-tap-size.jpg]
+       fix: make every link and control outside running text 44px tall on a phone: display: inline-flex; align-items: center; min-height: 44px (a footer list then needs no gap), a 44px small button, or a transparent ::before laid past the box
+
+checks
+  PASS assets                 FAIL shader-lint            PASS gl-fallback            
+  PASS empty-visual           FAIL hero-fill              FAIL flush                  
+  PASS placeholder            PASS sample-label           PASS caption                
+  PASS credit-wall            PASS nav                    PASS nav-covers             
+  PASS spill                  PASS off-viewport           PASS fold-card              
+  SKIP hover-spill            PASS overlap-text           PASS collide                
+  WARN tap-size               PASS row-gap                PASS cut-text               
+  WARN fold-cut               PASS marquee                SKIP scroll-linked          
+  SKIP scroll-reveal          PASS pinned                 SKIP loop-pause             
+  SKIP reduced-motion         PASS hidden-content         PASS webgl                  
+  FAIL no-visual              PASS text-only              PASS card-visual            
+  SKIP hidden-visual          PASS card-family            PASS card-layout            
+  PASS nesting                PASS effect-repeat          PASS ui-fit                 
+  PASS ui-centre              PASS dark-ground            PASS button-styles          
+  PASS button-shape           PASS same-action            PASS button-picture         
+  FAIL cta                    PASS pricing-tiers          PASS copy-headline          
+  PASS copy-fact              PASS copy-headings          WARN copy-buttons           
+  WARN copy-actions           PASS heading-scale          PASS stagger                
+  PASS top-stagger            FAIL off-grid               PASS col-edge               
+  PASS right-edge             PASS centre-axis            PASS tilt                   
+  PASS contrast               PASS text-contrast          PASS body-size              
+  PASS busy-ground            PASS section-gaps           PASS proximity              
+  PASS hole                   PASS links                  SKIP forms                  
+  PASS photo-upscale          PASS photo-set              PASS photo-credit           
+  PASS nav-family             PASS nav-labels             PASS link-styles            
+  PASS heading-align          PASS label-centre           PASS fake-button            
+  PASS stranded-action        PASS orphan                 PASS unit-break             
+  PASS tab-wrap               PASS effects-fit            PASS fade-cut               
+  PASS photo-weight           PASS copy-length            PASS nav-current            
+  PASS progress-bar           PASS photo-repeat           PASS button-contrast        
+  PASS photo-print            PASS grounds                PASS split-align            
+  PASS fact-agree             WARN fold-action            PASS action-count           
+  PASS one-screen             SKIP hover                  SKIP hover-move             
+  PASS product-shown          PASS same-object            PASS font-load              
+  PASS visual-caption         PASS visual-empty           PASS effect-kind            
+  PASS hero-enter             WARN moment-none            PASS street-number          
+  PASS postcode               PASS coordinates            PASS company-number         
+  PASS phone-number           FAIL hero-screen            FAIL section-height         
+  FAIL section-air            FAIL one-section            FAIL one-heading            
+  FAIL container-edges        PASS row-lines              PASS split-pair             
+  PASS motion-layer           PASS count-text             PASS loop-cycle             
+  PASS section-tile           PASS empty-area             PASS a11y-name              
+  PASS img-alt                PASS field-label            PASS heading-order          
+  PASS tabindex               FAIL focus-ring             PASS focus-visible          
+  PASS focus-hidden           WARN skip-link              PASS menu-toggle            
+  PASS lang                   PASS page-meta              WARN share-meta             
+  PASS action-repeat          PASS map-link               PASS open-now               
+  PASS assumed                PASS run-on                 PASS form-fields            
+  PASS form-send              
+
+total  44 FAIL  10 WARN  (crops and report.json in /Users/martin/git/parity/docs/verification/slice-6/design-followup/skill-checker)

@@ -1,22 +1,14 @@
-import { useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { useRef, useState } from 'react';
 import { Meter, MeterData } from '@/lib/types';
 import { PeriodUnderstanding } from './PeriodUnderstanding';
 import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
   CardFooter,
 } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
+import { RenameMeterDialog } from './RenameMeterDialog';
+import { DeleteMeterDialog } from './DeleteMeterDialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,7 +29,7 @@ import {
 interface ContractCardProps {
   meter: Meter;
   meterData: MeterData;
-  onUpdate: () => void;
+  onUpdate: (meter: Meter) => void;
   onReadingAdded: (meterId: string, reading: Reading) => void;
   onDelete: (id: string) => void;
 }
@@ -61,95 +53,32 @@ export function ContractCard({
     ? (ratesByContract[selectedContract.id] ?? [])
     : [];
 
-  const [renameBusy, setRenameBusy] = useState(false);
-  const [renameError, setRenameError] = useState('');
   const [isRenaming, setIsRenaming] = useState(false);
-  const [newName, setNewName] = useState('');
-  const supabase = createClient();
-
-  const handleRename = async () => {
-    if (!newName.trim()) return;
-    if (renameBusy) return;
-    setRenameBusy(true);
-    setRenameError('');
-    try {
-      const { error } = await supabase
-        .from('meters')
-        .update({ name: newName })
-        .eq('id', meter.id);
-      if (error) throw error;
-      setIsRenaming(false);
-      onUpdate();
-    } catch {
-      setRenameError(
-        'Der Name konnte nicht gespeichert werden. Bitte versuche es erneut.',
-      );
-    } finally {
-      setRenameBusy(false);
-    }
-  };
+  const [isDeleting, setIsDeleting] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const nextDialog = useRef<'rename' | 'delete' | null>(null);
 
   return (
     <>
-      <Dialog
-        open={isRenaming}
-        onOpenChange={(value) => {
-          if (!renameBusy) setIsRenaming(value);
-        }}
-      >
-        <DialogContent aria-busy={renameBusy} showCloseButton={!renameBusy}>
-          <DialogHeader>
-            <DialogTitle>Zähler umbenennen</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <label htmlFor={`name-${meter.id}`} className="parity-label">
-              Zählername
-            </label>
-            <Input
-              id={`name-${meter.id}`}
-              disabled={renameBusy}
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleRename();
-              }}
-            />
-          </div>
-          {renameError && (
-            <p className="form-error" role="alert">
-              {renameError}
-            </p>
-          )}
-          <DialogFooter>
-            <Button
-              variant="outline"
-              disabled={renameBusy}
-              onClick={() => setIsRenaming(false)}
-            >
-              Abbrechen
-            </Button>
-            <Button onClick={handleRename} disabled={renameBusy}>
-              {renameBusy ? 'Wird gespeichert …' : 'Speichern'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {isRenaming && <RenameMeterDialog meter={meter} open onOpenChange={setIsRenaming} onSaved={onUpdate} returnFocus={() => menuButton.current?.focus()} />}
+      {isDeleting && <DeleteMeterDialog meter={meter} open onOpenChange={setIsDeleting} onDeleted={() => onDelete(meter.id)} returnFocus={() => menuButton.current?.focus()} />}
       <Card
-        className="flex min-w-0 flex-col border-2 border-foreground shadow-none"
+        className="meter-card flex min-w-0 flex-col border-2 border-foreground shadow-none"
         data-meter-id={meter.id}
       >
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <div className="flex min-w-0 flex-row items-center gap-2">
             <Icon className={`h-4 w-4 text-foreground`} />
-            <CardTitle className="min-w-0 font-medium break-words">
-              <Link href={`/meter/${meter.id}`} className="hover:underline">
+            <h2 className="meter-card-title">
+              <Link href={`/meter/${meter.id}`} className="meter-name-link">
                 {meter.name}
               </Link>
-            </CardTitle>
+            </h2>
           </div>
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button
+                ref={menuButton}
                 variant="ghost"
                 size="icon-sm"
                 aria-label={`${meter.name} verwalten`}
@@ -157,29 +86,36 @@ export function ContractCard({
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" onCloseAutoFocus={event => {
+              const next = nextDialog.current;
+              if (!next) return;
+              event.preventDefault();
+              nextDialog.current = null;
+              // Let the menu finish focus/pointer cleanup before mounting a dialog.
+              requestAnimationFrame(() => next === 'rename' ? setIsRenaming(true) : setIsDeleting(true));
+            }}>
               <DropdownMenuItem
                 onSelect={() => {
-                  setNewName(meter.name);
-                  setIsRenaming(true);
+                  nextDialog.current = 'rename';
                 }}
               >
                 <Pencil className="mr-2 h-4 w-4" />
                 Umbenennen
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => onDelete(meter.id)}
+                onSelect={() => { nextDialog.current = 'delete'; }}
                 variant="destructive"
               >
                 <Trash className="mr-2 h-4 w-4" />
-                Löschen
+                Entfernen
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </CardHeader>
-        <CardContent className="flex-1 min-w-0">
+        <CardContent className="meter-card-content flex-1 min-w-0">
+          <PeriodUnderstanding meter={meter} contract={selectedContract} readings={readings} rates={rates} compact detailsHref={`/meter/${meter.id}${selectedContract ? `?period=${selectedContract.id}` : ''}`} />
           <div className="meter-reading-summary">
-            <p>Letzter Zählerstand</p>
+            <p>Letzter Stand:</p>
             {lastReading ? (
               <>
                 <strong
@@ -204,14 +140,6 @@ export function ContractCard({
               {confirmation}
             </div>
           </div>
-          <PeriodUnderstanding
-            meter={meter}
-            contract={selectedContract}
-            readings={readings}
-            rates={rates}
-            compact
-          />
-          {/* <Link className="understand-link" href={`/meter/${meter.id}?period=${selectedContract?.id ?? ''}`}>Details ansehen</Link> */}
         </CardContent>
         <CardFooter className="flex gap-2">
           <ReadingDialog

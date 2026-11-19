@@ -10,9 +10,9 @@ import type { Contract, MeterData, Rate } from '@/lib/types';
 export default async function IntegrationPreview({ searchParams }: { searchParams: Promise<{ view?: string; scenario?: string; period?: string }> }) {
   if (process.env.NODE_ENV !== 'development' || process.env.PARITY_DESIGN_PREVIEW !== '1') notFound();
   const { view, scenario, period } = await searchParams;
-  if (view === 'understand') {
+  if (view === 'understand' || view === 'cards') {
     const fixture = understandingFixture(scenario);
-    return <><p className="parity-page text-sm">Designvorschau · synthetische Daten · Stichtag 16.11.2026</p><ContractDetail initialMeter={fixture.meter} initialData={fixture.data} initialContractId={period} asOf="2026-11-16" /></>;
+    return <><p className="parity-page text-sm">Designvorschau · synthetische Daten · Stichtag 16.11.2026</p>{view === 'cards' ? <Dashboard user={readingFixture.user} initialMeters={[fixture.meter]} initialData={{ [fixture.meter.id]: fixture.data }} /> : <ContractDetail initialMeter={fixture.meter} initialData={fixture.data} initialContractId={period} asOf="2026-11-16" />}</>;
   }
   const created = '2026-01-01T12:00:00Z';
   const meter = readingFixture.initialMeters[0];

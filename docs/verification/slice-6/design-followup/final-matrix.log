@@ -1,0 +1,4 @@
+run-regressions.mjs: PASS
+verify-design.mjs: PASS
+verify-live-browser.mjs: FAIL
+verify-live-browser.mjs: PASS on explicit retry with freshly verified local config (see live-browser.json; initial CLI timeout retained separately)

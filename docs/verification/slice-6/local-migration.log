@@ -1,0 +1,11 @@
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+REVOKE
+Warning: --local isn't needed (local is the default) and will be removed in v4
+WARN: auth.email.enable_signup is deprecated and will be removed in v4, use auth.email.enabled instead.
+WARN: auth.sms.enable_signup is deprecated and will be removed in v4, use auth.sms.enabled instead.
+Target: local stack (127.0.0.1:54322)
+Repaired migration history: [20261119000001] => applied
+{"versions":["20261119000001"],"status":"applied","repairAll":false,"message":"Migration history repaired","target":{"kind":"local","host":"127.0.0.1","port":54322}}

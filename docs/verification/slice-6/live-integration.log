@@ -1,0 +1,12 @@
+{
+  "source": "Real local Supabase, own synthetic accounts only",
+  "checks": [
+    "Confirmed rename and fresh read; zero-row update cannot count as success",
+    "Account B cannot read/rename/delete A; own gas remains independent",
+    "Real failed deletion leaves meter, two periods, settlement, rates and revision intact",
+    "Cascade deletes readings, periods/settlement, rates, revisions and continuation receipt; setup tombstone and condition receipt retained; replay cannot resurrect; repeat delete safe",
+    "Four historical backup tables reject anonymous and authenticated access (zero-row queries; no historical contents read)"
+  ],
+  "passed": true,
+  "cleanup": true
+}

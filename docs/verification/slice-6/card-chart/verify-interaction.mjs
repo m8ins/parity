@@ -1,0 +1,32 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url);
+const {chromium}=require('/Users/martin/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const browser=await chromium.launch({executablePath:'/Applications/Brave Browser.app/Contents/MacOS/Brave Browser',headless:true});
+const page=await browser.newPage({viewport:{width:390,height:844},locale:'de-DE'});
+const report={synthetic:true,checks:[],passed:false};
+try {
+ await page.goto('http://127.0.0.1:3010/design/integration?view=overview');
+ const graph=page.locator('.meter-chart-preview').first();
+ await graph.locator('.recharts-area-curve').first().waitFor();
+ await graph.scrollIntoViewIfNeeded();
+ const surface=graph.locator('svg.recharts-surface');
+ await page.keyboard.press('Tab');await surface.focus();await page.keyboard.press('ArrowRight');
+ const tooltip=graph.locator('.recharts-tooltip-wrapper');
+ await tooltip.waitFor({state:'visible'});
+ assert.match(await tooltip.innerText(),/Hochrechnung/);assert.match(await tooltip.innerText(),/kWh/);
+ assert(await graph.evaluate(el=>getComputedStyle(el).outlineStyle==='solid'));
+ report.checks.push('Keyboard: focused chart, ArrowRight reveals exact dated kWh tooltip, container focus visible');
+ await page.keyboard.press('Tab');
+ assert(await page.locator('.meter-outcome-link').first().evaluate(el=>el===document.activeElement));
+ report.checks.push('Tab leaves chart for explicit summary link; chart is not nested in anchor');
+ const box=await surface.boundingBox();await page.mouse.move(box.x+box.width*.6,box.y+box.height*.4);
+ await tooltip.waitFor({state:'visible'});assert.match(await tooltip.innerText(),/kWh/);
+ assert(await tooltip.evaluate(el=>{const r=el.getBoundingClientRect(),g=el.closest('.meter-chart-preview').getBoundingClientRect();return r.left>=g.left-1&&r.right<=g.right+1&&el.scrollWidth<=el.clientWidth+1;}));
+ report.checks.push('Pointer reveals exact values without navigating; tooltip fits chart bounds');
+ await page.screenshot({path:new URL('screenshots/card-tooltip-390.png',import.meta.url).pathname,fullPage:true});
+ await page.setViewportSize({width:320,height:844});await page.addStyleTag({content:'html{font-size:200%}*{letter-spacing:.12em!important;word-spacing:.16em!important;line-height:1.5!important}'});await surface.scrollIntoViewIfNeeded();await page.keyboard.press('Tab');await surface.focus();await page.keyboard.press('ArrowRight');await tooltip.waitFor({state:'visible'});assert(await tooltip.evaluate(el=>{const r=el.getBoundingClientRect(),g=el.closest('.meter-chart-preview').getBoundingClientRect();return r.left>=g.left-1&&r.right<=g.right+1&&el.scrollWidth<=el.clientWidth+1&&r.height<=g.height+1;}));report.checks.push('320px/200% tooltip fits chart, wraps text and permits local vertical scrolling');
+ report.passed=true;
+} finally {await browser.close();fs.writeFileSync(new URL('interaction-browser.json',import.meta.url),JSON.stringify(report,null,2)+'\n');}
+console.log(report);

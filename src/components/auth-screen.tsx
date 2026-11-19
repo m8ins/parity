@@ -1,7 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -9,7 +8,7 @@ import { Label } from './ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 
-export function AuthScreen() {
+export function AuthScreen({ notice }: { notice?: string }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
@@ -17,9 +16,10 @@ export function AuthScreen() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [showOtpInput, setShowOtpInput] = useState(false);
+  const codeInput = useRef<HTMLInputElement>(null);
+  useEffect(() => { if (showOtpInput) codeInput.current?.focus(); }, [showOtpInput]);
   const busy = useRef(false);
   const supabase = createClient();
-  const router = useRouter();
 
   const submit = async (event: React.FormEvent, method: 'code' | 'password') => {
     event.preventDefault();
@@ -47,7 +47,7 @@ export function AuthScreen() {
         setShowOtpInput(true);
       } else {
         setMessage('Angemeldet. Deine Zähler werden geladen …');
-        router.refresh();
+        // AccountBoundary owns the session transition and full server reload.
       }
     } catch {
       setError('Keine Verbindung möglich. Deine Eingaben bleiben erhalten. Bitte versuche es erneut.');
@@ -65,6 +65,7 @@ export function AuthScreen() {
           <CardDescription>Deine Zähler und Ablesungen im Blick.</CardDescription>
         </CardHeader>
         <CardContent>
+          {notice && <p className="mb-4 text-sm" role="status">{notice}</p>}
           <Tabs defaultValue="code" onValueChange={() => { setError(''); setMessage(''); }}>
             <TabsList className="mb-4" aria-label="Anmeldeverfahren">
               <TabsTrigger value="code" disabled={loading}>E-Mail-Code</TabsTrigger>
@@ -79,7 +80,7 @@ export function AuthScreen() {
                   </div>
                   {showOtpInput && <div className="form-field">
                     <Label htmlFor="email-code">Anmeldecode</Label>
-                    <Input id="email-code" type="text" inputMode="numeric" autoComplete="one-time-code" value={otp} onChange={event => setOtp(event.target.value)} required aria-invalid={!!error} aria-describedby={description} />
+                    <Input ref={codeInput} id="email-code" type="text" inputMode="numeric" autoComplete="one-time-code" value={otp} onChange={event => setOtp(event.target.value)} required aria-invalid={!!error} aria-describedby={description} />
                   </div>}
                   <p className="text-sm text-muted-foreground">{showOtpInput ? `Gib den Code aus der E-Mail an ${email} ein.` : 'Du erhältst einen Anmeldecode per E-Mail.'}</p>
                   <Button type="submit">{loading ? 'Bitte warten …' : showOtpInput ? 'Code bestätigen' : 'Code anfordern'}</Button>

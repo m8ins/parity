@@ -1,0 +1,36 @@
+npm notice run parity@0.1.0 dev
+npm notice run next dev --webpack --hostname 127.0.0.1 --port 3008
+▲ Next.js 16.1.1 (webpack)
+- Local:         http://127.0.0.1:3008
+- Network:       http://127.0.0.1:3008
+
+✓ Starting...
+✓ Ready in 1060ms
+○ Compiling / ...
+ GET / 200 in 3.4s (compile: 3.2s, render: 133ms)
+ GET /meter/76d94230-818c-4802-9589-6d002b24e0d7?period=c3bfd19a-939d-43ba-b3bc-aae32e914671 200 in 1724ms (compile: 1626ms, render: 98ms)
+ GET /meter/76d94230-818c-4802-9589-6d002b24e0d7?period=c3bfd19a-939d-43ba-b3bc-aae32e914671 200 in 192ms (compile: 4ms, render: 188ms)
+ GET /meter/76d94230-818c-4802-9589-6d002b24e0d7?period=692a0d12-f136-47bb-9c9d-70a54f17e48d 200 in 68ms (compile: 4ms, render: 64ms)
+ GET /meter/76d94230-818c-4802-9589-6d002b24e0d7?period=692a0d12-f136-47bb-9c9d-70a54f17e48d 200 in 110ms (compile: 5ms, render: 105ms)
+ GET /meter/76d94230-818c-4802-9589-6d002b24e0d7?period=c3bfd19a-939d-43ba-b3bc-aae32e914671 200 in 85ms (compile: 12ms, render: 73ms)
+ GET / 200 in 60ms (compile: 11ms, render: 48ms)
+ GET / 200 in 71ms (compile: 1497µs, render: 70ms)
+ GET / 200 in 77ms (compile: 1601µs, render: 75ms)
+ GET /meter/76d94230-818c-4802-9589-6d002b24e0d7 200 in 62ms (compile: 4ms, render: 57ms)
+ GET /meter/76d94230-818c-4802-9589-6d002b24e0d7 200 in 76ms (compile: 3ms, render: 72ms)
+ GET /meter/76d94230-818c-4802-9589-6d002b24e0d7 200 in 78ms (compile: 8ms, render: 71ms)
+ GET / 200 in 58ms (compile: 2ms, render: 55ms)
+ GET / 200 in 76ms (compile: 2ms, render: 74ms)
+ GET / 200 in 36ms (compile: 1599µs, render: 34ms)
+ GET / 200 in 34ms (compile: 1113µs, render: 33ms)
+ GET /meter/76d94230-818c-4802-9589-6d002b24e0d7 200 in 39ms (compile: 3ms, render: 36ms)
+ GET /meter/ungueltig 200 in 32ms (compile: 3ms, render: 29ms)
+ GET /contract/c3bfd19a-939d-43ba-b3bc-aae32e914671 200 in 596ms (compile: 459ms, render: 137ms)
+ GET / 200 in 160ms (compile: 9ms, render: 151ms)
+ GET / 200 in 31ms (compile: 1718µs, render: 30ms)
+ GET / 200 in 53ms (compile: 3ms, render: 50ms)
+ GET / 200 in 33ms (compile: 1093µs, render: 32ms)
+ GET / 200 in 44ms (compile: 1294µs, render: 43ms)
+ GET / 200 in 27ms (compile: 1359µs, render: 26ms)
+ GET / 200 in 60ms (compile: 1271µs, render: 59ms)
+ GET / 200 in 60ms (compile: 2ms, render: 57ms)

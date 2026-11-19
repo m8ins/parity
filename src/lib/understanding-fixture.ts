@@ -8,6 +8,7 @@ export function understandingFixture(scenario = 'electricity'): { meter: Meter; 
   const meter: Meter = { ...readingFixture.initialMeters[gas ? 1 : 0],
     name: scenario === 'large' ? 'Strom · Werkstatt und Einliegerwohnung im hinteren Haus mit sehr langem Zählernamen' : gas ? 'Gas · Hauswirtschaft' : 'Strom · Keller' };
   const period: Contract = { id: 'period-current', meter_id: meter.id, period_start: '2026-01-01', period_end: '2027-01-01', provider: 'Stadtwerke Beispiel', created_at: '', updated_at: '' };
+  if (scenario === 'gas-open') { period.period_start = '2025-11-01'; period.period_end = undefined; }
   const previous: Contract = { ...period, id: 'period-previous', period_start: '2025-01-01', period_end: '2026-01-01', settlement_amount: gas ? 328 : -150, settlement_date: '2026-02-12' };
   const rate = (contract: Contract, props: Partial<Rate> = {}): Rate => ({ id: `${contract.id}-rate`, contract_id: contract.id, effective_from: contract.period_start,
     grundpreis: 10, arbeitspreis: gas ? 10 : 30, abschlag: gas ? 130 : 100, umrechnungsfaktor: gas ? 10 : 1, created_at: '', ...props });
