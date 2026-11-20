@@ -37,7 +37,7 @@ describe('billing actions', () => {
   });
   it('builds a canonical whole-history expectation and converts inclusive end', () => {
     const payload = continuationPayload(period, [period], rates, { ...input, end: '2026-12-31', confirmBoundary: true }, false);
-    expect(payload).toMatchObject({ period_id: 'p', period_end: '2027-01-01', provider: 'Neu', abschlag: 0, confirm_gap: true });
+    expect(payload).toMatchObject({ continuation_version: 1, period_id: 'p', period_end: '2027-01-01', provider: 'Neu', abschlag: 0, confirm_gap: true });
     expect(payload.expected_periods).toEqual(billingPeriodSnapshot([period]));
     expect(payload.expected_rates).toHaveLength(2);
     expect(continuationPayload(period, [period], rates, { ...input, end: input.start }, false).period_end).toBe('2026-01-02');

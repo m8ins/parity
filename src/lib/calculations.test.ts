@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { calculateProjection } from './calculations';
-import { Meter, Contract, Reading, Rate, GAS_WEIGHTS } from './types';
+import { Meter, Contract, Reading, Rate } from './types';
 
 describe('calculateProjection', () => {
   const createMeter = (

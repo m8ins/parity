@@ -143,7 +143,7 @@ export function ContractCard({
         </CardContent>
         <CardFooter className="flex gap-2">
           <ReadingDialog
-            meterId={meter.id}
+            meterId={meter.id} userId={meter.user_id}
             meterName={meter.name}
             meterType={meter.type}
             lastReading={lastReading}

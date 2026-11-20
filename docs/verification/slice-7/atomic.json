@@ -1,0 +1,10 @@
+{
+  "source": "Real local client RPCs, late AFTER INSERT failure; rollback-only legacy function transition",
+  "checks": [
+    "Setup forced AFTER receipt error leaves no meter/period/rate/reading/receipt; unchanged key+payload succeeds after removing injection",
+    "Continuation forced AFTER receipt error rolls back old-end update, result, rates and receipt; exact retry succeeds",
+    "Previous RPC genuinely creates unversioned request inside transaction; legacy receipt replays after installing final RPC; simulated old CASCADE loss fails closed; entire transition rolled back"
+  ],
+  "passed": true,
+  "cleanup": true
+}

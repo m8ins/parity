@@ -4,26 +4,28 @@ import userEvent from '@testing-library/user-event';
 import { ReadingDialog } from '../reading-dialog';
 import { localToday } from '@/lib/readings';
 
-const { insert, single } = vi.hoisted(() => ({ insert: vi.fn(), single: vi.fn() }));
+const { getUser, rpc, insert, single } = vi.hoisted(() => ({ getUser: vi.fn(), rpc: vi.fn(), insert: vi.fn(), single: vi.fn() }));
 vi.mock('@/lib/supabase/client', () => ({
-  createClient: () => ({ from: () => ({ insert }) }),
+  createClient: () => ({ rpc, auth: { getUser } }),
 }));
 
 async function open(type: 'gas' | 'electricity' = 'electricity') {
   const onSuccess = vi.fn();
   const user = userEvent.setup();
-  render(<ReadingDialog meterId="m1" meterName="Keller" meterType={type} onSuccess={onSuccess}>
+  const view = render(<ReadingDialog userId="u1" meterId="m1" meterName="Keller" meterType={type} onSuccess={onSuccess}>
     <button>Stand erfassen</button>
   </ReadingDialog>);
   await user.click(screen.getByText('Stand erfassen'));
   expect(screen.getByRole('dialog', { name: 'Zählerstand für Keller' })).toBeVisible();
   expect(screen.queryByText(/Keller ·/)).not.toBeInTheDocument();
-  return { user, onSuccess, value: screen.getByLabelText(`Neuer Zählerstand (${type === 'gas' ? 'm³' : 'kWh'})`) };
+  return { user, onSuccess, view, value: screen.getByLabelText(`Neuer Zählerstand (${type === 'gas' ? 'm³' : 'kWh'})`) };
 }
 
 describe('ReadingDialog', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.clearAllMocks(); sessionStorage.clear();
+    getUser.mockResolvedValue({ data: { user: { id: 'u1' } }, error: null });
+    rpc.mockImplementation((_name, args) => { insert(args.p_payload); return single(); });
     insert.mockReturnValue({ select: () => ({ single }) });
     single.mockResolvedValue({ data: { id: 'r1', meter_id: 'm1', date: localToday(), value: 100, created_at: 'now' }, error: null });
   });
@@ -34,7 +36,7 @@ describe('ReadingDialog', () => {
     ['electricity', 0, '0'],
   ] as const)('prefills %s with the last recorded value %s without marking it as an edit', async (type, previous, formatted) => {
     const user = userEvent.setup();
-    render(<ReadingDialog meterId="prefill" meterName="Keller" meterType={type} lastReadingValue={previous}>
+    render(<ReadingDialog userId="u1" meterId="prefill" meterName="Keller" meterType={type} lastReadingValue={previous}>
       <button>Stand erfassen</button>
     </ReadingDialog>);
     await user.click(screen.getByText('Stand erfassen'));
@@ -135,4 +137,72 @@ describe('ReadingDialog', () => {
     await user.keyboard('{Escape}');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
+  it('restores the identical locked reading request after remount and never changes its UUID', async () => {
+    single.mockRejectedValueOnce(new Error('Lost committed response'));
+    const first = await open();
+    await first.user.type(first.value, '123,45');
+    await first.user.click(screen.getByText('Zählerstand speichern'));
+    await screen.findByRole('alert');
+    const original = rpc.mock.calls[0];
+    expect(original[0]).toBe('record_reading');
+    expect(first.value).toHaveAttribute('readonly');
+    first.view.unmount();
+    const second = await open();
+    expect(second.value).toHaveValue('123,45');
+    expect(second.value).toHaveAttribute('readonly');
+    await second.user.click(screen.getByText('Erneut speichern'));
+    await waitFor(() => expect(second.onSuccess).toHaveBeenCalledOnce());
+    expect(rpc.mock.calls[1]).toEqual(original);
+    expect(sessionStorage.getItem('parity:reading:u1:m1')).toBeNull();
+  });
+
+  it('sends nothing when the request cannot be persisted', async () => {
+    const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('blocked'); });
+    try {
+      const { user, value } = await open();
+      await user.type(value, '123');
+      await user.click(screen.getByText('Zählerstand speichern'));
+      expect(await screen.findByRole('alert')).toHaveTextContent('Es wurde nichts gesendet');
+      expect(rpc).not.toHaveBeenCalled();
+      expect(value).not.toHaveAttribute('readonly');
+    } finally { spy.mockRestore(); }
+  });
+
+  it("does not restore another account's unconfirmed request", async () => {
+    single.mockRejectedValueOnce(new Error('offline'));
+    const first = await open();
+    await first.user.type(first.value, '123');
+    await first.user.click(screen.getByText('Zählerstand speichern'));
+    await screen.findByRole('alert'); first.view.unmount();
+    render(<ReadingDialog userId="u2" meterId="m1"><button>Anderes Konto</button></ReadingDialog>);
+    await userEvent.click(screen.getByText('Anderes Konto'));
+    expect(screen.getByLabelText('Neuer Zählerstand (kWh)')).toHaveValue('');
+    expect(screen.queryByText('Erneut speichern')).not.toBeInTheDocument();
+  });
+
+  it('retains the original account request and sends nothing after a session change', async () => {
+    getUser.mockResolvedValue({ data: { user: { id: 'u2' } }, error: null });
+    const { user, value } = await open();
+    await user.type(value, '123');
+    await user.click(screen.getByText('Zählerstand speichern'));
+    await screen.findByRole('alert');
+    expect(rpc).not.toHaveBeenCalled();
+    expect(sessionStorage.getItem('parity:reading:u1:m1')).not.toBeNull();
+  });
+
+  it('never turns a deleted-result replay into a new insert on an ordinary retry', async () => {
+    single.mockResolvedValueOnce({ data: null, error: { code: '22023', message: 'Ablesung wurde gelöscht' } });
+    const { user, value } = await open();
+    await user.type(value, '123');
+    await user.click(screen.getByText('Zählerstand speichern'));
+    await screen.findByRole('alert');
+    expect(value).toHaveAttribute('readonly');
+    await user.click(screen.getByText('Angaben neu prüfen'));
+    expect(rpc).toHaveBeenCalledTimes(1);
+    expect(value).not.toHaveAttribute('readonly');
+    await user.click(screen.getByText('Zählerstand speichern'));
+    await waitFor(() => expect(rpc).toHaveBeenCalledTimes(2));
+    expect(rpc.mock.calls[1][1].p_request_id).not.toBe(rpc.mock.calls[0][1].p_request_id);
+  });
+
 });

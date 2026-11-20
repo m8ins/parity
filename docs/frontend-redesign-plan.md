@@ -222,7 +222,7 @@ Für Slice 1 sind Palette, Schrift, hybride Skalierung und Modal/Sheet entschied
 
 ## Slice 7 — Schreibwege und Wiederholschutz absichern
 
-**Status:** Am 16.11.2026 zusätzlich beauftragt; noch nicht umgesetzt. Nach den fachlichen Slices 5–6 und vor der Veröffentlichung abschließen. Neue Schreibwege aus Slice 5 von Anfang an in die Prüfung aufnehmen.
+**Status:** Implementiert am 19.11.2026 auf dem vollständigen, nutzerabgenommenen Slice-6-Stand. Schreibrechte, Belegübergang, Eindeutigkeit und Ablesungs-Retry lokal abgesichert; Nachweise und verbleibende Rolloutgrenzen unter `docs/verification/slice-7/`. Keine gehostete Migration/Veröffentlichung.
 
 **Nutzerziel:** Speichern und Wiederholen bleiben zuverlässig; Korrekturhistorie und Datenregeln gelten unabhängig davon, über welchen erlaubten API-Weg geschrieben wird.
 
@@ -325,7 +325,7 @@ Der Modellname im Prompt allein ersetzt die explizite Modellauswahl nicht.
 | Slice 4 | Implementiert; datierte Pflege, Korrekturarchiv, bestätigte Löschung und idempotente Speicherung; Nachweise unter `docs/verification/slice-4/`; Nutzerreview offen |
 | Slice 5 | Implementiert; atomare Fortführung, Abrechnung, 138 Tests, Browser-/echte lokale Persistenz- und Konkurrenzprüfungen bestanden; Nutzerabnahme offen |
 | Slice 6 | Implementiert; Designreview umgesetzt, 174 Tests, Typecheck/Lint/Build, fünf Browserregressionen sowie echte lokale Verwaltung/Auth mit Code-Mail und RLS bestanden; Nutzer-/Geräte-/Cross-Browserabnahmen und gehostete Mailvorlage offen |
-| Slice 7 | Geplant: Request-Belege, erlaubte Schreibwege und Konditions-Constraints vor Veröffentlichung absichern |
+| Slice 7 | Implementiert: begrenzte RPC-Schreibwege, dauerhafte versionierte Minimalbelege einschließlich Ablesungen, Altbeleg-Übergang und deklarative Konditionseindeutigkeit; lokale API-/Upgrade-/Browserprüfungen unter `docs/verification/slice-7/`; gehosteter Rollout offen |
 
 Nach jedem Slice Status und tatsächliche Design-/Integrationsentscheidungen hier aktualisieren. Fachliche Änderungen gegenüber den Gesprächsentscheidungen ausdrücklich sichtbar machen.
 
@@ -424,3 +424,16 @@ Finanzielles Ergebnis auf der Karte priorisiert und direkt mit dem tatsächliche
 Spätere Nutzerfreigabe setzt die frühere Kartenreduktion außer Kraft: kompakter Verbrauchsverlauf als Hauptinhalt, finanzielle Einschätzung und letzter Stand darunter; „Stand erfassen“ bleibt Hauptaktion. Dieselben Daten und Kurven wie in „Verstehen“, keine neue Prognoselogik. Grafik außerhalb des Ergebnislinks; richtige Zeitraumverknüpfung erhalten. Fehlende Preise verhindern den Verbrauchsverlauf nicht; fehlende Ablesungen erhalten den ehrlichen nächsten Schritt.
 
 179 Tests / 27 Dateien, Typecheck, Lint (zwei bestehende Warnungen), isolierter Produktionsbuild bestanden. Neue synthetische Browsermatrix: 20 Aufnahmen, fünf Breiten 1440–320 px, 200 % Text und Textabstände, Reduced Motion/Fokus, sechs Datenzustände. Separater Tooltip-/Tastaturweg und die bestehenden Verstehen- sowie Ableseregressionen bestanden. Keine erneute DB-/RLS-Abnahme für diese Darstellungsänderung; bestehende reale Slice-6-Nachweise bleiben separat. Geräte-, Screenreader- und weitere Browserabnahme offen. Bericht: `docs/verification/slice-6/card-chart/README.md`.
+
+
+### Slice 7 · Schreibwege und Wiederholschutz (19.11.2026)
+
+Aktueller Nutzerauftrag bestätigt Slices 1–6 einschließlich der später wiederhergestellten Verbrauchskurve; ältere offene Nutzerabnahmevermerke sind insoweit überholt. Branch `codex/slice-7-write-integrity` direkt im vollständigen Slice-6-Arbeitsbaum, keine Arbeit verworfen. Keine Neugestaltung oder Berechnungsänderung.
+
+Direkte Rates-/Zeitraummutationen, Meteranlage/-zuordnung/-typänderung, ungenutzte breite Rechte und direkte Reading-Inserts geschlossen. Beginn-/Anbieterpflege über neue absolute kontogeprüfte RPC, Ablesungen über zweckgebundene RPC mit dauerhaftem Minimalbeleg und kontoabhängiger Wiederaufnahme nach Reload. Name und Lesen/Löschen bleiben schmal unter RLS erlaubt. Gemeinsamer Meterlock vor Zeitraum-/Konditionssperren; fachliche Mutation, Korrekturarchiv und Beleg atomar.
+
+Vorhandene Requestpayloads unverändert und historische Erstellungszeit NULL; tatsächliche Formaterfassung nachgetragen. Neue Belege nutzen serverseitige rekursive JSONB-Normalisierung und versionierten SHA-256 statt vollständiger Snapshots. Keine automatische Befristung oder Bereinigung. Fortführungs- und Ablesungsbelege bleiben als Tombstones nach Ergebnislöschung erhalten. Erhaltene Altbelege wiederholbar; alte Fortführungen ohne Beleg benötigen wegen möglicher früherer CASCADE-Verluste ausdrücklich neues Prüfen. Fachliche Fassungsarchive bleiben getrennt.
+
+Vier neue additive Migrationen `20261119000002` bis `20261119000005`, ausschließlich bekannte lokale Supabase angewandt/journalisiert. Vorab aggregiert 0 Dublettengruppen; UNIQUE `(contract_id,effective_from)` tatsächlich installiert. Tatsächliche Upgradeprüfung mit alten Belegen auf bestehendem Schema, synthetische Altdubletten mit ausdrücklichem Abbruch ohne Bereinigung, echte Clientrollen/Parallelität/verlorene Commits/Löschreplays/späte Fehler mit Rollback. Eigene Testkonten/-daten bereinigt, ein vorbestehendes Konto erhalten. Kein Reset und keine historischen Backups gelesen/bereinigt.
+
+186 Tests/28 Dateien, Typecheck, Lint (zwei vorbestehende Warnungen), isolierter Produktionsbuild und gezielte reale Browserwege für Einrichtung/Ablesung, Konditionen/Ende, Fortführung/Abrechnung und Verwaltung/Details; Einzelheiten und tatsächliche Ergebnisse unter `docs/verification/slice-7/`. Ein zusätzlicher vollständiger Auth-/Verwaltungslauf scheiterte beim späteren Kontowechsel nach injiziertem Logoutfehler; keine neue vollständige Authabnahme behauptet, gezielte Schreibwegregression separat. Gehostete Bestands-/Dublettenprüfung, koordinierte Migration/Client-Veröffentlichung, externe Mailvorlage und physische Geräte-/Screenreader-/Cross-Browser-Abnahme offen. Keine neue Kontolöschfunktion, kein Push/Merge/Deployment.

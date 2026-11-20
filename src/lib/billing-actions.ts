@@ -33,7 +33,7 @@ export function continuationErrors(period: Contract, periods: Contract[], rates:
   return errors;
 }
 export function continuationPayload(period: Contract, periods: Contract[], rates: Rate[], input: ContinuationInput, gas: boolean) {
-  return { period_id: period.id, expected_periods: billingPeriodSnapshot(periods), expected_rates: rateSnapshot(rates),
+  return { continuation_version: 1, period_id: period.id, expected_periods: billingPeriodSnapshot(periods), expected_rates: rateSnapshot(rates),
     period_start: input.start, period_end: exclusiveEnd(input.end), provider: input.provider.trim() || null,
     confirm_boundary: input.confirmBoundary, confirm_gap: input.confirmBoundary, confirm_future: input.confirmBoundary,
     grundpreis: setupNumber(input.values.grundpreis), arbeitspreis: setupNumber(input.values.arbeitspreis),

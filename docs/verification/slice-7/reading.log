@@ -1,0 +1,10 @@
+{
+  "source": "Real local Auth/PostgREST reading RPC; synthetic accounts only",
+  "checks": [
+    "8 parallel reading requests create exactly one row; changed payload denied; fresh client retry returns committed row; owner raw INSERT, foreign/anonymous RPC/private receipts and invalid values/dates denied",
+    "A deliberately new key may save identical value/date; deleting a recorded reading leaves tombstone and old replay cannot restore it",
+    "Late AFTER receipt failure rolls back reading and success receipt; identical retry succeeds; meter deletion also blocks replay"
+  ],
+  "passed": true,
+  "cleanup": true
+}

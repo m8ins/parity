@@ -1,0 +1,16 @@
+BEGIN
+ALTER TABLE
+SET
+INSERT 0 1
+SET
+SAVEPOINT
+LOCK TABLE
+ROLLBACK
+synthetic_duplicates=2
+unique_installed=0
+ROLLBACK
+ERROR:  Altdubletten in rates: Eindeutigkeit NICHT installiert. Kontrollierte Bereinigung und erneuten Rollout erforderlich.
+CONTEXT:  PL/pgSQL function inline_code_block line 3 at RAISE
+ERROR:  current transaction is aborted, commands ignored until end of transaction block
+
+PASS expected specific migration failure; both duplicates retained inside test, no false constraint; all DDL/fixture duplication rolled back.

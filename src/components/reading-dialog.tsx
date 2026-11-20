@@ -10,10 +10,11 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from '@/components/ui/input';
 
 export function ReadingDialog({
-  meterId, meterName = 'Zähler', meterType = 'electricity', lastReadingValue,
+  meterId, userId, meterName = 'Zähler', meterType = 'electricity', lastReadingValue,
   lastReading, children, onSuccess,
 }: {
   meterId: string;
+  userId: string;
   meterName?: string;
   meterType?: MeterType;
   lastReadingValue?: number;
@@ -31,6 +32,11 @@ export function ReadingDialog({
   const [keyboard, setKeyboard] = useState(false);
   const [viewport, setViewport] = useState<CSSProperties>({});
   const saving = useRef(false);
+  const [uncertain, setUncertain] = useState(false);
+  const [needsReview, setNeedsReview] = useState(false);
+  const [storageReadable, setStorageReadable] = useState(true);
+  const request = useRef<{ requestId: string; payload: { meter_id: string; date: string; value: number }; displayValue: string } | null>(null);
+  const storageKey = `parity:reading:${userId}:${meterId}`;
   const initialDate = useRef(date);
   const initialValue = useRef('');
   const dateRef = useRef<HTMLInputElement>(null);
@@ -65,9 +71,16 @@ export function ReadingDialog({
     };
   }, [open]);
 
+  useEffect(() => {
+    if (!open || !(dirty || uncertain || loading)) return;
+    const protect = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener('beforeunload', protect);
+    return () => window.removeEventListener('beforeunload', protect);
+  }, [open, dirty, uncertain, loading]);
+
   function requestClose() {
     if (saving.current) return;
-    if (dirty) setDiscard(true);
+    if (dirty || uncertain) setDiscard(true);
     else setOpen(false);
   }
 
@@ -79,6 +92,18 @@ export function ReadingDialog({
     initialValue.current = previousValue === undefined ? '' : formatReading(previousValue);
     setValue(initialValue.current);
     setErrors({});
+    request.current = null; setUncertain(false); setNeedsReview(false); setStorageReadable(true);
+    try {
+      const raw = sessionStorage.getItem(storageKey);
+      if (raw) {
+        const draft = JSON.parse(raw);
+        if (typeof draft.requestId !== 'string' || !draft.requestId || draft.payload?.meter_id !== meterId
+          || typeof draft.displayValue !== 'string' || !readingSchema.safeParse({ date: draft.payload?.date, value: draft.displayValue }).success
+          || readingSchema.parse({ date: draft.payload.date, value: draft.displayValue }).value !== draft.payload.value) throw new Error('Invalid reading request');
+        request.current = draft; setDate(draft.payload.date); setValue(draft.displayValue); setUncertain(true);
+        setErrors({ save: 'Eine Speicherung ist noch nicht bestätigt. Bitte mit denselben Angaben erneut speichern.' });
+      }
+    } catch { setStorageReadable(false); setErrors({ save: 'Der Wiederholschutz ist nicht lesbar. Erlaube Sitzungsspeicher und öffne die Erfassung erneut.' }); }
     setDiscard(false);
     setKeyboard(document.activeElement?.matches(':focus-visible') ?? false);
     setDragOffset(0);
@@ -97,7 +122,13 @@ export function ReadingDialog({
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
-    if (saving.current) return;
+    if (saving.current || !storageReadable) return;
+    if (needsReview) {
+      try { sessionStorage.removeItem(storageKey); }
+      catch { setErrors({ save: 'Der alte Auftrag konnte nicht freigegeben werden. Bitte Sitzungsspeicher erlauben.' }); return; }
+      request.current = null; setUncertain(false); setNeedsReview(false); setErrors({});
+      return; // Explicit review first; a later save creates a deliberately new request.
+    }
     const result = readingSchema.safeParse({ date, value });
     if (!result.success) {
       const fields = result.error.flatten().fieldErrors;
@@ -105,15 +136,29 @@ export function ReadingDialog({
       (fields.date ? dateRef : valueRef).current?.focus();
       return;
     }
+    const draft = request.current ?? { requestId: crypto.randomUUID(), payload: { meter_id: meterId, ...result.data }, displayValue: value };
+    try { sessionStorage.setItem(storageKey, JSON.stringify(draft)); }
+    catch { setErrors({ save: 'Der Wiederholschutz konnte nicht gespeichert werden. Erlaube Sitzungsspeicher. Es wurde nichts gesendet.' }); return; }
+    request.current = draft; setUncertain(true);
     saving.current = true;
     setLoading(true);
     setErrors({});
     let saved: Reading | undefined;
     try {
-      const { data, error } = await createClient().from('readings')
-        .insert({ meter_id: meterId, ...result.data }).select().single();
+      const client = createClient();
+      const session = await client.auth.getUser();
+      if (session.error || session.data.user?.id !== userId) throw new Error('Session does not match reading draft');
+      const { data, error } = await client.rpc('record_reading', { p_request_id: draft.requestId, p_payload: draft.payload });
+      if (error && ['22023', '22007', '22008', '22P02', '23502'].includes(error.code)) {
+        setNeedsReview(true);
+        setErrors({ save: 'Dieser Auftrag wurde abgewiesen. Prüfe die Angaben ausdrücklich neu, bevor du einen neuen Auftrag speicherst.' });
+        return;
+      }
       if (error || !data) throw error ?? new Error('Missing reading');
       saved = data as Reading;
+      // A failed local cleanup must never turn a confirmed commit into a new insert.
+      try { sessionStorage.removeItem(storageKey); } catch { /* same key remains safe */ }
+      request.current = null; setUncertain(false);
     } catch {
       setErrors({ save: 'Der Zählerstand konnte nicht gespeichert werden. Bitte die Verbindung prüfen und erneut speichern.' });
     } finally {
@@ -151,7 +196,7 @@ export function ReadingDialog({
           <div className="reading-field">
             <label htmlFor={`date-${meterId}`}>Ablesedatum</label>
             <Input ref={dateRef} className="reading-input" id={`date-${meterId}`} type="date" value={date} max={localToday()}
-              readOnly={loading} onChange={event => { if (!saving.current) setDate(event.target.value); }}
+              readOnly={loading || uncertain || !storageReadable} onChange={event => { if (!saving.current && !uncertain && storageReadable) setDate(event.target.value); }}
               aria-invalid={!!errors.date} aria-describedby={errors.date ? `date-error-${meterId}` : undefined} />
             {errors.date && <p className="reading-error" id={`date-error-${meterId}`}>{errors.date}</p>}
           </div>
@@ -159,8 +204,8 @@ export function ReadingDialog({
             <label htmlFor={`value-${meterId}`}>Neuer Zählerstand ({unit})</label>
             <div className="reading-value">
               <Input ref={valueRef} className="reading-input" id={`value-${meterId}`} type="text" inputMode="decimal" autoComplete="off"
-                value={value} placeholder={meterType === 'gas' ? '8.412,365' : '24.681,7'} readOnly={loading}
-                onChange={event => { if (!saving.current) setValue(event.target.value); }}
+                value={value} placeholder={meterType === 'gas' ? '8.412,365' : '24.681,7'} readOnly={loading || uncertain || !storageReadable}
+                onChange={event => { if (!saving.current && !uncertain && storageReadable) setValue(event.target.value); }}
                 aria-invalid={!!errors.value} aria-describedby={`value-hint-${meterId}${errors.value ? ` value-error-${meterId}` : ''}`} />
               <span className="reading-unit" aria-hidden="true">{unit}</span>
             </div>
@@ -169,8 +214,8 @@ export function ReadingDialog({
           </div>
           {errors.save && <p role="alert" className="reading-error">{errors.save}</p>}
           <div className="reading-actions">
-            <Button type="submit" className="parity-button" disabled={loading}>
-              {loading ? 'Wird gespeichert …' : errors.save ? 'Erneut speichern' : 'Zählerstand speichern'}
+            <Button type="submit" className="parity-button" disabled={loading || !storageReadable}>
+              {loading ? 'Wird gespeichert …' : needsReview ? 'Angaben neu prüfen' : errors.save ? 'Erneut speichern' : 'Zählerstand speichern'}
             </Button>
             <Button type="button" variant="ghost" disabled={loading} onClick={() => { if (!suppressHandleClick.current) requestClose(); suppressHandleClick.current = false; }}>Abbrechen</Button>
           </div>
@@ -179,11 +224,11 @@ export function ReadingDialog({
         <Dialog open={discard} onOpenChange={setDiscard}>
           <DialogContent className="reading-discard" showCloseButton={false} onPointerDownOutside={event => event.preventDefault()}>
             <DialogHeader>
-              <DialogTitle>Eingaben verwerfen?</DialogTitle>
-              <DialogDescription>Dein Zählerstand wurde noch nicht gespeichert.</DialogDescription>
+              <DialogTitle>{uncertain ? 'Später weiterprüfen?' : 'Eingaben verwerfen?'}</DialogTitle>
+              <DialogDescription>{uncertain ? 'Die Speicherung ist noch nicht bestätigt. Öffne die Erfassung erneut, um sie mit denselben Angaben zu prüfen.' : 'Dein Zählerstand wurde noch nicht gespeichert.'}</DialogDescription>
             </DialogHeader>
             <Button variant="outline" onClick={() => setDiscard(false)} autoFocus>Weiter erfassen</Button>
-            <Button onClick={() => { setDiscard(false); setOpen(false); }}>Eingaben verwerfen</Button>
+            <Button onClick={() => { setDiscard(false); setOpen(false); }}>{uncertain ? 'Später prüfen' : 'Eingaben verwerfen'}</Button>
           </DialogContent>
         </Dialog>
       </DialogContent>

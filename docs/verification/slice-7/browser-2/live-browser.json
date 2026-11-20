@@ -1,0 +1,20 @@
+{
+  "source": "Real local Next app + Auth + Supabase; one committed HTTP response deliberately discarded",
+  "checks": [
+    "Real password login reaches empty account",
+    "RPC commits but browser loses response; UI retains protected input and safe retry",
+    "Actual browser reload restores request; retry confirms same single meter",
+    "Reading RPC commits but response is discarded; real reload restores account/meter-bound locked payload and UUID; same retry confirms exactly one additional reading",
+    "Existing reading dialog saves second reading; true reload and account-scoped query retain both",
+    "Real gas setup with six-month period, decimal factor and m³ reading survives reload independently of electricity; next gas reading also persists"
+  ],
+  "screenshots": [
+    "live-empty",
+    "live-lost-response",
+    "live-recovered-success",
+    "live-reloaded-two-readings",
+    "live-reloaded-electricity-and-gas"
+  ],
+  "errors": [],
+  "cleanup": true
+}

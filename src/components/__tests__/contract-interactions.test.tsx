@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { Dashboard } from '../dashboard';
 import { ContractDetail } from '../contract-detail';
 import type { Meter, Contract, Rate, MeterData } from '@/lib/types';

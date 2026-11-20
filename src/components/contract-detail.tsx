@@ -110,11 +110,14 @@ export function ContractDetail({
   };
   const handleSaveDetails = () => runAction(async () => {
     if (!contract) return;
-    const { error } = await supabase.from('contracts').update({
-      period_start: editPeriodStart || contract.period_start,
-      provider: editProvider.trim() || null,
-    }).eq('id', contract.id);
-    if (error) throw error;
+    const { data, error } = await supabase.rpc('save_billing_period_details', {
+      p_period_id: contract.id,
+      p_expected: { period_start: contract.period_start, period_end: contract.period_end ?? null, provider: contract.provider ?? null },
+      p_start: editPeriodStart || contract.period_start,
+      p_provider: editProvider.trim() || null,
+    });
+    if (error || !data) throw error ?? new Error('Missing confirmed period');
+    setContracts(previous => previous.map(period => period.id === contract.id ? data : period));
     setIsEditing(false); router.refresh();
   });
   const handleDeleteReading = (rid: string) => runAction(async () => {
@@ -345,7 +348,7 @@ export function ContractDetail({
               <div className="flex flex-row items-center justify-between">
                 <CardTitle>Alle Ablesungen dieses Zählers</CardTitle>
                 <ReadingDialog
-                  meterId={meter.id}
+                  meterId={meter.id} userId={meter.user_id}
               meterName={meter.name}
               meterType={meter.type}
                   lastReadingValue={readings[0]?.value}
