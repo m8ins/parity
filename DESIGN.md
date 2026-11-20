@@ -2,28 +2,28 @@
 name: Parity
 description: Ein freundliches kleines Messgerät mit klaren Affordances und lesbaren Zahlen.
 colors:
-  canvas: "var(--sys-color-canvas)"
-  surface: "var(--sys-color-surface)"
-  field: "var(--sys-color-field)"
-  field-active: "var(--sys-color-field-active)"
-  text: "var(--sys-color-text)"
-  text-secondary: "var(--sys-color-text-secondary)"
-  action: "var(--sys-color-action)"
-  action-text: "var(--sys-color-action-text)"
-  action-hover: "var(--sys-color-action-hover)"
-  error-surface: "var(--sys-color-error-surface)"
-  success-surface: "var(--sys-color-success-surface)"
+  canvas: "var(--sys-color-background-default)"
+  surface: "var(--sys-color-background-surface-1)"
+  field: "var(--sys-color-background-surface-2)"
+  field-active: "var(--sys-color-background-surface-2-hover)"
+  text: "var(--sys-color-content-primary)"
+  text-secondary: "var(--sys-color-content-secondary)"
+  action: "var(--sys-color-background-accent)"
+  action-text: "var(--sys-color-content-on-accent)"
+  action-hover: "var(--sys-color-background-accent-hover)"
+  error-surface: "var(--sys-color-background-utility-error)"
+  success-surface: "var(--sys-color-background-utility-success)"
   overlay: "var(--sys-color-overlay)"
   chart-actual: "var(--sys-color-chart-actual)"
   chart-projected: "var(--sys-color-chart-projected)"
   chart-target: "var(--sys-color-chart-target)"
-  border: "var(--sys-color-border)"
-  divider: "var(--sys-color-divider)"
+  border: "var(--sys-color-border-default)"
+  divider: "var(--sys-color-border-weak)"
   focus: "var(--sys-color-focus)"
-  error: "var(--sys-color-error)"
-  success: "var(--sys-color-success)"
-  disabled: "var(--sys-color-disabled)"
-  disabled-text: "var(--sys-color-disabled-text)"
+  error: "var(--sys-color-content-utility-error)"
+  success: "var(--sys-color-content-utility-success)"
+  disabled: "var(--sys-color-background-disabled)"
+  disabled-text: "var(--sys-color-content-disabled)"
 typography:
   body:
     fontFamily: "var(--ref-font-family)"
@@ -85,13 +85,37 @@ Farben werden als semantische OKLCH-Tokens organisiert. Komponenten verwenden Ro
 
 Der ursprüngliche Ausgangspunkt „Dad's old wallet“ (Blaugrau und Creme) bleibt Herkunft der neutralen Farbwelt. Für Slice 1b wurde C „Sanftes Creme + Signalorange“ bestätigt: sanfte Creme für Canvas, Oberfläche und ruhende Felder; Blaugrau für Text und Konturen; Signalorange für primäre Aktionen. Die dunklere Aktionsschrift hat eine eigene Rolle. Weiß kennzeichnet aktive Felder, Rot Fehler; Erfolg wird ausdrücklich benannt.
 
-Normativ sind ausschließlich `src/app/foundation.tokens.css` und seine semantischen Rollen: `--sys-color-canvas`, `--sys-color-surface`, `--sys-color-field`, `--sys-color-field-active`, `--sys-color-text`, `--sys-color-action`, `--sys-color-action-text` und `--sys-color-action-hover`. Statusflächen, Overlay und Diagrammrollen liegen ebenfalls dort; Diagramme unterscheiden tatsächliche und prognostizierte Werte zusätzlich durch Strichart. Mischungen nicht lokal neu definieren. Die tatsächlich verwendeten Kontrastpaare sind in `docs/verification/slice-1b/browser-check.json` gemessen; OKLCH allein garantiert keinen Kontrast.
+Normativ sind ausschließlich `src/app/foundation.tokens.css` und seine semantischen Rollen: `--sys-color-background-default`, `--sys-color-background-surface-1`, `--sys-color-background-surface-2`, `--sys-color-background-surface-2-hover`, `--sys-color-content-primary`, `--sys-color-background-accent`, `--sys-color-content-on-accent` und `--sys-color-background-accent-hover`. Statusflächen, Overlay und Diagrammrollen liegen ebenfalls dort; Diagramme unterscheiden tatsächliche und prognostizierte Werte zusätzlich durch Strichart. Mischungen nicht lokal neu definieren. Die tatsächlich verwendeten Kontrastpaare sind in `docs/verification/slice-1b/browser-check.json` gemessen; OKLCH allein garantiert keinen Kontrast.
 
 Unterstützt wird ausschließlich die freigegebene helle Palette, auch bei dunkler Systemeinstellung. Es gab keine produktive Theme-Auswahl; widersprüchliche lokale Dunkelrezepte wurden entfernt. Das interne Design-/Debugpanel ist nur in Entwicklung verfügbar und verändert keine Supabase-Daten. Historische A/B/C-Explorationen behalten lokale Vergleichswerte, sind aber keine Tokenquelle der Anwendung. Zusätzliche Paletten bedürfen vollständiger Rollen und Kontrastprüfung.
 
+## Token-System (20.11.2026)
+
+Die neue Struktur ersetzt die bisherigen kurzen Farbrollennamen. Normative Quelle bleibt `src/app/foundation.tokens.css`. Der Entwicklungskatalog unter `/design/tokens` (mit `PARITY_DESIGN_PREVIEW=1`) liest die Namen direkt aus dieser Datei und zeigt echte Komponenten sowie alle Farben.
+
+- **Primitive Colors** `--ref-color-{palette}-{stufe}` enthalten Werte; höhere Stufen sind dunkler. Weiß, Transparenz, Overlay und Schatten sind benannte Sonderwerte. Die vorhandene Palette bleibt erhalten, statt einen vollständigen Tailwind-Katalog einzuführen.
+- **Semantic Colors** `--sys-color-{gruppe}-{rolle}` referenzieren Primitive. Gruppen: `content`, `background`, `border`; Statusrollen jeweils unter `utility`. Content hat primary/primary-hover, secondary/secondary-hover, tertiary und on-knockout. Background hat default, surface-1, surface-2 mit Hover sowie disabled. Border hat default/default-hover, weak und knockout. Utility umfasst immer error, warning, success und info.
+- **Knockout:** `background-utility-{status}` ist eine helle Statusfläche mit `content-utility-{status}`. Die kräftige Variante `background-utility-{status}-knockout` verwendet ausschließlich `content-on-knockout` (Weiß). Status nicht allein durch Farbe vermitteln. Orange Aktionen verwenden separat `content-on-accent` (dunkel), da Weiß auf dem gewählten Orange nicht genügend Kontrast hat.
+- **Ergänzende semantische Rollen:** Fokus, deaktivierter Content, besuchte Links, transparente Flächen, Aktionsfarbe, Menühighlight, Overlay und Diagrammfarben. Erfolg verwendet jetzt Grün; finanzielle Erstattung/Nachzahlung nutzen dieselben success/error-Rollen.
+- **Component Colors** `--cmp-button-{variante}-{kanal}[-{zustand}]`: Varianten default, primary, secondary, ghost, danger; Kanäle background/content/border; Zustände ohne Suffix, hover, active und disabled. Alle referenzieren Semantic Colors. Lokale `--button-*` in `controls.css` wählen nur die Variante aus.
+- **Button-API:** Das bestehende shadcn `variant="default"` bleibt die orange Hauptaktion und verwendet `button/primary`; `outline` verwendet `button/default`, `destructive` verwendet `button/danger`. Bestehende Aufrufer bleiben damit konsistent. Link-Buttons verwenden link/default, hover und active. Visited gilt nur für echte Textlinks mit href, nicht für Button-Aktionen.
+- **Form** `--cmp-form-*`: border, border-focus (Tastaturoutline), border-active (aktive Feldkontur), border-error und border-disabled. background ist die ruhende Fläche; background-2 die aktive Fläche. Dazu kommen Content, Placeholder und Disabled-Rollen. Inputs, Selects und Input Groups verwenden denselben Vertrag; Fehler bleiben auch bei Fokus sichtbar.
+- **Link** `--cmp-link-{default|hover|active|visited}`: Textlinks bleiben unterstrichen. Hover und Active haben Vorrang vor Visited. Navigationsflächen und Ergebnislinks erhalten keine pauschale Visited-Färbung.
+- **Spacing:** feste `--ref-space-*` auf 4-px-Basis → semantische `--sys-gap-*` und `--sys-inset-*`. **Radius:** Primitive für 10/24 px → `--sys-radius-control` und `--sys-radius-surface`. Typografie und Bewegung bleiben erhalten.
+
+Neue UI nutzt semantische Rollen für Inhalte und Flächen, Komponententokens für vorhandene Komponenten. Keine direkten Primitive Colors in Komponenten, keine neuen Farbmischungen in lokalen Rezepten. Tailwind/shadcn-Farben bleiben Adapter auf dieselben Rollen. Die Explorationsvorschauen wurden auf die neuen Namen migriert; historische Prüfprotokolle behalten ihre damaligen Namen und Messwerte.
+
+### Neutralfarben · OKLCH-Korrektur
+
+Die Prüfung beim Sketch-Übertrag zeigte unerwünschte Farbwinkel in den bisherigen OKLCH-Mischungen zwischen Tinte (264°) und Creme (104,574°): Secondary etwa 240°, Tertiary 222,5° und schwache Rahmen 152,4°. Disabled-Flächen und Highlights waren ebenfalls nicht neutral genug. Kontrast allein prüft diese Farbkonsistenz nicht.
+
+Diese Rollen verwenden jetzt gezielte Primitive statt einer Interpolation zwischen den beiden Farbfamilien. Secondary/Tertiary bleiben auf der Tintenachse (264°), mit C=0,03/0,02. Disabled, Highlight und schwache Rahmen liegen auf der warmen Cremeachse (104,574°), mit sehr geringer Buntheit C=0,008. Die drei neutralen Helligkeiten sind 94,5/92,5/76,5 %. Statusgrün bleibt ausschließlich für Success/Erstattung vorgesehen.
+
+Auch die hellen Utility-Flächen sind explizite Primitive, jeweils mit demselben Hue wie die kräftige Variante (Error 26°, Warning 75°, Success 148°, Info 255°). Es gibt keine dynamischen Farbmischungen mehr in der produktiven Foundation. Das vermeidet Unterschiede beim Auflösen schwach gesättigter Farbtöne und macht den Sketch-Übertrag reproduzierbar. Ausgelesene Werte und Vergleich: `docs/verification/token-system/neutral-audit.json`; Sicht-/Kontrastprüfung im selben Verzeichnis.
+
 ## Typography
 
-Placeholder sind Beispiele, keine eingetragenen Werte: eigene hellere Rolle `--sys-color-placeholder` und Regular-Gewicht verwenden. Eingegebene Werte behalten ihre dunkle Textfarbe und ihr vorgesehenes Gewicht. Die Regel gilt gemeinsam für Inputs, Inputgruppen und Textareas; Labels bleiben dauerhaft sichtbar. Placeholder-Kontrast auf ruhenden und aktiven Feldflächen prüfen.
+Placeholder sind Beispiele, keine eingetragenen Werte: eigene hellere Rolle `--sys-color-content-tertiary` und Regular-Gewicht verwenden. Eingegebene Werte behalten ihre dunkle Textfarbe und ihr vorgesehenes Gewicht. Die Regel gilt gemeinsam für Inputs, Inputgruppen und Textareas; Labels bleiben dauerhaft sichtbar. Placeholder-Kontrast auf ruhenden und aktiven Feldflächen prüfen.
 
 Verbindlich ist lokal eingebundenes Atkinson Hyperlegible Next mit den Rollen Regular, Semibold und Bold (`--ref-font-weight-*`) und echten tabellarischen Ziffern. Die hybride rem-Skala ist in `foundation.tokens.css` definiert: stabile Rollen für Text (`--sys-font-body`), Hinweise (`--sys-font-support`), Metadaten (`--sys-font-meta`), Labels (`--sys-font-label`), Bedienelemente (`--sys-font-control`), Abschnitte (`--sys-font-section`) und Dialogtitel (`--sys-font-title`). Messwerte (`--sys-font-reading`) wechseln nur zwischen expliziten Größenstufen gemäß den Media Queries der Quelle. Nur Seitentitel (`--sys-font-page-title`) und äußere Seitenränder (`--sys-inset-page`) sind begrenzt fluid. Dialogtexte wachsen nicht mit dem Desktop-Viewport; Browser-Schriftvergrößerung bleibt wirksam. HTML-Überschriftenebene und visuelle Typorolle sind unabhängig.
 
@@ -179,7 +203,7 @@ Sichtbare Labels/Einheiten, Feldfehler mit Fokus und Verknüpfung, Schutz beim V
 Nachweise: `docs/verification/slice-2/README.md` und Browser-/Integrationsprotokolle. Im Unterschied zu den rein synthetischen Nachweisen von Slice 1b wurden hier echte lokale Supabase-Anmeldung, transaktionale Speicherung, Zwei-Konten-RLS, verlorene Antwort nach Commit und tatsächliche Browserreloads für Strom/Gas geprüft. Geräte-/Screenreader-/Cross-Browser-Abnahme bleibt offen; unabhängiges Finishreview ist separat zu bewerten. Vorbestehender Sidecar-Drift bleibt unverändert.
 
 
-Menüeinträge in Selects und Dropdowns verwenden nach Nutzerfreigabe eine flache Hervorhebung über die ganze Zeilenbreite (`--sys-color-menu-highlight`), ohne innere Kontur oder Rundung. Tastaturfokus erhält zusätzlich eine Unterstreichung, die Auswahl weiterhin den Haken; destruktive Einträge behalten ihre Fehlerfarbe. Die Schließbestätigung der Einrichtung benennt ausschließlich den aktuellen Zustand: ungespeicherte Eingaben verwerfen oder eine unbestätigte Speicherung später prüfen. Safari-Tabnavigation wurde vom Nutzer bestätigt.
+Menüeinträge in Selects und Dropdowns verwenden nach Nutzerfreigabe eine flache Hervorhebung über die ganze Zeilenbreite (`--sys-color-background-highlight`), ohne innere Kontur oder Rundung. Tastaturfokus erhält zusätzlich eine Unterstreichung, die Auswahl weiterhin den Haken; destruktive Einträge behalten ihre Fehlerfarbe. Die Schließbestätigung der Einrichtung benennt ausschließlich den aktuellen Zustand: ungespeicherte Eingaben verwerfen oder eine unbestätigte Speicherung später prüfen. Safari-Tabnavigation wurde vom Nutzer bestätigt.
 
 
 ## Verstehen · Slice 3
@@ -271,3 +295,17 @@ Die interaktive Grafik liegt außerhalb des Ergebnislinks. Name und Ergebnis fü
 ### Verbrauchskurve ohne Anfangsablesung (20.11.2026)
 
 In Karte und Detail bleibt der aus Ablesungen abgeleitete Verbrauch sichtbar, auch wenn am Zeitraumstart kein Stand vorliegt. Die durchgezogene Kurve beginnt bei der ersten Ablesung mit null und endet bei der letzten; außerhalb dieses Bereichs bleibt sie unterbrochen. Ein datierter Hinweis erklärt den späteren Bezugsbeginn und den davor unbekannten Verbrauch. Die gestrichelte Hochrechnung gilt weiterhin für den gesamten Zeitraum. Keine erfundene Anfangsablesung, keine Änderung der Prognose- oder Kostenrechnung.
+
+### Detailansicht · Nutzerreview vom 20.11.2026
+
+Diese Freigabe ersetzt die früheren Vorgaben zum sichtbaren Umbenennungsstift, zur Endaktion im Header und zu eingeklappten Monatswerten. Links stehen Zurück, Typicon und Name, rechts eine ruhige Zeitraumwahl mit Monat/Jahr. Die Auswahloptionen und die Verwaltung behalten exakte inklusive Datumsgrenzen. Im Tab „Ablesungen“ entfällt die Zeitraumwahl, da dort weiterhin die gesamte Zählerhistorie gilt.
+
+Der Name öffnet per Klick oder Tastatur einen Inline-Editor mit ausgewähltem bisherigen Namen. Hover und Tastaturfokus kennzeichnen die Nebenaktion. Enter beziehungsweise der benannte Bestätigungsknopf speichern; Escape und Abbrechen verwerfen. Pending sperrt Eingabe und Abbruch; Fehler erhalten den Entwurf. Unter Verwalten gibt es keine zusätzliche Umbenennungsaktion. Das Umbenennungsmenü der Übersicht behält seinen bestehenden Dialog.
+
+Die Haupttabs erhalten eine gemeinsame untere Trennlinie und eine aktive Unterstreichung; auf schmalen Ansichten bilden sie zwei gleich breite Spalten und wechseln bei großer Schrift in eine Spalte. „Neuen Zeitraum anlegen“ steht mit Abstand neben beziehungsweise unter „Zeitraumdetails“. Die Endaktion liegt bei „Bis einschließlich“. Verwaltungsdaten bilden responsive, durch feine Linien getrennte Zeilen; Speicherfehler erscheinen ausschließlich im betroffenen Bereich.
+
+„Ablesungen“ steht mit seiner Hinzufügen-Aktion unmittelbar über der Tabelle, ohne äußere Karte oder zusätzlichen Tabellenrahmen. Konditionen verwenden eine kompakte zweispaltige Liste mit Trennlinien. Eurobeträge zeigen stets zwei Nachkommastellen; ct/kWh und Umrechnungsfaktoren behalten ihre Genauigkeit. Eingabewerte werden dadurch nicht gerundet.
+
+In Verstehen folgt auf das Ergebnis eine Werkzeugzeile: links die Diagrammlegende, rechts der zusammenhängende Switcher „Verlauf / Monatswerte“. In der Monatsansicht entfällt die Diagrammlegende; der Switcher bleibt rechts über der Tabelle. Auf schmalen Ansichten darf die Zeile umbrechen. Das Ergebnis bleibt beim Wechsel sichtbar. Die Monatsansicht benennt ausdrücklich den durch Ablesungen abgedeckten Teilzeitraum, genaue Teilmonatsgrenzen, geschätzte Werte und die exklusive Bis-Grenze. Sie erfindet keine zukünftigen Monatswerte. Prognose- und Kostenrechnung bleiben unverändert.
+
+Nachweise und Produktionsgrenze: `docs/verification/detail-refinement/README.md`. Die öffentlich erreichbare Produktions-API meldet für `save_billing_period_details` am 20.11.2026 `404/PGRST202`. Eine additive Wiederherstellung mit Schema-Reload liegt in `supabase/migrations/20261120000001_restore_period_details_rpc.sql`; keine produktive Migration wurde während dieser Änderung ausgeführt.

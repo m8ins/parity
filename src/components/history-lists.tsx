@@ -15,6 +15,7 @@ import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from './
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
 
 type Draft = { requestId: string; payload: ConditionPayload; values: ConditionValues };
+const conditionNumber = (value: number, unit: string) => unit.startsWith('€') ? value.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : formatReading(value);
 const dateLabel = (date: string) => formatDate(date, 'de-DE');
 const dayBefore = (date: string) => new Date(Date.parse(date) - 86400000).toISOString().slice(0, 10);
 
@@ -173,7 +174,7 @@ export function RateHistory({ contract, initialData: rates, isGas, userId, onCha
     finally { setRevisionBusy(false); }
   }
   function numbers(rate?: Rate) {
-    return <dl className="condition-values numeric">{fields.map(({ key, label, unit }) => <div key={key}><dt>{label}</dt><dd>{rate ? formatReading(rate[key]) : 'Nicht hinterlegt'}{rate ? ` ${unit}` : ''}</dd></div>)}</dl>;
+    return <dl className="condition-values numeric">{fields.map(({ key, label, unit }) => <div key={key}><dt>{label}</dt><dd>{rate ? conditionNumber(rate[key], unit) : 'Nicht hinterlegt'}{rate ? ` ${unit}` : ''}</dd></div>)}</dl>;
   }
   const before = operation === 'correct' ? target : activeRate(snapshot, date);
   const changed = fields.filter(({ key }) => !before || setupNumber(values[key]) !== before[key]);
@@ -224,8 +225,8 @@ export function RateHistory({ contract, initialData: rates, isGas, userId, onCha
             </form> : <div className="parity-form">
               <p><strong>Gültig ab {dateLabel(date)}</strong>{range ? range.end ? ` bis einschließlich ${dateLabel(dayBefore(range.end))}` : ' · bis zur nächsten Änderung' : ' · wirkt sich nicht auf den gewählten Zeitraum aus.'}</p>
               {operation === 'delete' ? <p>{!range ? 'Die Einschätzung des gewählten Zeitraums bleibt unverändert.' : deletion?.predecessor ? `Danach gelten die Konditionen vom ${dateLabel(deletion.predecessor.effective_from)} in diesem Abschnitt.` : 'Dadurch entsteht hier eine Konditionslücke. Kosten und Saldo sind für den betroffenen Zeitraum nicht mehr schätzbar; bei Gas kann auch die kWh-Umrechnung fehlen.'} Der gelöschte Eintrag bleibt unter „Frühere Fassungen und Löschungen“ erhalten.</p> : <>
-                <dl className="condition-values numeric">{changed.map(({ key, label, unit }) => <div key={key}><dt>{label}</dt><dd>{before ? formatReading(before[key]) : 'Nicht hinterlegt'} → <strong>{formatReading(setupNumber(values[key]))} {unit}</strong></dd></div>)}</dl>
-                {unchanged.length > 0 && <details><summary>Unverändert übernommen ({unchanged.length})</summary><dl className="condition-values numeric">{unchanged.map(({ key, label, unit }) => <div key={key}><dt>{label}</dt><dd>{values[key]} {unit}</dd></div>)}</dl></details>}
+                <dl className="condition-values numeric">{changed.map(({ key, label, unit }) => <div key={key}><dt>{label}</dt><dd>{before ? conditionNumber(before[key], unit) : 'Nicht hinterlegt'} → <strong>{conditionNumber(setupNumber(values[key]), unit)} {unit}</strong></dd></div>)}</dl>
+                {unchanged.length > 0 && <details><summary>Unverändert übernommen ({unchanged.length})</summary><dl className="condition-values numeric">{unchanged.map(({ key, label, unit }) => <div key={key}><dt>{label}</dt><dd>{conditionNumber(setupNumber(values[key]), unit)} {unit}</dd></div>)}</dl></details>}
                 {following && <p className="text-sm">Spätere Konditionen bleiben unverändert.</p>}
               </>}
               <div className="form-actions setup-actions"><Button variant="ghost" disabled={busy} onClick={close}>{uncertain ? 'Später prüfen' : 'Abbrechen'}</Button>{!uncertain && operation !== 'delete' && <Button variant="outline" disabled={busy} onClick={() => setStep('edit')}>Zurück</Button>}<Button disabled={busy || conflict} onClick={save}>{busy ? 'Wird gespeichert …' : uncertain ? 'Speicherung prüfen' : operation === 'delete' ? 'Folgen bestätigen und löschen' : operation === 'correct' ? 'Korrektur speichern' : 'Neue Konditionen speichern'}</Button></div>

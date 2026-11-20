@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Contract, Meter, Rate, Reading } from '@/lib/types';
 import { calculateProjection, periodEnd, readingsInPeriod } from '@/lib/calculations';
 import { formatDate } from '@/lib/date-utils';
@@ -59,11 +60,25 @@ export function PeriodUnderstanding({ meter, contract, readings, rates, compact 
     {!hasSettlement && hint && <div className="understand-result understand-result-neutral"><p>{hint}</p></div>}
     </>)}
     {!compact && <>
-      {result && <section className="understand-chart" aria-label="Verbrauchsverlauf">
-        <div className="understand-legend text-sm"><span>Aus Ablesungen</span><span>Hochrechnung</span></div>
-        {first.date !== contract.period_start && <p className="text-sm text-muted-foreground">Aus Ablesungen: Verbrauch seit {date(first.date)}. Davor unbekannt; die Hochrechnung gilt ab Zeitraumstart.</p>}
-        <ContractChart data={result.chartData} unit="kWh" isGood />
-      </section>}
+      {result && <Tabs key={contract.id} defaultValue="chart" className="understand-views">
+        <div className="understand-view-toolbar">
+          <div className="understand-legend text-sm"><span>Aus Ablesungen</span><span>Hochrechnung</span></div>
+          <TabsList className="understand-view-switch" aria-label="Verbrauchsansicht">
+            <TabsTrigger value="chart">Verlauf</TabsTrigger>
+            <TabsTrigger value="monthly" data-view="monthly">Monatswerte</TabsTrigger>
+          </TabsList>
+        </div>
+        <TabsContent value="chart">
+          <section className="understand-chart" aria-label="Verbrauchsverlauf">
+            {first.date !== contract.period_start && <p className="text-sm text-muted-foreground">Aus Ablesungen: Verbrauch seit {date(first.date)}. Davor unbekannt; die Hochrechnung gilt ab Zeitraumstart.</p>}
+            <ContractChart data={result.chartData} unit="kWh" isGood />
+          </section>
+        </TabsContent>
+        <TabsContent value="monthly">
+          <p className="text-sm text-muted-foreground">Nur der durch Ablesungen abgedeckte Zeitraum. Teilmonate sind mit ihren genauen Daten aufgeführt. Verbrauch zwischen Ablesungen und Kosten sind geschätzt; „bis“ ist exklusiv.</p>
+          <ContractMonthlyTable breakdown={result.monthlyBreakdown} />
+        </TabsContent>
+      </Tabs>}
       {result && <details className="understand-section"><summary>Kosten und Abschlag</summary>
         <dl className="understand-totals numeric">
           <div><dt>Geschätzte Kosten</dt><dd>{result.projectedYearlyCost === null ? 'Nicht berechenbar' : money(result.projectedYearlyCost)}</dd></div>
@@ -83,10 +98,6 @@ export function PeriodUnderstanding({ meter, contract, readings, rates, compact 
         </dl> : <p>Noch keine Ablesung in diesem Zeitraum.</p>}
         {samples.length > 0 && <p className="text-sm text-muted-foreground">{samples.length} {samples.length === 1 ? 'Ablesung' : 'Ablesungen'} im Zeitraum{last?.date === end ? ' · einschließlich Abschlussstand' : ''}.</p>}
       </details>
-      {result && <details className="understand-section"><summary>Monatswerte ansehen</summary>
-        <p className="text-sm text-muted-foreground">Zwischen Ablesungen geschätzt; Kosten mit den jeweils gültigen Preisen. „Bis“ ist exklusiv.</p>
-        <ContractMonthlyTable breakdown={result.monthlyBreakdown} />
-      </details>}
       <details className="understand-section"><summary>Wie wird gerechnet?</summary>
         <p>Stand: {date(today)}.{result ? ` Basis: ${result.daysTracked} Tage, ${date(result.observedStart)} bis ${date(result.observedEnd)}.` : 'Mindestens zwei Ablesungen an verschiedenen Tagen sind nötig.'}</p>
         <p>{meter.monthly_distribution?.length === 12 ? 'Individuelle Monatsverteilung' : meter.type === 'gas' ? 'Saisonale Gasverteilung (H0-Näherung)' : 'Gleichmäßige Stromverteilung'}. {meter.type === 'gas' ? 'Gasstände werden mit dem jeweils gültigen Faktor von m³ in kWh umgerechnet.' : ''} Die Hochrechnung gilt für den gesamten Zeitraum.</p>

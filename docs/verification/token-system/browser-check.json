@@ -1,0 +1,183 @@
+{
+  "graph": "No missing references or cycles; complete button matrices; components reference semantics",
+  "contrasts": [
+    {
+      "name": "error",
+      "ratio": 5.924325326959183
+    },
+    {
+      "name": "error-knockout",
+      "ratio": 7.743188626460586
+    },
+    {
+      "name": "warning",
+      "ratio": 6.046164122612934
+    },
+    {
+      "name": "warning-knockout",
+      "ratio": 7.89242443409889
+    },
+    {
+      "name": "success",
+      "ratio": 5.495021124188127
+    },
+    {
+      "name": "success-knockout",
+      "ratio": 7.075068146410132
+    },
+    {
+      "name": "info",
+      "ratio": 6.00826264451718
+    },
+    {
+      "name": "info-knockout",
+      "ratio": 7.819985550754994
+    },
+    {
+      "name": "primary/default",
+      "ratio": 8.40431738012949
+    },
+    {
+      "name": "primary/surface-1",
+      "ratio": 8.82807389095155
+    },
+    {
+      "name": "primary/surface-2",
+      "ratio": 8.878951674095653
+    },
+    {
+      "name": "secondary/default",
+      "ratio": 6.060757497283049
+    },
+    {
+      "name": "secondary/surface-1",
+      "ratio": 6.366348699259734
+    },
+    {
+      "name": "secondary/surface-2",
+      "ratio": 6.403039115826441
+    },
+    {
+      "name": "tertiary/default",
+      "ratio": 4.685005976089695
+    },
+    {
+      "name": "tertiary/surface-1",
+      "ratio": 4.9212300137851495
+    },
+    {
+      "name": "tertiary/surface-2",
+      "ratio": 4.949591950549208
+    },
+    {
+      "name": "form placeholder",
+      "ratio": 4.949591950549208
+    },
+    {
+      "name": "button/default",
+      "ratio": 8.82807389095155
+    },
+    {
+      "name": "button/default-hover",
+      "ratio": 12.237414193687039
+    },
+    {
+      "name": "button/default-active",
+      "ratio": 8.878951674095653
+    },
+    {
+      "name": "button/default-disabled",
+      "ratio": 5.822679369877834
+    },
+    {
+      "name": "button/primary",
+      "ratio": 4.88393686555879
+    },
+    {
+      "name": "button/primary-hover",
+      "ratio": 5.332219975792565
+    },
+    {
+      "name": "button/primary-active",
+      "ratio": 4.6286571743537825
+    },
+    {
+      "name": "button/primary-disabled",
+      "ratio": 5.822679369877834
+    },
+    {
+      "name": "button/secondary",
+      "ratio": 8.878951674095653
+    },
+    {
+      "name": "button/secondary-hover",
+      "ratio": 12.237414193687039
+    },
+    {
+      "name": "button/secondary-active",
+      "ratio": 8.82807389095155
+    },
+    {
+      "name": "button/secondary-disabled",
+      "ratio": 5.822679369877834
+    },
+    {
+      "name": "button/danger",
+      "ratio": 5.924325326959183
+    },
+    {
+      "name": "button/danger-hover",
+      "ratio": 7.743188626460586
+    },
+    {
+      "name": "button/danger-active",
+      "ratio": 7.743188626460586
+    },
+    {
+      "name": "button/danger-disabled",
+      "ratio": 5.822679369877834
+    },
+    {
+      "name": "link visited",
+      "ratio": 7.581934958269737
+    }
+  ],
+  "states": [
+    "default-normal",
+    "default-hover",
+    "default-active",
+    "outline-normal",
+    "outline-hover",
+    "outline-active",
+    "secondary-normal",
+    "secondary-hover",
+    "secondary-active",
+    "ghost-normal",
+    "ghost-hover",
+    "ghost-active",
+    "destructive-normal",
+    "destructive-hover",
+    "destructive-active",
+    "link-normal",
+    "link-hover",
+    "link-active",
+    "default-disabled",
+    "outline-disabled",
+    "secondary-disabled",
+    "ghost-disabled",
+    "destructive-disabled",
+    "link-disabled"
+  ],
+  "screenshots": [
+    "tokens-1280.png",
+    "overview-1280.png",
+    "detail-1280.png",
+    "login-1280.png",
+    "overview-390.png",
+    "detail-390.png",
+    "login-390.png",
+    "tokens-390.png"
+  ],
+  "errors": [],
+  "passed": true
+}

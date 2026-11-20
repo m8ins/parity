@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "rolledBack": true,
+  "checks": [
+    "Restore missing RPC from migration",
+    "Anonymous execute denied",
+    "Session required",
+    "Owner receives trimmed confirmed row",
+    "Identical absolute retry succeeds",
+    "Competing snapshot rejected",
+    "Existing condition cannot be excluded by start change",
+    "Foreign owner rejected"
+  ]
+}

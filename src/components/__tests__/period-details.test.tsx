@@ -37,11 +37,22 @@ describe('Period details writes', () => {
     rpc.mockResolvedValueOnce({ data: null, error: { code: '40001' } }).mockResolvedValueOnce({ data: { ...period, provider: 'Neuer Anbieter' }, error: null });
     const user = await edit();
     await user.click(screen.getByRole('button', { name: 'Details speichern' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('Änderung konnte nicht gespeichert');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Zeitraum wurde inzwischen geändert');
     expect(screen.getByLabelText('Anbieter', { exact: true })).toHaveValue('Neuer Anbieter');
     expect(refresh).not.toHaveBeenCalled();
     await user.click(screen.getByRole('button', { name: 'Details speichern' }));
     expect(rpc.mock.calls[1]).toEqual(rpc.mock.calls[0]);
     expect(refresh).toHaveBeenCalledOnce();
   });
+  it('keeps an unavailable-RPC error beside the form and hides it on other tabs', async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: 'PGRST202' } });
+    const user = await edit();
+    await user.click(screen.getByRole('button', { name: 'Details speichern' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Speicherung ist derzeit nicht verfügbar');
+    expect(screen.getByLabelText('Anbieter', { exact: true })).toHaveValue('Neuer Anbieter');
+    await user.click(screen.getByRole('tab', { name: 'Verstehen' }));
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
 });

@@ -43,6 +43,39 @@ describe('Verwalten', () => {
     await user.click(screen.getByRole('button', { name: 'Speichern' }));
     await waitFor(() => expect(saved).toHaveBeenCalledWith({ ...meter, name: 'Neu' })); expect(close).toHaveBeenCalledWith(false);
   });
+  it('edits the detail name inline, retains failed input and confirms the saved name', async () => {
+    const user = userEvent.setup();
+    api.renameMeter.mockRejectedValueOnce(new MeterManagementError('Bitte erneut versuchen.')).mockResolvedValueOnce({ ...meter, name: 'Kellerstrom' });
+    render(<ContractDetail initialMeter={meter} initialData={{ contracts: [], ratesByContract: {}, readings: [] }} />);
+    await user.click(screen.getByRole('button', { name: `${meter.name} umbenennen` }));
+    const input = screen.getByLabelText<HTMLInputElement>('Zählername');
+    expect(input).toHaveFocus();
+    expect(input.selectionStart).toBe(0); expect(input.selectionEnd).toBe(meter.name.length);
+    await user.clear(input); await user.type(input, 'Kellerstrom{Enter}');
+    expect(await screen.findByRole('alert')).toHaveTextContent('erneut versuchen');
+    expect(input).toHaveValue('Kellerstrom');
+    await user.keyboard('{Enter}');
+    expect(await screen.findByRole('button', { name: 'Kellerstrom umbenennen' })).toBeVisible();
+    expect(api.refresh).toHaveBeenCalledOnce();
+  });
+  it('cancels inline edits with Escape and locks cancellation and duplicate sends while saving', async () => {
+    const user = userEvent.setup();
+    api.renameMeter.mockReturnValue(new Promise(() => {}));
+    render(<ContractDetail initialMeter={meter} initialData={{ contracts: [], ratesByContract: {}, readings: [] }} />);
+    const trigger = screen.getByRole('button', { name: `${meter.name} umbenennen` });
+    await user.click(trigger); await user.clear(screen.getByLabelText('Zählername')); await user.type(screen.getByLabelText('Zählername'), 'Entwurf');
+    await user.keyboard('{Escape}');
+    await waitFor(() => expect(screen.getByRole('button', { name: `${meter.name} umbenennen` })).toHaveFocus());
+    expect(api.renameMeter).not.toHaveBeenCalled();
+    await user.click(screen.getByRole('button', { name: `${meter.name} umbenennen` }));
+    expect(screen.getByLabelText('Zählername')).toHaveValue(meter.name);
+    await user.clear(screen.getByLabelText('Zählername')); await user.type(screen.getByLabelText('Zählername'), 'Neuer Name');
+    await user.dblClick(screen.getByRole('button', { name: 'Name speichern' }));
+    expect(screen.getByLabelText('Zählername')).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Umbenennen abbrechen' })).toBeDisabled();
+    await user.keyboard('{Escape}'); expect(screen.getByLabelText('Zählername')).toBeVisible();
+    expect(api.renameMeter).toHaveBeenCalledOnce();
+  });
   it('öffnet Entfernen ohne Mutation, fokussiert Abbrechen und erhält Fehler bis bestätigter Wiederholung', async () => {
     const user = userEvent.setup(), deleted = vi.fn(), close = vi.fn();
     api.removeMeter.mockRejectedValueOnce(new MeterManagementError('Die Löschung konnte nicht bestätigt werden.')).mockResolvedValueOnce(undefined);

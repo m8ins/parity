@@ -45,8 +45,10 @@ describe('Ergebnis finden und verwalten', () => {
   it('benennt Umbenennen explizit, während die Seitenüberschrift die Identität behält', async () => {
     render(<ContractDetail initialMeter={meter} initialData={data} asOf={UNDERSTANDING_AS_OF} />);
     const title = screen.getByRole('heading', { level: 1, name: /Strom.*Keller/ });
-    expect(within(title).queryByRole('button')).toBeNull();
+    expect(within(title).getByRole('button', { name: `${meter.name} umbenennen` })).toBeVisible();
     await userEvent.click(screen.getByRole('button', { name: `${meter.name} umbenennen` }));
-    expect(await screen.findByRole('dialog', { name: 'Zähler umbenennen' })).toBeVisible();
+    expect(await screen.findByLabelText('Zählername')).toHaveFocus();
+    await userEvent.keyboard('{Escape}');
+    expect(screen.queryByLabelText('Zählername')).toBeNull();
   });
 });

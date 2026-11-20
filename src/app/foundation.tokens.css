@@ -3,12 +3,12 @@
  * Primitive → semantische Rollen → Komponenten.
  * Nordstern A / Atkinson Hyperlegible Next und Farb-/Interaktionsrichtung
  * sind gewählt. Formulare/Zahlen bleiben stabil; nur Seiten-Titel/-Ränder fluid.
- * Bei der später beauftragten Umsetzung diese Datei als Quelle verwenden;
+ * Diese Datei ist die einzige gepflegte Tokenquelle;
  * nicht zusätzlich dieselben Werte in einer JSON-Datei von Hand pflegen.
  *
  * 1. ref = primitive Werte. Nur hier echte Farb-/Größenwerte definieren.
  * 2. sys = Bedeutung. Komponenten verwenden diese Rollen.
- * 3. Komponententokens erst bei tatsächlichem Bedarf ergänzen.
+ * 3. cmp = Komponentenfarben und ihre vollständigen Zustände.
  * Typorolle und HTML-Semantik sind unabhängig (h2 darf Titelgröße haben).
  */
 @font-face {
@@ -20,19 +20,35 @@
 }
 
 :root {
-  /* Primitive Farben. Kein Tonwertkatalog ohne konkreten Verwendungszweck. */
-  --ref-color-ink: oklch(39.375129% 0.04015540 263.947164);
-  --ref-color-cream: oklch(92.640917% 0.02656370 104.574367);
-  /* Freigegeben: C + Orange; Aktionsschrift für Kontrast gezielt dunkler. */
-  --ref-color-canvas-cream: oklch(95.8% .019 104.574367);
-  --ref-color-surface-cream: oklch(97.5% .0125 104.574367);
-  --ref-color-field-cream: oklch(97.7% .0118 104.574367);
-  --ref-color-orange: oklch(74% .18 46);
-  --ref-color-orange-hover: oklch(77% .17 46);
-  --ref-color-action-ink: oklch(33% .035 264);
+  /* Primitive Colors: ausschließlich Farbwerte, keine UI-Zustände. */
+  --ref-color-ink-500: oklch(53% .02 264);
+  --ref-color-ink-600: oklch(47% .03 264);
+  --ref-color-ink-700: oklch(39.375129% 0.04015540 263.947164);
+  --ref-color-ink-800: oklch(33% .035 264);
+  --ref-color-cream-50: oklch(97.7% .0118 104.574367);
+  --ref-color-cream-100: oklch(97.5% .0125 104.574367);
+  --ref-color-cream-200: oklch(95.8% .019 104.574367);
+  --ref-color-cream-300: oklch(92.640917% 0.02656370 104.574367);
+  /* Warmgraue Zustände: geringe Buntheit, kein Hue-Mix zwischen Tinte/Creme. */
+  --ref-color-neutral-100: oklch(94.5% .008 104.574367);
+  --ref-color-neutral-200: oklch(92.5% .008 104.574367);
+  --ref-color-neutral-300: oklch(76.5% .008 104.574367);
+  --ref-color-orange-400: oklch(77% .17 46);
+  --ref-color-orange-500: oklch(74% .18 46);
+  --ref-color-orange-600: oklch(72% .18 46);
   --ref-color-white: oklch(100% 0 none);
-  --ref-color-red: oklch(46% .16 26);
-  --ref-color-green: oklch(45% .11 148);
+  --ref-color-transparent: transparent;
+  --ref-color-red-50: oklch(91.32% .0302 26);
+  --ref-color-red-700: oklch(46% .16 26);
+  --ref-color-green-50: oklch(91.2% .0242 148);
+  --ref-color-green-700: oklch(45% .11 148);
+  --ref-color-amber-50: oklch(91.08% .0218 75);
+  --ref-color-amber-800: oklch(44% .09 75);
+  --ref-color-blue-50: oklch(91.08% .0254 255);
+  --ref-color-blue-700: oklch(44% .12 255);
+  --ref-color-violet-700: oklch(43% .12 300);
+  --ref-color-overlay: oklch(25% .02 264 / .48);
+  --ref-color-shadow: oklch(25% .02 264 / .12);
 
   /* Primitive Typografie. rem respektiert die Schriftgröße des Browsers.
      Kein html { font-size: 62.5% }, keine viewportabhängige Schrift für Formularrollen. */
@@ -84,44 +100,59 @@
   --ref-duration-release: 110ms;
   --ref-ease-press: cubic-bezier(.16, 1, .3, 1);
 
-  /* Semantische Farbrollen. Paletten ändern nur ref/sys, nie Komponenten.
-     Bei jeder Palette alle tatsächlich genutzten Kontrastpaare neu prüfen. */
-  --sys-color-canvas: var(--ref-color-canvas-cream);
-  --sys-color-surface: var(--ref-color-surface-cream);
-  --sys-color-field: var(--ref-color-field-cream);
-  --sys-color-field-active: var(--ref-color-white);
-  --sys-color-text: var(--ref-color-ink);
-  --sys-color-text-secondary: color-mix(in oklch, var(--ref-color-ink) 85%, var(--ref-color-cream));
-  /* Examples must look visibly different from entered values. */
-  --sys-color-placeholder: color-mix(in oklch, var(--ref-color-ink) 72%, var(--ref-color-cream));
-  --sys-color-border: var(--ref-color-ink);
-  --sys-color-divider: color-mix(in oklch, var(--ref-color-ink) 30%, var(--ref-color-cream));
-  --sys-color-action: var(--ref-color-orange);
-  --sys-color-action-text: var(--ref-color-action-ink);
-  --sys-color-action-hover: var(--ref-color-orange-hover);
-  --sys-color-disabled: color-mix(in oklch, var(--sys-color-surface) 95%, var(--ref-color-ink));
-  --sys-color-disabled-text: var(--sys-color-text-secondary);
-  --sys-color-focus: var(--ref-color-ink);
-  --sys-color-menu-highlight: color-mix(in oklch, var(--sys-color-text) 8%, var(--sys-color-surface));
-  --sys-color-error: var(--ref-color-red);
-  --sys-color-success: var(--ref-color-ink); /* Erfolg zusätzlich benennen. */
-
-  --sys-color-error-surface: color-mix(in oklch, var(--ref-color-red) 6%, var(--sys-color-surface));
-  --sys-color-success-surface: color-mix(in oklch, var(--ref-color-ink) 6%, var(--sys-color-surface));
-  /* Billing outcomes: approved green refund / red additional payment. */
-  --sys-color-outcome-positive: var(--ref-color-green);
-  --sys-color-outcome-positive-surface: color-mix(in oklch, var(--ref-color-green) 12%, var(--sys-color-surface));
-  --sys-color-outcome-negative-surface: color-mix(in oklch, var(--ref-color-red) 12%, var(--sys-color-surface));
-  --sys-color-overlay: oklch(25% .02 264 / .48);
-  --sys-color-chart-actual: var(--sys-color-text);
-  --sys-color-chart-projected: var(--sys-color-text-secondary);
-  --sys-color-chart-target: var(--sys-color-text);
-  --sys-shadow-popover: 0 .5rem 1rem oklch(25% .02 264 / .12);
+  /* Semantic Colors: Bedeutung, unabhängig von einzelnen Komponenten. */
+  --sys-color-content-primary: var(--ref-color-ink-700);
+  --sys-color-content-primary-hover: var(--ref-color-ink-800);
+  --sys-color-content-secondary: var(--ref-color-ink-600);
+  --sys-color-content-secondary-hover: var(--ref-color-ink-700);
+  --sys-color-content-tertiary: var(--ref-color-ink-500);
+  --sys-color-content-visited: var(--ref-color-violet-700);
+  --sys-color-content-on-knockout: var(--ref-color-white);
+  --sys-color-content-disabled: var(--sys-color-content-secondary);
+  --sys-color-background-default: var(--ref-color-cream-200);
+  --sys-color-background-default-hover: var(--ref-color-cream-100);
+  --sys-color-background-surface-1: var(--ref-color-cream-100);
+  --sys-color-background-surface-1-hover: var(--ref-color-white);
+  --sys-color-background-surface-2: var(--ref-color-cream-50);
+  --sys-color-background-surface-2-hover: var(--ref-color-white);
+  --sys-color-background-disabled: var(--ref-color-neutral-100);
+  --sys-color-background-transparent: var(--ref-color-transparent);
+  --sys-color-border-default: var(--ref-color-ink-700);
+  --sys-color-border-default-hover: var(--ref-color-ink-800);
+  --sys-color-border-weak: var(--ref-color-neutral-300);
+  --sys-color-border-knockout: var(--ref-color-white);
+  --sys-color-focus: var(--ref-color-ink-700);
+  --sys-color-background-accent: var(--ref-color-orange-500);
+  --sys-color-background-accent-hover: var(--ref-color-orange-400);
+  --sys-color-background-accent-active: var(--ref-color-orange-600);
+  --sys-color-content-on-accent: var(--ref-color-ink-800);
+  --sys-color-background-highlight: var(--ref-color-neutral-200);
+  --sys-color-overlay: var(--ref-color-overlay);
+  --sys-color-content-utility-error: var(--ref-color-red-700);
+  --sys-color-background-utility-error: var(--ref-color-red-50);
+  --sys-color-background-utility-error-knockout: var(--ref-color-red-700);
+  --sys-color-border-utility-error: var(--ref-color-red-700);
+  --sys-color-content-utility-warning: var(--ref-color-amber-800);
+  --sys-color-background-utility-warning: var(--ref-color-amber-50);
+  --sys-color-background-utility-warning-knockout: var(--ref-color-amber-800);
+  --sys-color-border-utility-warning: var(--ref-color-amber-800);
+  --sys-color-content-utility-success: var(--ref-color-green-700);
+  --sys-color-background-utility-success: var(--ref-color-green-50);
+  --sys-color-background-utility-success-knockout: var(--ref-color-green-700);
+  --sys-color-border-utility-success: var(--ref-color-green-700);
+  --sys-color-content-utility-info: var(--ref-color-blue-700);
+  --sys-color-background-utility-info: var(--ref-color-blue-50);
+  --sys-color-background-utility-info-knockout: var(--ref-color-blue-700);
+  --sys-color-border-utility-info: var(--ref-color-blue-700);
+  --sys-color-chart-actual: var(--sys-color-content-primary);
+  --sys-color-chart-projected: var(--sys-color-content-secondary);
+  --sys-color-chart-target: var(--sys-color-content-primary);
+  --sys-shadow-popover: 0 .5rem 1rem var(--ref-color-shadow);
 
   /* Semantische Typorollen als vollständige CSS-font-Shorthands.
      Aussehen ist unabhängig vom semantischen HTML-Level.
-     Zusätzliche Farbrolle im Kontext wählen; Überschriften/Text = text,
-     Erläuterung/Metadaten = text-secondary, Fehlermeldung = error. */
+     Zusätzliche Farbrolle im Kontext wählen; Überschriften/Text = content-primary,
+     Erläuterung/Metadaten = content-secondary, Fehler = content-utility-error. */
   --sys-font-body: var(--ref-font-weight-regular) var(--ref-font-size-300)/var(--ref-leading-body) var(--ref-font-family);
   --sys-font-support: var(--ref-font-weight-regular) var(--ref-font-size-200)/var(--ref-leading-body) var(--ref-font-family);
   --sys-font-meta: var(--ref-font-weight-regular) var(--ref-font-size-100)/var(--ref-leading-body) var(--ref-font-family);
@@ -160,6 +191,83 @@
   --sys-duration-press: var(--ref-duration-press);
   --sys-duration-release: var(--ref-duration-release);
   --sys-ease-action: var(--ref-ease-press);
+  /* Component Colors: background/content/border × base/hover/active/disabled. */
+  --cmp-button-default-background: var(--sys-color-background-surface-1);
+  --cmp-button-default-background-hover: var(--sys-color-background-surface-1-hover);
+  --cmp-button-default-background-active: var(--sys-color-background-surface-2);
+  --cmp-button-default-background-disabled: var(--sys-color-background-disabled);
+  --cmp-button-default-content: var(--sys-color-content-primary);
+  --cmp-button-default-content-hover: var(--sys-color-content-primary-hover);
+  --cmp-button-default-content-active: var(--sys-color-content-primary);
+  --cmp-button-default-content-disabled: var(--sys-color-content-disabled);
+  --cmp-button-default-border: var(--sys-color-border-default);
+  --cmp-button-default-border-hover: var(--sys-color-border-default-hover);
+  --cmp-button-default-border-active: var(--sys-color-border-default-hover);
+  --cmp-button-default-border-disabled: var(--sys-color-border-weak);
+  --cmp-button-primary-background: var(--sys-color-background-accent);
+  --cmp-button-primary-background-hover: var(--sys-color-background-accent-hover);
+  --cmp-button-primary-background-active: var(--sys-color-background-accent-active);
+  --cmp-button-primary-background-disabled: var(--sys-color-background-disabled);
+  --cmp-button-primary-content: var(--sys-color-content-on-accent);
+  --cmp-button-primary-content-hover: var(--sys-color-content-on-accent);
+  --cmp-button-primary-content-active: var(--sys-color-content-on-accent);
+  --cmp-button-primary-content-disabled: var(--sys-color-content-disabled);
+  --cmp-button-primary-border: var(--sys-color-border-default);
+  --cmp-button-primary-border-hover: var(--sys-color-border-default-hover);
+  --cmp-button-primary-border-active: var(--sys-color-border-default-hover);
+  --cmp-button-primary-border-disabled: var(--sys-color-border-weak);
+  --cmp-button-secondary-background: var(--sys-color-background-surface-2);
+  --cmp-button-secondary-background-hover: var(--sys-color-background-surface-2-hover);
+  --cmp-button-secondary-background-active: var(--sys-color-background-surface-1);
+  --cmp-button-secondary-background-disabled: var(--sys-color-background-disabled);
+  --cmp-button-secondary-content: var(--sys-color-content-primary);
+  --cmp-button-secondary-content-hover: var(--sys-color-content-primary-hover);
+  --cmp-button-secondary-content-active: var(--sys-color-content-primary);
+  --cmp-button-secondary-content-disabled: var(--sys-color-content-disabled);
+  --cmp-button-secondary-border: var(--sys-color-background-transparent);
+  --cmp-button-secondary-border-hover: var(--sys-color-background-transparent);
+  --cmp-button-secondary-border-active: var(--sys-color-background-transparent);
+  --cmp-button-secondary-border-disabled: var(--sys-color-border-weak);
+  --cmp-button-ghost-background: var(--sys-color-background-transparent);
+  --cmp-button-ghost-background-hover: var(--sys-color-background-surface-2-hover);
+  --cmp-button-ghost-background-active: var(--sys-color-background-highlight);
+  --cmp-button-ghost-background-disabled: var(--sys-color-background-disabled);
+  --cmp-button-ghost-content: var(--sys-color-content-primary);
+  --cmp-button-ghost-content-hover: var(--sys-color-content-primary-hover);
+  --cmp-button-ghost-content-active: var(--sys-color-content-primary);
+  --cmp-button-ghost-content-disabled: var(--sys-color-content-disabled);
+  --cmp-button-ghost-border: var(--sys-color-background-transparent);
+  --cmp-button-ghost-border-hover: var(--sys-color-background-transparent);
+  --cmp-button-ghost-border-active: var(--sys-color-background-transparent);
+  --cmp-button-ghost-border-disabled: var(--sys-color-border-weak);
+  --cmp-button-danger-background: var(--sys-color-background-utility-error);
+  --cmp-button-danger-background-hover: var(--sys-color-background-surface-2-hover);
+  --cmp-button-danger-background-active: var(--sys-color-background-utility-error-knockout);
+  --cmp-button-danger-background-disabled: var(--sys-color-background-disabled);
+  --cmp-button-danger-content: var(--sys-color-content-utility-error);
+  --cmp-button-danger-content-hover: var(--sys-color-content-utility-error);
+  --cmp-button-danger-content-active: var(--sys-color-content-on-knockout);
+  --cmp-button-danger-content-disabled: var(--sys-color-content-disabled);
+  --cmp-button-danger-border: var(--sys-color-border-utility-error);
+  --cmp-button-danger-border-hover: var(--sys-color-border-utility-error);
+  --cmp-button-danger-border-active: var(--sys-color-border-utility-error);
+  --cmp-button-danger-border-disabled: var(--sys-color-border-weak);
+  --cmp-form-border: var(--sys-color-border-default);
+  --cmp-form-border-focus: var(--sys-color-focus);
+  --cmp-form-border-active: var(--sys-color-border-default-hover);
+  --cmp-form-border-error: var(--sys-color-border-utility-error);
+  --cmp-form-border-disabled: var(--sys-color-border-weak);
+  --cmp-form-background: var(--sys-color-background-surface-2);
+  --cmp-form-background-2: var(--sys-color-background-surface-2-hover);
+  --cmp-form-background-disabled: var(--sys-color-background-disabled);
+  --cmp-form-content: var(--sys-color-content-primary);
+  --cmp-form-content-disabled: var(--sys-color-content-disabled);
+  --cmp-form-placeholder: var(--sys-color-content-tertiary);
+  --cmp-link-default: var(--sys-color-content-primary);
+  --cmp-link-hover: var(--sys-color-content-primary-hover);
+  --cmp-link-active: var(--sys-color-content-secondary-hover);
+  --cmp-link-visited: var(--sys-color-content-visited);
+
 }
 
 /* Explizite Größenschritte: keine animierten oder fluiden Zählerziffern.

@@ -15,7 +15,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RenameMeterDialog } from './RenameMeterDialog';
+import { InlineMeterName } from './InlineMeterName';
 import { RouteState } from './RouteState';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
@@ -28,8 +28,6 @@ import {
 } from '@/components/ui/select';
 import {
   ArrowLeft,
-  Flame,
-  Zap,
   Trash2,
   Calendar,
   Gauge,
@@ -95,20 +93,29 @@ export function ContractDetail({
   const rates = contract ? (ratesByContract[contract.id] ?? []) : [];
 
   const [actionError, setActionError] = useState('');
+  const [actionErrorTarget, setActionErrorTarget] = useState<'details' | 'readings'>('details');
+  const actionInFlight = useRef(false);
   const [actionBusy, setActionBusy] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editPeriodStart, setEditPeriodStart] = useState('');
   const [editProvider, setEditProvider] = useState('');
   const [isRenaming, setIsRenaming] = useState(false);
 
-  const runAction = async (action: () => Promise<void>) => {
-    if (actionBusy) return;
-    setActionBusy(true); setActionError('');
+  const runAction = async (target: 'details' | 'readings', action: () => Promise<void>) => {
+    if (actionInFlight.current) return;
+    actionInFlight.current = true;
+    setActionBusy(true); setActionError(''); setActionErrorTarget(target);
     try { await action(); }
-    catch { setActionError('Die Änderung konnte nicht gespeichert werden. Bitte versuche es erneut.'); }
-    finally { setActionBusy(false); }
+    catch (cause) {
+      const code = cause && typeof cause === 'object' && 'code' in cause ? cause.code : undefined;
+      setActionError(code === 'PGRST202'
+        ? 'Die Speicherung ist derzeit nicht verfügbar. Deine Eingaben bleiben erhalten. Bitte versuche es später erneut.'
+        : code === '40001' ? 'Der Zeitraum wurde inzwischen geändert. Deine Eingaben bleiben erhalten. Lade den aktuellen Stand in einem weiteren Tab und prüfe deine Änderungen.'
+          : 'Die Änderung konnte nicht gespeichert werden. Deine Eingaben bleiben erhalten. Bitte versuche es erneut.');
+    }
+    finally { actionInFlight.current = false; setActionBusy(false); }
   };
-  const handleSaveDetails = () => runAction(async () => {
+  const handleSaveDetails = () => runAction('details', async () => {
     if (!contract) return;
     const { data, error } = await supabase.rpc('save_billing_period_details', {
       p_period_id: contract.id,
@@ -120,7 +127,7 @@ export function ContractDetail({
     setContracts(previous => previous.map(period => period.id === contract.id ? data : period));
     setIsEditing(false); router.refresh();
   });
-  const handleDeleteReading = (rid: string) => runAction(async () => {
+  const handleDeleteReading = (rid: string) => runAction('readings', async () => {
     const { error } = await supabase.from('readings').delete().eq('id', rid);
     if (error) throw error;
     setReadings(readings.filter(reading => reading.id !== rid));
@@ -142,19 +149,15 @@ export function ContractDetail({
 
   const settlement = contract?.settlement_amount;
   const hasSettlement = settlement !== null && settlement !== undefined;
-  const periodLabel = contract ? contract.period_end ? `(${contract.period_start.split('-').reverse().join('.')} – ${inclusiveEnd(contract).split('-').reverse().join('.')})` : `(ab ${contract.period_start.split('-').reverse().join('.')} · offen)` : 'Kein Abrechnungszeitraum';
+  const periodLabel = contract ? formatPeriodLabel({ ...contract, provider: undefined }, locale) : 'Kein Abrechnungszeitraum';
 
   return (
     <div className="parity-page detail-page space-y-6">
       <header className="detail-heading">
         <Button aria-label="Zurück zur Übersicht" variant="ghost" size="icon-sm" asChild><Link href="/"><ArrowLeft /></Link></Button>
         <div className="detail-title-group">
-        <div className="detail-name">
-          <h1>{meter.type === 'gas' ? <Flame className="detail-type-icon" aria-label="Gas" /> : <Zap className="detail-type-icon" aria-label="Strom" />}{meter.name}</h1>
-          <Button ref={renameButton} variant="ghost" size="icon" onClick={() => setIsRenaming(true)} aria-label={`${meter.name} umbenennen`}><Pencil aria-hidden="true" /></Button>
-        </div>
-        {isRenaming && <RenameMeterDialog meter={meter} open onOpenChange={setIsRenaming} onSaved={saved => { setMeter(saved); router.refresh(); }} returnFocus={() => renameButton.current?.focus()} />}
-        {contracts.length > 1 ? (
+        <InlineMeterName triggerRef={renameButton} meter={meter} editing={isRenaming} onEditingChange={setIsRenaming} onSaved={saved => { setMeter(saved); router.refresh(); }} />
+        {activeTab !== 'readings' && (contracts.length > 1 ? (
           <Select value={contract?.id} onValueChange={id => { setSelectedContractId(id); setIsEditing(false); router.push(`/meter/${meter.id}?period=${id}`, { scroll: false }); }}>
             <SelectTrigger size="sm" className="detail-period-select" aria-label="Abrechnungszeitraum">
               <SelectValue placeholder="Abrechnungszeitraum">{periodLabel}</SelectValue>
@@ -162,24 +165,21 @@ export function ContractDetail({
             <SelectContent>
               {contracts.map((c) => (
                 <SelectItem key={c.id} value={c.id}>
-                  {formatPeriodLabel(c, locale)}
+                  {formatDate(c.period_start, locale)} – {c.period_end ? formatDate(inclusiveEnd(c), locale) : 'offen'}{c.provider ? ` · ${c.provider}` : ''}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         ) : (
-          <span className="text-sm text-muted-foreground">
+          <span className="detail-period-label text-sm text-muted-foreground">
             {periodLabel}
           </span>
-        )}
-
-        {contract && <Button ref={endButton} variant="ghost" size="sm" className="period-end-action" onClick={() => setEndDialogOpen(true)}>{contract.period_end ? 'Ende ändern' : 'Ende festlegen'}</Button>}
+        ))}
         </div>
       </header>
-      {actionError && <p className="form-error" role="alert">{actionError}</p>}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList>
+        <TabsList className="detail-tabs" aria-label="Zählerdetails">
           <TabsTrigger ref={overviewTab} value="overview">Verstehen</TabsTrigger>
           <TabsTrigger value="manage">Verwalten</TabsTrigger>
           <TabsTrigger value="rates">Konditionen</TabsTrigger>
@@ -190,6 +190,8 @@ export function ContractDetail({
           <PeriodUnderstanding meter={meter} contract={contract} readings={readings} rates={rates} asOf={asOf} />
         </TabsContent>
         <TabsContent value="manage">
+          <div className="detail-toolbar">
+            <h2>Zeitraumdetails</h2>
         {contract && <BillingContinuation meter={meter} period={contract} contracts={contracts} rates={rates}
           onSelect={id => { setSelectedContractId(id); setActiveTab('overview'); router.replace(`/meter/${meter.id}?period=${id}`, { scroll: false }); requestAnimationFrame(() => overviewTab.current?.focus()); }}
           onReload={data => { setContracts(data.contracts); setRatesByContract(data.ratesByContract); }}
@@ -198,15 +200,17 @@ export function ContractDetail({
             setRatesByContract(previous => ({ ...previous, [result.contract.id]: result.rates }));
             router.refresh();
           }} />}
+          </div>
           <Card>
-            <CardHeader className="flex flex-row items-top justify-between space-y-0">
-              <CardTitle>Details</CardTitle>
+            <CardHeader className="detail-card-header">
+              <CardTitle>Zeitraum</CardTitle>
               {!isEditing ? (
                 <Button
                   variant="ghost"
                   size="icon-sm"
                   aria-label="Details bearbeiten" disabled={!contract || actionBusy}
                   onClick={() => {
+                    setActionError('');
                     setEditPeriodStart(contract?.period_start || '');
                     setEditProvider(contract?.provider || '');
                     setIsEditing(true);
@@ -220,7 +224,7 @@ export function ContractDetail({
                     variant="ghost"
                     size="icon-sm"
                     className="text-destructive"
-                    onClick={() => setIsEditing(false)} disabled={actionBusy} aria-label="Details bearbeiten abbrechen"
+                    onClick={() => { setIsEditing(false); setActionError(''); }} disabled={actionBusy} aria-label="Details bearbeiten abbrechen"
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -236,12 +240,13 @@ export function ContractDetail({
               )}
             </CardHeader>
             <CardContent className="space-y-2">
-              <dl className="space-y-0.5">
-                <div className="flex flex-row items-center py-2 hover:bg-muted/50 rounded-sm px-2 -mx-2 transition-colors h-11">
-                  <dt className="w-36 text-sm text-muted-foreground flex items-center gap-2 flex-shrink-0">
+              {actionErrorTarget === 'details' && actionError && <p className="form-error" role="alert">{actionError}</p>}
+              <dl className="period-details">
+                <div>
+                  <dt>
                     <Building2 className="h-4 w-4" /> Anbieter
                   </dt>
-                  <dd className="text-sm font-medium flex-1">
+                  <dd>
                     {isEditing ? (
                       <Input
                         aria-label="Anbieter" disabled={actionBusy} value={editProvider}
@@ -257,11 +262,11 @@ export function ContractDetail({
                   </dd>
                 </div>
                 {contract && (
-                  <div className="flex flex-row items-center py-2 hover:bg-muted/50 rounded-sm px-2 -mx-2 transition-colors h-11">
-                    <dt className="w-36 text-sm text-muted-foreground flex items-center gap-2 flex-shrink-0">
+                  <div>
+                    <dt>
                       <Calendar className="h-4 w-4" /> Beginn
                     </dt>
-                    <dd className="text-sm font-medium flex-1">
+                    <dd>
                       {isEditing ? (
                         <Input
                           type="date"
@@ -275,15 +280,17 @@ export function ContractDetail({
                     </dd>
                   </div>
                 )}
-                <div className="flex flex-row items-center gap-2 py-2">
-                  <dt className="w-36 text-sm text-muted-foreground">Bis einschließlich</dt>
-                  <dd className="text-sm">{contract?.period_end ? formatDate(inclusiveEnd(contract), locale) : 'Offen'}</dd>
+                <div>
+                  <dt>Bis einschließlich</dt>
+                  <dd>{contract?.period_end ? formatDate(inclusiveEnd(contract), locale) : 'Offen'}
+                    {contract && <Button ref={endButton} variant="ghost" size="sm" className="period-end-action" onClick={() => setEndDialogOpen(true)}>{contract.period_end ? 'Ende ändern' : 'Ende festlegen'}</Button>}
+                  </dd>
                 </div>
-                <div className="flex flex-row items-center justify-between gap-2 py-2 hover:bg-muted/50 rounded-sm px-2 -mx-2 transition-colors min-h-11">
-                  <dt className="text-sm text-muted-foreground flex items-center gap-2 shrink-0">
+                <div>
+                  <dt>
                     <HandCoins className="h-4 w-4 shrink-0" /> Schlussabrechnung
                   </dt>
-                  <dd className="text-sm font-medium flex items-center gap-2">
+                  <dd>
                     {hasSettlement ? (
                       <span
                         className={
@@ -307,11 +314,11 @@ export function ContractDetail({
                   </dd>
                 </div>
                 {meter.type === 'gas' && rates.length > 0 && (
-                  <div className="flex flex-row items-center py-2 hover:bg-muted/50 rounded-sm px-2 -mx-2 transition-colors h-11">
-                    <dt className="w-36 text-sm text-muted-foreground flex items-center gap-2 flex-shrink-0">
+                  <div>
+                    <dt>
                       <Gauge className="h-4 w-4" /> Umrechnungsfaktor
                     </dt>
-                    <dd className="text-sm font-medium flex items-center gap-2">
+                    <dd>
                       {rates[rates.length - 1].umrechnungsfaktor.toLocaleString('de-DE', { maximumFractionDigits: 20 })} kWh/m³ (letzte Konditionen)
                     </dd>
                   </div>
@@ -343,10 +350,9 @@ export function ContractDetail({
         </TabsContent>
 
         <TabsContent value="readings">
-          <Card>
-            <CardHeader>
-              <div className="flex flex-row items-center justify-between">
-                <CardTitle>Alle Ablesungen dieses Zählers</CardTitle>
+          <section className="detail-readings" aria-labelledby="readings-title">
+              <div className="detail-toolbar">
+                <h2 id="readings-title">Ablesungen</h2>
                 <ReadingDialog
                   meterId={meter.id} userId={meter.user_id}
               meterName={meter.name}
@@ -359,18 +365,17 @@ export function ContractDetail({
                   </Button>
                 </ReadingDialog>
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="border rounded-md">
+              {actionErrorTarget === 'readings' && actionError && <p className="form-error" role="alert">{actionError}</p>}
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Datum</TableHead>
                       <TableHead className="text-right">Zählerstand ({meter.type === 'gas' ? 'm³' : 'kWh'})</TableHead>
-                      <TableHead></TableHead>
+                      <TableHead><span className="sr-only">Aktionen</span></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
+                    {!readings.length && <TableRow><TableCell colSpan={3}>Noch keine Ablesungen erfasst.</TableCell></TableRow>}
                     {readings.map((r) => (
                       <TableRow key={r.id}>
                         <TableCell>{formatDate(r.date, locale)}</TableCell>
@@ -388,9 +393,7 @@ export function ContractDetail({
                     ))}
                   </TableBody>
                 </Table>
-              </div>
-            </CardContent>
-          </Card>
+          </section>
         </TabsContent>
       </Tabs>
 
