@@ -88,11 +88,27 @@ describe('period calculations against independent arithmetic', () => {
     expect(calculateProjection(gas, contract, jan, [rate])!.projectedYearlyConsumption).toBeCloseTo(1000, 8);
     expect(calculateProjection({ ...gas, monthly_distribution: Array(12).fill(1 / 12) }, contract, jan, [rate])!.projectedYearlyConsumption).toBeCloseTo(2040, 8);
   });
+  it('shows gas consumption from the first available reading with dated factors and no invented initial usage', () => {
+    const period = { ...contract, period_start: '2026-11-01', period_end: '2027-11-01' };
+    const result = calculateProjection({ ...meter, type: 'gas' }, period,
+      samples([['2026-10-31', 16824], ['2026-11-05', 16853], ['2026-11-10', 16885], ['2026-11-20', 16945]]),
+      [{ ...rate, effective_from: '2026-11-01', umrechnungsfaktor: 10 },
+        { ...rate, id: 'changed-factor', effective_from: '2026-11-10', umrechnungsfaktor: 11 }])!;
+    expect(result.chartData[0].actual).toBeNull();
+    expect(result.chartData.find(p => p.date.startsWith('2026-11-05'))?.actual).toBe(0);
+    expect(result.chartData.find(p => p.date.startsWith('2026-11-10'))?.actual).toBeCloseTo(320);
+    expect(result.chartData.find(p => p.date.startsWith('2026-11-20'))?.actual).toBeCloseTo(980);
+    expect(result.observedConsumption).toBeCloseTo(980);
+    expect(result.chartData.at(-1)?.actual).toBeNull();
+  });
   it('does not invent baselines or bridge from other periods and rejects falling/duplicate readings', () => {
     const middle = samples([['2024-12-31', 0], ['2025-02-01', 100], ['2025-03-01', 380], ['2026-01-02', 10000]]);
     const result = calculateProjection(meter, contract, middle, [rate])!;
     expect(result.observedConsumption).toBeCloseTo(280);
-    expect(result.chartData.every(p => p.actual === null)).toBe(true);
+    expect(result.chartData.find(p => p.date.startsWith('2025-01-01'))?.actual).toBeNull();
+    expect(result.chartData.find(p => p.date.startsWith('2025-02-01'))?.actual).toBe(0);
+    expect(result.chartData.find(p => p.date.startsWith('2025-03-01'))?.actual).toBeCloseTo(280);
+    expect(result.chartData.filter(p => p.date > '2025-03-01T00:00:00.000Z').every(p => p.actual === null)).toBe(true);
     expect(result.monthlyBreakdown).toHaveLength(1);
     expect(calculateProjection(meter, contract, [], [rate])).toBeNull();
     expect(calculateProjection(meter, contract, year.slice(0, 1), [rate])).toBeNull();

@@ -15,6 +15,11 @@ export function understandingFixture(scenario = 'electricity'): { meter: Meter; 
   const reading = (date: string, value: number): Reading => ({ id: date, meter_id: meter.id, date, value, created_at: '' });
   let readings = [reading('2025-01-01', 0), reading('2026-01-01', gas ? 1000 : 3650), reading('2026-04-01', gas ? 1440 : 4550), reading('2026-11-01', gas ? 1735 : 6690)];
   let rates = [rate(period), rate(period, { id: 'changed', effective_from: '2026-04-01', arbeitspreis: gas ? 12 : 35, abschlag: gas ? 140 : 110 })];
+  if (scenario === 'late-start' || scenario === 'gas-late-start') {
+    period.period_start = '2026-11-01'; period.period_end = '2027-11-01';
+    readings = [reading('2026-10-31', 16824), reading('2026-11-05', 16853), reading('2026-11-10', 16885), reading('2026-11-15', 16918)];
+    rates = [rate(period)];
+  }
   if (scenario === 'none') readings = [];
   if (scenario === 'one') readings = [reading('2026-01-01', 3650)];
   if (scenario === 'missing') rates = [];
