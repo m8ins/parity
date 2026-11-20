@@ -6,19 +6,19 @@
   <title>Parity · Typografie und Token-Vorschlag</title>
   <link rel="stylesheet" href="foundation.tokens.css">
   <style>
-    *{box-sizing:border-box}html{color-scheme:light}body{overflow-wrap:anywhere;margin:0;background:var(--sys-color-canvas);color:var(--sys-color-text);font:var(--sys-font-body)}
+    *{box-sizing:border-box}html{color-scheme:light}body{overflow-wrap:anywhere;margin:0;background:var(--sys-color-background-default);color:var(--sys-color-content-primary);font:var(--sys-font-body)}
     main{max-width:68rem;margin-inline:auto;padding:var(--sys-gap-section) var(--sys-inset-page) var(--ref-space-16)}
     h1{font:var(--sys-font-page-title);margin:0 0 var(--sys-gap-group)}h2{font:var(--sys-font-section);margin:0 0 var(--sys-gap-group)}h3{font:var(--sys-font-label);margin:0 0 var(--sys-gap-group)}p{margin:0;max-width:70ch}a{color:inherit;text-underline-offset:var(--ref-space-1)}
-    :focus-visible{outline:var(--sys-focus-width) solid var(--sys-color-focus);outline-offset:var(--sys-focus-offset)}::selection{color:var(--sys-color-action-text);background:var(--sys-color-text)}
-    .back{display:inline-flex;align-items:center;min-height:var(--sys-size-target-min);margin-bottom:var(--sys-gap-group)}.note{font:var(--sys-font-support);color:var(--sys-color-text-secondary)}
-    section{margin-top:var(--sys-gap-region);padding-top:var(--sys-gap-section);border-top:1px solid var(--sys-color-divider)}
-    .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--sys-gap-section)}.grid>*{min-width:0}.samples{display:grid;gap:var(--sys-gap-field);padding:var(--sys-inset-surface);background:var(--sys-color-surface);border:var(--sys-border-width) solid var(--sys-color-border);border-radius:var(--sys-radius-surface)}
-    .sample{min-width:0}.table-scroll{overflow-x:auto;min-width:0}.sample p:first-child{margin-bottom:var(--sys-gap-label)}.sample code{font:var(--sys-font-meta);color:var(--sys-color-text-secondary)}
+    :focus-visible{outline:var(--sys-focus-width) solid var(--sys-color-focus);outline-offset:var(--sys-focus-offset)}::selection{color:var(--sys-color-content-on-accent);background:var(--sys-color-content-primary)}
+    .back{display:inline-flex;align-items:center;min-height:var(--sys-size-target-min);margin-bottom:var(--sys-gap-group)}.note{font:var(--sys-font-support);color:var(--sys-color-content-secondary)}
+    section{margin-top:var(--sys-gap-region);padding-top:var(--sys-gap-section);border-top:1px solid var(--sys-color-border-weak)}
+    .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--sys-gap-section)}.grid>*{min-width:0}.samples{display:grid;gap:var(--sys-gap-field);padding:var(--sys-inset-surface);background:var(--sys-color-background-surface-1);border:var(--sys-border-width) solid var(--sys-color-border-default);border-radius:var(--sys-radius-surface)}
+    .sample{min-width:0}.table-scroll{overflow-x:auto;min-width:0}.sample p:first-child{margin-bottom:var(--sys-gap-label)}.sample code{font:var(--sys-font-meta);color:var(--sys-color-content-secondary)}
     .title{font:var(--sys-font-title)}.section{font:var(--sys-font-section)}.label{font:var(--sys-font-label)}.control{font:var(--sys-font-control)}.support{font:var(--sys-font-support)}.meta{font:var(--sys-font-meta)}
-    .reading{max-width:100%;overflow-x:auto;font:var(--sys-font-reading);font-variant-numeric:var(--sys-numeric-variant);white-space:nowrap;text-align:right}.reading.small{font:var(--sys-font-control);font-variant-numeric:var(--sys-numeric-variant)}.error{color:var(--sys-color-error)}
-    table{border-collapse:collapse;width:100%;font:var(--sys-font-support)}th,td{padding:var(--sys-gap-group) 0;border-bottom:1px solid var(--sys-color-divider);text-align:left;vertical-align:top}th{font-weight:var(--ref-font-weight-semibold)}td:last-child{text-align:right;font-variant-numeric:var(--sys-numeric-variant);white-space:nowrap}
-    .spacing{display:grid;grid-template-columns:minmax(0,min(10rem,65%)) minmax(0,1fr);align-items:center;gap:var(--sys-gap-group);margin-top:var(--sys-gap-group);font:var(--sys-font-support)}.bar{max-width:100%;height:var(--ref-space-3);width:var(--bar-width);background:var(--sys-color-text)}
-    .colors{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--sys-gap-field);margin-top:var(--sys-gap-field)}.swatch{height:var(--ref-space-12);background:var(--swatch);border:var(--sys-border-width) solid var(--sys-color-border);border-radius:var(--sys-radius-control);margin-bottom:var(--sys-gap-label)}.colors p{font:var(--sys-font-support)}
+    .reading{max-width:100%;overflow-x:auto;font:var(--sys-font-reading);font-variant-numeric:var(--sys-numeric-variant);white-space:nowrap;text-align:right}.reading.small{font:var(--sys-font-control);font-variant-numeric:var(--sys-numeric-variant)}.error{color:var(--sys-color-content-utility-error)}
+    table{border-collapse:collapse;width:100%;font:var(--sys-font-support)}th,td{padding:var(--sys-gap-group) 0;border-bottom:1px solid var(--sys-color-border-weak);text-align:left;vertical-align:top}th{font-weight:var(--ref-font-weight-semibold)}td:last-child{text-align:right;font-variant-numeric:var(--sys-numeric-variant);white-space:nowrap}
+    .spacing{display:grid;grid-template-columns:minmax(0,min(10rem,65%)) minmax(0,1fr);align-items:center;gap:var(--sys-gap-group);margin-top:var(--sys-gap-group);font:var(--sys-font-support)}.bar{max-width:100%;height:var(--ref-space-3);width:var(--bar-width);background:var(--sys-color-content-primary)}
+    .colors{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--sys-gap-field);margin-top:var(--sys-gap-field)}.swatch{height:var(--ref-space-12);background:var(--swatch);border:var(--sys-border-width) solid var(--sys-color-border-default);border-radius:var(--sys-radius-control);margin-bottom:var(--sys-gap-label)}.colors p{font:var(--sys-font-support)}
     .policy{display:grid;gap:var(--sys-gap-group)}.policy strong{font-weight:var(--ref-font-weight-bold)}.code{overflow-wrap:anywhere;font:var(--sys-font-support)}
     @media(max-width:59.99rem){.grid{grid-template-columns:minmax(0,1fr)}}@media(max-width:23.75rem){.samples{padding:var(--sys-inset-page)}.reading{font-size:var(--ref-font-size-500)}}
   </style>
@@ -57,12 +57,12 @@
   </div><div class="table-scroll"><table><caption class="note">Semantische Zuordnung</caption><tbody><tr><th>Icon / Text</th><td>8 px</td></tr><tr><th>Label / Eingabe</th><td>8 px</td></tr><tr><th>Eng zusammengehörig</th><td>12 px</td></tr><tr><th>Feldgruppen</th><td>24 px</td></tr><tr><th>Abschnitte</th><td>32 px</td></tr><tr><th>Seitlicher Rand</th><td>16–32 px</td></tr><tr><th>Dialog-Innenabstand</th><td>24 / 32 px</td></tr></tbody></table></div></div></section>
   <section aria-labelledby="color-title"><h2 id="color-title">Farben nach Bedeutung</h2><p>Die gewählte Palette bleibt erhalten. Gleiche Primitive können mehrere Rollen bedienen; Erfolg braucht keine zusätzliche grüne Farbe.</p>
     <div class="colors">
-      <div><div class="swatch" style="--swatch:var(--sys-color-text)"></div><p>Text, starke Kontur, Fokus</p></div>
-      <div><div class="swatch" style="--swatch:var(--sys-color-text-secondary)"></div><p>Hinweise und Metadaten</p></div>
-      <div><div class="swatch" style="--swatch:var(--sys-color-surface)"></div><p>Aufgehellte Cremefläche</p></div>
-      <div><div class="swatch" style="--swatch:var(--sys-color-field-active)"></div><p>Aktives Eingabefeld</p></div>
-      <div><div class="swatch" style="--swatch:var(--sys-color-action)"></div><p>Hauptaktion</p></div>
-      <div><div class="swatch" style="--swatch:var(--sys-color-error)"></div><p>Fehlertext und Fehlerkontur</p></div>
+      <div><div class="swatch" style="--swatch:var(--sys-color-content-primary)"></div><p>Text, starke Kontur, Fokus</p></div>
+      <div><div class="swatch" style="--swatch:var(--sys-color-content-secondary)"></div><p>Hinweise und Metadaten</p></div>
+      <div><div class="swatch" style="--swatch:var(--sys-color-background-surface-1)"></div><p>Aufgehellte Cremefläche</p></div>
+      <div><div class="swatch" style="--swatch:var(--sys-color-background-surface-2-hover)"></div><p>Aktives Eingabefeld</p></div>
+      <div><div class="swatch" style="--swatch:var(--sys-color-background-accent)"></div><p>Hauptaktion</p></div>
+      <div><div class="swatch" style="--swatch:var(--sys-color-content-utility-error)"></div><p>Fehlertext und Fehlerkontur</p></div>
     </div>
   </section>
   <section aria-labelledby="rules-title"><h2 id="rules-title">Regeln für die spätere Umsetzung</h2><div class="policy">

@@ -16,7 +16,7 @@ function continuation(p = period, all = [p], data = rates) { return render(<Bill
 async function beginSettlement() { await userEvent.click(screen.getByRole('button', { name: /Abrechnung (erfassen|korrigieren)/ })); }
 async function choose(name: string) { await userEvent.click(screen.getByRole('radio', { name: name === 'Ausgeglichen' ? 'Erstattung' : name })); }
 async function beginContinuation(start?: string) {
-  await userEvent.click(screen.getByRole('button', { name: 'Neuer Zeitraum / Wechsel' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Neuen Zeitraum anlegen' }));
   if (start) fireEvent.change(screen.getByLabelText('Beginn'), { target: { value: start } });
   await userEvent.click(screen.getByRole('button', { name: 'Konditionen prüfen' }));
 }
@@ -90,7 +90,7 @@ describe('independent period continuation', () => {
     expect(screen.getByRole('button', { name: 'Zeitraum beginnen' })).toBeDisabled();
   });
   it('points an older period to its existing successor', async () => {
-    continuation(fixture.data.contracts[1], fixture.data.contracts); await userEvent.click(screen.getByRole('button', { name: 'Neuer Zeitraum / Wechsel' }));
+    continuation(fixture.data.contracts[1], fixture.data.contracts); await userEvent.click(screen.getByRole('button', { name: 'Neuen Zeitraum anlegen' }));
     expect(screen.queryByLabelText('Beginn')).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Folgezeitraum ansehen' })); expect(onSelect).toHaveBeenCalledWith(period.id); expect(rpc).not.toHaveBeenCalled();
   });
@@ -109,12 +109,12 @@ describe('independent period continuation', () => {
     await userEvent.dblClick(screen.getByRole('button', { name: 'Zeitraum beginnen' })); expect(rpc).toHaveBeenCalledOnce();
     await userEvent.keyboard('{Escape}'); expect(screen.getByRole('heading', { name: 'Neuen Zeitraum prüfen' })).toBeInTheDocument();
     finish({ error: { message: 'lost' } }); await screen.findByRole('button', { name: 'Speicherung prüfen' });
-    const sent = rpc.mock.calls[0]; first.unmount(); continuation(); await userEvent.click(screen.getByRole('button', { name: 'Neuer Zeitraum / Wechsel' }));
+    const sent = rpc.mock.calls[0]; first.unmount(); continuation(); await userEvent.click(screen.getByRole('button', { name: 'Neuen Zeitraum anlegen' }));
     rpc.mockResolvedValueOnce({ data: { confirmed: true, previous: period, contract: { ...period, id: 'new' }, rates: [] } });
     await userEvent.click(screen.getByRole('button', { name: 'Speicherung prüfen' })); expect(rpc.mock.calls[1]).toEqual(sent);
   });
   it('blocks a new end that would exclude known future conditions', async () => {
-    continuation(); await userEvent.click(screen.getByRole('button', { name: 'Neuer Zeitraum / Wechsel' }));
+    continuation(); await userEvent.click(screen.getByRole('button', { name: 'Neuen Zeitraum anlegen' }));
     fireEvent.change(screen.getByLabelText('Beginn'), { target: { value: '2026-02-01' } });
     fireEvent.change(screen.getByLabelText('Bis einschließlich (optional)'), { target: { value: '2026-03-31' } });
     await userEvent.click(screen.getByRole('button', { name: 'Konditionen prüfen' }));

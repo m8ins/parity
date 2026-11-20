@@ -15,7 +15,9 @@ beforeEach(() => { vi.clearAllMocks(); sessionStorage.clear(); });
 describe('billing period end', () => {
   it('shows a truly open period with an obvious end action and permits a future condition', async () => {
     render(<ContractDetail initialMeter={fixture.meter} initialData={{ ...fixture.data, contracts: [period] }} asOf="2026-11-16" />);
-    expect(screen.getByText('(ab 01.11.2025 · offen)')).toBeInTheDocument();
+    expect(screen.getByText(/Nov\. 2025 – offen/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Ende festlegen' })).toBeNull();
+    await userEvent.click(screen.getByRole('tab', { name: 'Verwalten' }));
     expect(screen.getByRole('button', { name: 'Ende festlegen' })).toBeInTheDocument();
     await userEvent.click(screen.getByRole('tab', { name: 'Konditionen' }));
     expect(screen.getByRole('heading', { name: 'Aktuell gültig' })).toBeInTheDocument();

@@ -22,7 +22,7 @@ export function ContractChart({ data, unit, goal, isGood, className, compact = f
 
     // Color reflects the financial outlook (passed in via isGood), i.e. whether a
     // Nachzahlung is projected — consistent with the card's Nachzahlung/Erstattung badge.
-    const actualColor = isGood ? 'var(--sys-color-chart-actual)' : 'var(--sys-color-error)'
+    const actualColor = isGood ? 'var(--sys-color-chart-actual)' : 'var(--sys-color-content-utility-error)'
 
     const domainMax = Math.max(
         ...data.flatMap(d => [d.projected, d.actual ?? 0]),
@@ -41,12 +41,12 @@ export function ContractChart({ data, unit, goal, isGood, className, compact = f
                             <stop offset="95%" stopColor={actualColor} stopOpacity={0} />
                         </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--sys-color-divider)" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--sys-color-border-weak)" />
                     <XAxis
                         dataKey="date"
                         ticks={monthTicks}
                         tickFormatter={(value) => new Date(value).toLocaleDateString('de-DE', { month: 'short', timeZone: 'UTC' })}
-                        stroke="var(--sys-color-text-secondary)"
+                        stroke="var(--sys-color-content-secondary)"
                         fontSize="var(--ref-font-size-100)"
                         tickLine={false}
                         axisLine={false}
@@ -56,8 +56,8 @@ export function ContractChart({ data, unit, goal, isGood, className, compact = f
                     <YAxis
                         hide={compact}
                         width={compact ? 0 : "auto"}
-                        label={{ value: unit, position: 'top', offset: 16, fill: 'var(--sys-color-text-secondary)', fontSize: 'var(--ref-font-size-100)' }}
-                        stroke="var(--sys-color-text-secondary)"
+                        label={{ value: unit, position: 'top', offset: 16, fill: 'var(--sys-color-content-secondary)', fontSize: 'var(--ref-font-size-100)' }}
+                        stroke="var(--sys-color-content-secondary)"
                         fontSize="var(--ref-font-size-100)"
                         tickLine={false}
                         axisLine={false}
@@ -68,8 +68,8 @@ export function ContractChart({ data, unit, goal, isGood, className, compact = f
                         position={compact ? { x: 0, y: 0 } : undefined}
                         wrapperStyle={compact ? { width: '100%', maxWidth: '20rem', maxHeight: '100%', overflow: 'auto' } : undefined}
                         labelFormatter={value => new Date(String(value)).toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })}
-                        contentStyle={{ backgroundColor: 'var(--sys-color-surface)', borderColor: 'var(--sys-color-border)', borderRadius: 'var(--sys-radius-control)', color: 'var(--sys-color-text)', whiteSpace: compact ? 'normal' : undefined }}
-                        itemStyle={{ color: 'var(--sys-color-text)', whiteSpace: compact ? 'normal' : undefined, overflowWrap: compact ? 'anywhere' : undefined }}
+                        contentStyle={{ backgroundColor: 'var(--sys-color-background-surface-1)', borderColor: 'var(--sys-color-border-default)', borderRadius: 'var(--sys-radius-control)', color: 'var(--sys-color-content-primary)', whiteSpace: compact ? 'normal' : undefined }}
+                        itemStyle={{ color: 'var(--sys-color-content-primary)', whiteSpace: compact ? 'normal' : undefined, overflowWrap: compact ? 'anywhere' : undefined }}
                         formatter={(value, name) => {
                             const numValue = typeof value === 'number' ? value.toLocaleString('de-DE', { maximumFractionDigits: 2 }) : '—'
                             return [

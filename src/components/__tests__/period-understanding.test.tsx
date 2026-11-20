@@ -35,8 +35,13 @@ describe('Verstehen', () => {
     expect(screen.getByText('Verbrauchsdiagramm').compareDocumentPosition(screen.getByText('Kosten und Abschlag')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     await userEvent.click(screen.getByText('Kosten und Abschlag'));
     expect(screen.getByText(/Tatsächliche Zahlungen sind nicht erfasst/)).toBeVisible();
-    await userEvent.click(screen.getByText('Monatswerte ansehen'));
-    expect(screen.getByText(/Zwischen Ablesungen geschätzt/)).toBeVisible();
+    await userEvent.click(screen.getByRole('tab', { name: 'Monatswerte' }));
+    expect(screen.getByText(/Nur der durch Ablesungen abgedeckte Zeitraum/)).toBeVisible();
+    expect(screen.queryByText('Verbrauchsdiagramm')).toBeNull();
+    expect(screen.getByRole('table')).toBeVisible();
+    await userEvent.click(screen.getByRole('tab', { name: 'Verlauf' }));
+    expect(screen.getByText('Verbrauchsdiagramm')).toBeVisible();
+    expect(screen.queryByRole('table')).toBeNull();
     await userEvent.click(screen.getByText('Wie wird gerechnet?'));
     expect(screen.getByText(/Gleichmäßige Stromverteilung/)).toBeVisible();
   });
@@ -79,6 +84,8 @@ describe('Verstehen', () => {
     await userEvent.click(screen.getByRole('tab', { name: 'Verwalten' }));
     expect(screen.getByRole('button', { name: 'Details bearbeiten' })).toBeInTheDocument();
     await userEvent.click(screen.getByRole('tab', { name: 'Ablesungen' }));
-    expect(screen.getByText('Alle Ablesungen dieses Zählers')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Ablesungen' })).toBeVisible();
+    expect(screen.queryByRole('combobox', { name: 'Abrechnungszeitraum' })).toBeNull();
+    expect(screen.getAllByRole('row')).toHaveLength(data.readings.length + 1);
   });
 });
