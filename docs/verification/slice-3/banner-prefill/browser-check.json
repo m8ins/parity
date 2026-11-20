@@ -1,0 +1,100 @@
+{
+  "errors": [],
+  "colors": [
+    {
+      "scenario": "electricity",
+      "expected": "due",
+      "foreground": [
+        158,
+        35,
+        34
+      ],
+      "background": [
+        233,
+        226,
+        204
+      ],
+      "border": [
+        158,
+        35,
+        34
+      ],
+      "textContrast": 5.967323790326708,
+      "borderContrast": 5.967323790326708
+    },
+    {
+      "scenario": "gas",
+      "expected": "refund",
+      "foreground": [
+        31,
+        101,
+        47
+      ],
+      "background": [
+        226,
+        229,
+        211
+      ],
+      "border": [
+        31,
+        101,
+        47
+      ],
+      "textContrast": 5.533035574992185,
+      "borderContrast": 5.533035574992185
+    },
+    {
+      "scenario": "zero",
+      "expected": "neutral",
+      "foreground": [
+        58,
+        70,
+        93
+      ],
+      "background": [
+        249,
+        246,
+        238
+      ],
+      "border": [
+        58,
+        70,
+        93
+      ],
+      "textContrast": 8.782548138113821,
+      "borderContrast": 8.782548138113821
+    },
+    {
+      "scenario": "missing",
+      "expected": "neutral",
+      "foreground": [
+        58,
+        70,
+        93
+      ],
+      "background": [
+        249,
+        246,
+        238
+      ],
+      "border": [
+        58,
+        70,
+        93
+      ],
+      "textContrast": 8.782548138113821,
+      "borderContrast": 8.782548138113821
+    }
+  ],
+  "checks": [
+    "German last value is actual selected input, no previous-value row; unchanged cancel closes, edits require discard confirmation; electricity and gas independent"
+  ],
+  "screenshots": [
+    "banner-electricity",
+    "banner-gas",
+    "banner-zero",
+    "banner-missing",
+    "reading-prefill-electricity",
+    "reading-prefill-gas"
+  ]
+}

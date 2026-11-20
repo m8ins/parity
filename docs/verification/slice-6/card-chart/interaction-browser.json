@@ -1,0 +1,10 @@
+{
+  "synthetic": true,
+  "checks": [
+    "Keyboard: focused chart, ArrowRight reveals exact dated kWh tooltip, container focus visible",
+    "Tab leaves chart for explicit summary link; chart is not nested in anchor",
+    "Pointer reveals exact values without navigating; tooltip fits chart bounds",
+    "320px/200% tooltip fits chart, wraps text and permits local vertical scrolling"
+  ],
+  "passed": true
+}

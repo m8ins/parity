@@ -1,0 +1,337 @@
+{
+  "status": "pass",
+  "results": [
+    {
+      "width": 320,
+      "overflow": false,
+      "styles": [
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "28px",
+          "line": "33.6px",
+          "weight": "700"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "22px",
+          "line": "26.4px",
+          "weight": "700"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "18px",
+          "line": "27px",
+          "weight": "400"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "18px",
+          "line": "22.5px",
+          "weight": "700"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "18px",
+          "line": "22.5px",
+          "weight": "600"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "16px",
+          "line": "24px",
+          "weight": "400"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "14px",
+          "line": "21px",
+          "weight": "400"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "28px",
+          "line": "33.6px",
+          "weight": "600"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "28px",
+          "line": "33.6px",
+          "weight": "600"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "28px",
+          "line": "33.6px",
+          "weight": "600"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "18px",
+          "line": "22.5px",
+          "weight": "600"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "16px",
+          "line": "24px",
+          "weight": "400"
+        }
+      ],
+      "fluid": {
+        "title": 28,
+        "gutter": 16
+      }
+    },
+    {
+      "width": 390,
+      "overflow": false,
+      "styles": [
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "28px",
+          "line": "33.6px",
+          "weight": "700"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "22px",
+          "line": "26.4px",
+          "weight": "700"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "18px",
+          "line": "27px",
+          "weight": "400"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "18px",
+          "line": "22.5px",
+          "weight": "700"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "18px",
+          "line": "22.5px",
+          "weight": "600"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "16px",
+          "line": "24px",
+          "weight": "400"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "14px",
+          "line": "21px",
+          "weight": "400"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "32px",
+          "line": "38.4px",
+          "weight": "600"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "32px",
+          "line": "38.4px",
+          "weight": "600"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "32px",
+          "line": "38.4px",
+          "weight": "600"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "18px",
+          "line": "22.5px",
+          "weight": "600"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "16px",
+          "line": "24px",
+          "weight": "400"
+        }
+      ],
+      "fluid": {
+        "title": 28.1364,
+        "gutter": 16.5455
+      }
+    },
+    {
+      "width": 768,
+      "overflow": false,
+      "styles": [
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "28px",
+          "line": "33.6px",
+          "weight": "700"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "22px",
+          "line": "26.4px",
+          "weight": "700"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "18px",
+          "line": "27px",
+          "weight": "400"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "18px",
+          "line": "22.5px",
+          "weight": "700"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "18px",
+          "line": "22.5px",
+          "weight": "600"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "16px",
+          "line": "24px",
+          "weight": "400"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "14px",
+          "line": "21px",
+          "weight": "400"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "36px",
+          "line": "43.2px",
+          "weight": "600"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "36px",
+          "line": "43.2px",
+          "weight": "600"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "36px",
+          "line": "43.2px",
+          "weight": "600"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "18px",
+          "line": "22.5px",
+          "weight": "600"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "16px",
+          "line": "24px",
+          "weight": "400"
+        }
+      ],
+      "fluid": {
+        "title": 29.8545,
+        "gutter": 23.4182
+      }
+    },
+    {
+      "width": 1280,
+      "overflow": false,
+      "styles": [
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "28px",
+          "line": "33.6px",
+          "weight": "700"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "22px",
+          "line": "26.4px",
+          "weight": "700"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "18px",
+          "line": "27px",
+          "weight": "400"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "18px",
+          "line": "22.5px",
+          "weight": "700"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "18px",
+          "line": "22.5px",
+          "weight": "600"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "16px",
+          "line": "24px",
+          "weight": "400"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "14px",
+          "line": "21px",
+          "weight": "400"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "36px",
+          "line": "43.2px",
+          "weight": "600"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "36px",
+          "line": "43.2px",
+          "weight": "600"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "36px",
+          "line": "43.2px",
+          "weight": "600"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "18px",
+          "line": "22.5px",
+          "weight": "600"
+        },
+        {
+          "font": "\"Atkinson Hyperlegible Next\", sans-serif",
+          "size": "16px",
+          "line": "24px",
+          "weight": "400"
+        }
+      ],
+      "fluid": {
+        "title": 32,
+        "gutter": 32
+      }
+    }
+  ],
+  "userTextSpacing": true,
+  "textAt200Percent": true,
+  "reducedMotion": true,
+  "errors": []
+}

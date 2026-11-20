@@ -1,0 +1,22 @@
+{
+  "source": "Real local Next app + Auth + Supabase; one committed HTTP response deliberately discarded",
+  "checks": [
+    "Real login; backdate selects 30ct not later 50ct; lost response after actual commit; real reload/retry yields exactly 3 rates; fixed 15/9/7 day costs 126.19 EUR and balance -24.27 EUR survive reload",
+    "Explicit zero correction persists and archive displays previous 100 EUR; confirmed deletion leaves visible real gap after reload",
+    "Gas regression 1000m³, 4400*.10 + 5600*.12 + 120 = 1232 EUR and 328 EUR refund; gas-factor change retains precise value and actual settlement after reload; electricity independent",
+    "Real open period beyond one year: normal new-condition save for next month, direct inclusive end edit, reload, reopening, unchanged stored future condition"
+  ],
+  "screenshots": [
+    "live-committed-response-lost",
+    "live-retry-confirmed",
+    "live-updated-fixed-cost",
+    "live-correction-archive",
+    "live-delete-gap-confirmation",
+    "live-gas-precision-reloaded",
+    "open-current",
+    "open-new-conditions-review",
+    "open-end-edit"
+  ],
+  "errors": [],
+  "cleanup": true
+}

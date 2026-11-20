@@ -1,116 +1,59 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { createClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Settings } from "lucide-react"
+import { useRef, useState } from 'react';
+import { isMissingSession } from '@/lib/access';
+import { createClient } from '@/lib/supabase/client';
+import { Button } from './ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Settings } from 'lucide-react';
 
-export function ProfileDialog({ open: controlledOpen, onOpenChange: setControlledOpen, showTrigger = true }: { open?: boolean, onOpenChange?: (open: boolean) => void, showTrigger?: boolean }) {
-    const [internalOpen, setInternalOpen] = useState(false)
-    const isControlled = controlledOpen !== undefined
+export function ProfileDialog({ open: controlledOpen, onOpenChange: setControlledOpen, showTrigger = true }: { open?: boolean; onOpenChange?: (open: boolean) => void; showTrigger?: boolean }) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const onOpenChange = setControlledOpen ?? setInternalOpen;
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const busy = useRef(false);
+  const supabase = createClient();
 
-    const open = isControlled ? controlledOpen : internalOpen
-    const onOpenChange = isControlled ? setControlledOpen : setInternalOpen
-
-    const [password, setPassword] = useState("")
-    const [confirmPassword, setConfirmPassword] = useState("")
-    const [loading, setLoading] = useState(false)
-    const [message, setMessage] = useState("")
-    const [error, setError] = useState("")
-    const supabase = createClient()
-
-    const handleUpdatePassword = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setLoading(true)
-        setMessage("")
-        setError("")
-
-        if (password !== confirmPassword) {
-            setError("Passwords do not match")
-            setLoading(false)
-            return
-        }
-
-        if (password.length < 6) {
-            setError("Password must be at least 6 characters")
-            setLoading(false)
-            return
-        }
-
-        const { error: updateError } = await supabase.auth.updateUser({
-            password: password
-        })
-
-        if (updateError) {
-            setError(updateError.message)
-        } else {
-            setMessage("Password updated successfully")
-            setPassword("")
-            setConfirmPassword("")
-            setTimeout(() => onOpenChange?.(false), 1500)
-        }
-        setLoading(false)
-    }
-
-    return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            {showTrigger && (
-                <DialogTrigger asChild>
-                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-                        <Settings className="h-5 w-5" />
-                        <span className="sr-only">Settings</span>
-                    </Button>
-                </DialogTrigger>
-            )}
-            <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                    <DialogTitle>Profile Settings</DialogTitle>
-                    <DialogDescription>
-                        Update your account settings here.
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                    <form onSubmit={handleUpdatePassword} className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="new-password">New Password</Label>
-                            <Input
-                                id="new-password"
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="Min. 6 characters"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="confirm-password">Confirm Password</Label>
-                            <Input
-                                id="confirm-password"
-                                type="password"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                placeholder="Confirm new password"
-                                required
-                            />
-                        </div>
-                        {error && <p className="text-sm text-red-500">{error}</p>}
-                        {message && <p className="text-sm text-green-500">{message}</p>}
-                        <Button type="submit" disabled={loading} className="w-full">
-                            {loading ? "Updating..." : "Update Password"}
-                        </Button>
-                    </form>
-                </div>
-            </DialogContent>
-        </Dialog>
-    )
+  const handleUpdatePassword = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (busy.current) return;
+    setMessage(''); setError('');
+    if (password !== confirmPassword) { setError('Die Passwörter stimmen nicht überein. Bitte prüfe beide Eingaben.'); return; }
+    if (password.length < 6) { setError('Das Passwort muss mindestens 6 Zeichen lang sein.'); return; }
+    busy.current = true; setLoading(true);
+    try {
+      const { error: updateError } = await supabase.auth.updateUser({ password });
+      if (updateError) setError(isMissingSession(updateError) ? 'Deine Sitzung ist abgelaufen. Bitte melde dich erneut an und versuche es dann noch einmal.' : 'Das Passwort konnte nicht geändert werden. Bitte versuche es erneut.');
+      else { setMessage('Dein Passwort wurde geändert.'); setPassword(''); setConfirmPassword(''); }
+    } catch { setError('Keine Verbindung möglich. Bitte versuche es erneut.'); }
+    finally { busy.current = false; setLoading(false); }
+  };
+  const changeOpen = (value: boolean) => {
+    if (busy.current) return;
+    if (!value) { setPassword(''); setConfirmPassword(''); setError(''); setMessage(''); }
+    onOpenChange(value);
+  };
+  return <Dialog open={open} onOpenChange={changeOpen}>
+    {showTrigger && <DialogTrigger asChild><Button variant="ghost" size="icon" aria-label="Konto öffnen"><Settings /></Button></DialogTrigger>}
+    <DialogContent showCloseButton={!loading} onEscapeKeyDown={event => { if (busy.current) event.preventDefault(); }} onPointerDownOutside={event => { if (busy.current) event.preventDefault(); }}>
+      <DialogHeader><DialogTitle>Passwort ändern</DialogTitle><DialogDescription>Ändere das Passwort für dein Parity-Konto.</DialogDescription></DialogHeader>
+      <form onSubmit={handleUpdatePassword} className="parity-form" aria-busy={loading}>
+        <fieldset disabled={loading}>
+          <div className="form-field"><Label htmlFor="new-password">Neues Passwort</Label><Input id="new-password" type="password" autoComplete="new-password" value={password} onChange={event => setPassword(event.target.value)} required aria-invalid={!!error} aria-describedby="password-help profile-error" /><p id="password-help" className="text-sm text-muted-foreground">Mindestens 6 Zeichen.</p></div>
+          <div className="form-field"><Label htmlFor="confirm-password">Neues Passwort bestätigen</Label><Input id="confirm-password" type="password" autoComplete="new-password" value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} required aria-invalid={!!error} aria-describedby={error ? 'profile-error' : undefined} /></div>
+          {error && <p id="profile-error" className="form-error" role="alert">{error}</p>}
+          <p className="form-success" role="status">{message}</p>
+          <Button type="submit">{loading ? 'Wird geändert …' : 'Passwort ändern'}</Button>
+          <Button type="button" variant="ghost" onClick={() => changeOpen(false)}>Schließen</Button>
+        </fieldset>
+      </form>
+    </DialogContent>
+  </Dialog>;
 }

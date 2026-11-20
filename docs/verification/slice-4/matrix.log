@@ -1,0 +1,4 @@
+PASS verify-browser.mjs
+PASS understanding-regression/verify-understanding.mjs
+PASS setup-regression/verify-setup.mjs
+PASS verify-reading.mjs

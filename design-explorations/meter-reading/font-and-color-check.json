@@ -1,0 +1,45 @@
+{
+  "fonts": {
+    "AtkinsonHyperlegibleNext.ttf": {
+      "GSUB_features": [
+        "aalt",
+        "case",
+        "ccmp",
+        "frac",
+        "locl",
+        "ordn",
+        "pnum",
+        "sups",
+        "tnum"
+      ],
+      "tnum": true
+    },
+    "NunitoSans.ttf": {
+      "GSUB_features": [
+        "aalt",
+        "calt",
+        "case",
+        "ccmp",
+        "dlig",
+        "dnom",
+        "frac",
+        "liga",
+        "locl",
+        "numr",
+        "onum",
+        "ordn",
+        "sinf",
+        "ss01",
+        "ss02",
+        "subs",
+        "sups"
+      ],
+      "tnum": false
+    }
+  },
+  "colors": {
+    "ink": "oklch(39.375129% 0.04015540 263.947164)",
+    "cream": "oklch(92.640917% 0.02656370 104.574367)",
+    "contrast": 7.650601844837449
+  }
+}

@@ -1,0 +1,274 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-16T06:38:43.136464+00:00",
+  "title": "Design System: Parity",
+  "extensions": {
+    "sourceOfTruth": "src/app/foundation.tokens.css",
+    "applicationStyles": [
+      "src/app/controls.css",
+      "src/app/globals.css"
+    ],
+    "tokenPolicy": "CSS variables only; no independently maintained palette, type scale or synthesized tonal ramps. Load the source CSS before rendering previews.",
+    "colorMeta": {
+      "canvas": {
+        "role": "neutral",
+        "displayName": "canvas",
+        "canonical": "var(--sys-color-canvas)"
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "surface",
+        "canonical": "var(--sys-color-surface)"
+      },
+      "field": {
+        "role": "neutral",
+        "displayName": "field",
+        "canonical": "var(--sys-color-field)"
+      },
+      "field-active": {
+        "role": "neutral",
+        "displayName": "field-active",
+        "canonical": "var(--sys-color-field-active)"
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "text",
+        "canonical": "var(--sys-color-text)"
+      },
+      "text-secondary": {
+        "role": "neutral",
+        "displayName": "text-secondary",
+        "canonical": "var(--sys-color-text-secondary)"
+      },
+      "action": {
+        "role": "primary",
+        "displayName": "action",
+        "canonical": "var(--sys-color-action)"
+      },
+      "action-text": {
+        "role": "primary",
+        "displayName": "action-text",
+        "canonical": "var(--sys-color-action-text)"
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "border",
+        "canonical": "var(--sys-color-border)"
+      },
+      "divider": {
+        "role": "neutral",
+        "displayName": "divider",
+        "canonical": "var(--sys-color-divider)"
+      },
+      "focus": {
+        "role": "neutral",
+        "displayName": "focus",
+        "canonical": "var(--sys-color-focus)"
+      },
+      "error": {
+        "role": "status",
+        "displayName": "error",
+        "canonical": "var(--sys-color-error)"
+      },
+      "success": {
+        "role": "status",
+        "displayName": "success",
+        "canonical": "var(--sys-color-success)"
+      },
+      "disabled": {
+        "role": "neutral",
+        "displayName": "disabled",
+        "canonical": "var(--sys-color-disabled)"
+      },
+      "disabled-text": {
+        "role": "neutral",
+        "displayName": "disabled-text",
+        "canonical": "var(--sys-color-disabled-text)"
+      },
+      "action-hover": {
+        "role": "primary",
+        "displayName": "action-hover",
+        "canonical": "var(--sys-color-action-hover)"
+      },
+      "error-surface": {
+        "role": "status",
+        "displayName": "error-surface",
+        "canonical": "var(--sys-color-error-surface)"
+      },
+      "success-surface": {
+        "role": "status",
+        "displayName": "success-surface",
+        "canonical": "var(--sys-color-success-surface)"
+      },
+      "overlay": {
+        "role": "neutral",
+        "displayName": "overlay",
+        "canonical": "var(--sys-color-overlay)"
+      },
+      "chart-actual": {
+        "role": "data",
+        "displayName": "chart-actual",
+        "canonical": "var(--sys-color-chart-actual)"
+      },
+      "chart-projected": {
+        "role": "data",
+        "displayName": "chart-projected",
+        "canonical": "var(--sys-color-chart-projected)"
+      },
+      "chart-target": {
+        "role": "data",
+        "displayName": "chart-target",
+        "canonical": "var(--sys-color-chart-target)"
+      }
+    },
+    "typographyMeta": {
+      "body": {
+        "displayName": "body",
+        "cssReference": "var(--sys-font-body)"
+      },
+      "support": {
+        "displayName": "support",
+        "cssReference": "var(--sys-font-support)"
+      },
+      "meta": {
+        "displayName": "meta",
+        "cssReference": "var(--sys-font-meta)"
+      },
+      "label": {
+        "displayName": "label",
+        "cssReference": "var(--sys-font-label)"
+      },
+      "control": {
+        "displayName": "control",
+        "cssReference": "var(--sys-font-control)"
+      },
+      "section": {
+        "displayName": "section",
+        "cssReference": "var(--sys-font-section)"
+      },
+      "page-title": {
+        "displayName": "page-title",
+        "cssReference": "var(--sys-font-page-title)"
+      },
+      "title": {
+        "displayName": "title",
+        "cssReference": "var(--sys-font-title)"
+      },
+      "reading": {
+        "displayName": "reading",
+        "cssReference": "var(--sys-font-reading)"
+      }
+    },
+    "shadows": [
+      {
+        "name": "button-depth",
+        "value": "0 var(--sys-depth-action) 0 var(--sys-color-border)",
+        "purpose": "Gerichtete Unterkante des Druckknopfs."
+      },
+      {
+        "name": "popover",
+        "value": "var(--sys-shadow-popover)",
+        "purpose": "Gezielte Tiefe für Popovers; Inhaltsflächen bleiben flach."
+      }
+    ],
+    "motion": [
+      {
+        "name": "press",
+        "value": "var(--sys-duration-press)"
+      },
+      {
+        "name": "release",
+        "value": "var(--sys-duration-release)"
+      },
+      {
+        "name": "action-easing",
+        "value": "var(--sys-ease-action)"
+      }
+    ],
+    "responsiveSource": "src/app/foundation.tokens.css media queries and src/app/globals.css reading-dialog media query",
+    "previewLimitations": "Snippets illustrate existing controls. Modal focus, dismissal, drag and save behavior require the application Radix/React implementation; no simulated interaction runtime is included.",
+    "interactionSource": "src/components/ui/interaction-mode.tsx; src/components/reading-dialog.tsx retains its own modality state",
+    "supportedTheme": "Light only; no product theme selection existed.",
+    "verificationSource": "docs/verification/slice-1b/README.md",
+    "reviewSource": "docs/verification/slice-1b/REVIEW.md; final scoped pass/ship, all three findings resolved."
+  },
+  "components": [
+    {
+      "name": "Druckknopf · primär",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Gemeinsame Hauptaktion mit gerichteter Drucktiefe; native HTML-Schaltfläche.",
+      "html": "<button class=\"ds-button\">Zählerstand speichern</button>",
+      "css": ".ds-button{min-height:var(--sys-size-control-min);padding:var(--sys-inset-control-block) var(--sys-inset-control-inline);font:var(--sys-font-control);border:var(--sys-border-width) solid var(--sys-color-border);border-radius:var(--sys-radius-control);background:var(--sys-color-action);color:var(--sys-color-action-text);box-shadow:0 var(--sys-depth-action) 0 var(--sys-color-border);margin-bottom:var(--sys-depth-action);transition:transform var(--sys-duration-release) var(--sys-ease-action),box-shadow var(--sys-duration-release) var(--sys-ease-action)}.ds-button:hover{background:var(--sys-color-action-hover)}.ds-button:focus-visible{outline:var(--sys-focus-width) solid var(--sys-color-focus);outline-offset:var(--sys-focus-offset)}.ds-button:active:not(:disabled){transform:translateY(var(--sys-depth-action));box-shadow:none;transition-duration:var(--sys-duration-press)}.ds-button:disabled{background:var(--sys-color-disabled);color:var(--sys-color-disabled-text);box-shadow:none;border-color:var(--sys-color-divider)}@media(prefers-reduced-motion:reduce){.ds-button{transition:none}}"
+    },
+    {
+      "name": "Druckknopf · Speichern",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Gesperrter Zustand während Speicherung; kein zweites Absenden.",
+      "html": "<button class=\"ds-button\" disabled>Wird gespeichert …</button>",
+      "css": ".ds-button{min-height:var(--sys-size-control-min);padding:var(--sys-inset-control-block) var(--sys-inset-control-inline);font:var(--sys-font-control);border:var(--sys-border-width) solid var(--sys-color-border);border-radius:var(--sys-radius-control);background:var(--sys-color-action);color:var(--sys-color-action-text);box-shadow:0 var(--sys-depth-action) 0 var(--sys-color-border);margin-bottom:var(--sys-depth-action);transition:transform var(--sys-duration-release) var(--sys-ease-action),box-shadow var(--sys-duration-release) var(--sys-ease-action)}.ds-button:hover{background:var(--sys-color-action-hover)}.ds-button:focus-visible{outline:var(--sys-focus-width) solid var(--sys-color-focus);outline-offset:var(--sys-focus-offset)}.ds-button:active:not(:disabled){transform:translateY(var(--sys-depth-action));box-shadow:none;transition-duration:var(--sys-duration-press)}.ds-button:disabled{background:var(--sys-color-disabled);color:var(--sys-color-disabled-text);box-shadow:none;border-color:var(--sys-color-divider)}@media(prefers-reduced-motion:reduce){.ds-button{transition:none}}"
+    },
+    {
+      "name": "Datumseingabe",
+      "kind": "input",
+      "refersTo": "reading-input",
+      "description": "Native Datumseingabe mit sichtbarem Label.",
+      "html": "<div class=\"ds-field\"><label for=\"ds-date\">Ablesedatum</label><input class=\"ds-input\" id=\"ds-date\" type=\"date\" value=\"2026-11-15\"></div>",
+      "css": ".ds-field{display:grid;gap:var(--sys-gap-label);color:var(--sys-color-text)}.ds-field label{font:var(--sys-font-label)}.ds-input{min-height:var(--sys-size-control-min);padding:var(--sys-inset-control-block) var(--sys-inset-control-inline);font:var(--sys-font-control);border:var(--sys-border-width) solid var(--sys-color-border);border-radius:var(--sys-radius-control);background:var(--sys-color-field);color:var(--sys-color-text);font-variant-numeric:var(--sys-numeric-variant);min-width:0;box-sizing:border-box;outline:none}.ds-input:focus{background:var(--sys-color-field-active)}.ds-input:focus-visible{outline:var(--sys-focus-width) solid var(--sys-color-focus);outline-offset:var(--sys-focus-offset)}.ds-input[aria-invalid=true]{border-color:var(--sys-color-error);border-width:var(--sys-error-width)}.ds-error{font:var(--sys-font-support);color:var(--sys-color-error)}"
+    },
+    {
+      "name": "Messwerteingabe",
+      "kind": "input",
+      "refersTo": "reading-input",
+      "description": "Deutsche Zahlenkonvention, tabellarische Ziffern und explizite Messwertgröße. Statischer Vorschauwert.",
+      "html": "<div class=\"ds-field\"><label for=\"ds-reading\">Neuer Zählerstand (kWh)</label><input class=\"ds-input ds-reading\" id=\"ds-reading\" type=\"text\" inputmode=\"decimal\" value=\"24.681,7\"></div>",
+      "css": ".ds-field{display:grid;gap:var(--sys-gap-label);color:var(--sys-color-text)}.ds-field label{font:var(--sys-font-label)}.ds-input{min-height:var(--sys-size-control-min);padding:var(--sys-inset-control-block) var(--sys-inset-control-inline);font:var(--sys-font-control);border:var(--sys-border-width) solid var(--sys-color-border);border-radius:var(--sys-radius-control);background:var(--sys-color-field);color:var(--sys-color-text);font-variant-numeric:var(--sys-numeric-variant);min-width:0;box-sizing:border-box;outline:none}.ds-input:focus{background:var(--sys-color-field-active)}.ds-input:focus-visible{outline:var(--sys-focus-width) solid var(--sys-color-focus);outline-offset:var(--sys-focus-offset)}.ds-input[aria-invalid=true]{border-color:var(--sys-color-error);border-width:var(--sys-error-width)}.ds-error{font:var(--sys-font-support);color:var(--sys-color-error)}.ds-reading{font:var(--sys-font-reading);text-align:right}"
+    },
+    {
+      "name": "Eingabefehler",
+      "kind": "input",
+      "refersTo": "reading-input",
+      "description": "Fehlertext und rote Kontur gemeinsam; Eingabe bleibt erhalten.",
+      "html": "<div class=\"ds-field\"><label for=\"ds-error-value\">Neuer Zählerstand (kWh)</label><input class=\"ds-input\" id=\"ds-error-value\" value=\"24..681\" aria-invalid=\"true\" aria-describedby=\"ds-error-text\"><p class=\"ds-error\" id=\"ds-error-text\">Bitte einen gültigen Zählerstand eingeben.</p></div>",
+      "css": ".ds-field{display:grid;gap:var(--sys-gap-label);color:var(--sys-color-text)}.ds-field label{font:var(--sys-font-label)}.ds-input{min-height:var(--sys-size-control-min);padding:var(--sys-inset-control-block) var(--sys-inset-control-inline);font:var(--sys-font-control);border:var(--sys-border-width) solid var(--sys-color-border);border-radius:var(--sys-radius-control);background:var(--sys-color-field);color:var(--sys-color-text);font-variant-numeric:var(--sys-numeric-variant);min-width:0;box-sizing:border-box;outline:none}.ds-input:focus{background:var(--sys-color-field-active)}.ds-input:focus-visible{outline:var(--sys-focus-width) solid var(--sys-color-focus);outline-offset:var(--sys-focus-offset)}.ds-input[aria-invalid=true]{border-color:var(--sys-color-error);border-width:var(--sys-error-width)}.ds-error{font:var(--sys-font-support);color:var(--sys-color-error)}"
+    },
+    {
+      "name": "Ruhige Aktion · Outline",
+      "kind": "button",
+      "description": "Sekundäre Aktion mit klarer Kontur, ohne Drucktiefe.",
+      "html": "<button class=\"ds-outline\">Abbrechen</button>",
+      "css": ".ds-outline{min-height:var(--sys-size-control-min);padding:var(--sys-inset-control-block) var(--sys-inset-control-inline);font:var(--sys-font-control);border:var(--sys-border-width) solid var(--sys-color-border);border-radius:var(--sys-radius-control);background:var(--sys-color-surface);color:var(--sys-color-text);cursor:pointer}.ds-outline:hover:not(:disabled){background:var(--sys-color-field-active)}.ds-outline:focus-visible{outline:var(--sys-focus-width) solid var(--sys-color-focus);outline-offset:var(--sys-focus-offset)}.ds-outline:disabled{background:var(--sys-color-disabled);color:var(--sys-color-disabled-text);border-color:var(--sys-color-divider)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Das freundliche kleine Messgerät",
+    "overview": "Dieses Dokument hält die vereinbarte Richtung und das nach Slice 1b integrierte Frontend fest. Die freigegebene Farbrichtung ist C „Sanftes Creme + Signalorange“. Variante A bleibt Herkunft der Form- und Interaktionssprache: Atkinson, klare Konturen, Druckknöpfe und geschützte Erfassung im Modal/Sheet. Slices 2–6 sind nicht begonnen. Technische und synthetische visuelle Prüfungen sind bestanden; reale Anmeldung, Persistenz, RLS und physische Geräteabnahme bleiben offen.\n\nParity soll verständlich, haptisch und etwas verspielt wirken. Basecamps „Fisher Price“-Philosophie steht für deutlich erkennbare Bedienmöglichkeiten; PostHog ist die Referenz für leicht comichafte, herausragende Knöpfe. Teenage Engineering und das vom Nutzer beschriebene Handheld mit Kurbel inspirieren die freundliche Geräteanmutung.",
+    "keyCharacteristics": [
+      "Eindeutige Affordances und stringente Nutzerführung.",
+      "Eine Absicht pro Seite, großzügige Schrift und ruhige Informationshierarchie.",
+      "Plastische Bedienelemente mit klaren Kanten; ausdrücklich kein Neumorphismus.",
+      "Charakter in Typografie und kleinen Animationen, mit Vorrang für Lesbarkeit und Bedienbarkeit."
+    ],
+    "rules": [
+      {
+        "name": "The Single Source Rule",
+        "body": "Einzige gepflegte Tokenquelle: `src/app/foundation.tokens.css`, übernommen aus der Exploration. Primitive `--ref-*` → semantische `--sys-*` → Komponenten. Die Explorationsdatei importiert diese Quelle; Tailwind/shadcn-Aliase referenzieren dieselben Rollen. Keine unabhängig gepflegte zweite Palette oder Schriftgrößenskala. Frontmatter und `.impeccable/design.json` enthalten CSS-Referenzen und Quellenmetadaten; sie brauchen die geladene Foundation und sind kein eigenständiger Tokenexport. Keine synthetischen Tonwertrampen ergänzen.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Bedienbarkeit durch Form, Kontrast und konsistente Zustände sichtbar machen.",
+      "Zahlenformen, Ausrichtung, Genauigkeit und Einheiten als zentrale Typografieanforderung behandeln.",
+      "Freundlichkeit in präzisen Details zeigen und die aktuelle Aufgabe priorisieren.",
+      "Austauschbare Paletten über gemeinsame semantische Rollen definieren."
+    ],
+    "donts": [
+      "Neumorphismus einsetzen.",
+      "Zähler in einen erzwungenen gemeinsamen Ablauf koppeln.",
+      "Lesbarkeit für dekorative Schrift oder Animation opfern.",
+      "Status ausschließlich durch Farbe oder Bewegung ausdrücken.",
+      "Offene Schrift-, Token- oder Layoutentscheidungen als bereits freigegeben ausgeben."
+    ]
+  }
+}

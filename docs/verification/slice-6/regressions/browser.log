@@ -1,0 +1,38 @@
+{
+  "synthetic": true,
+  "errors": [],
+  "checks": [
+    "Keyboard heading/input focus, dated initial conditions, visible future schedule, pending/double-click/escape, error and exact retry after reload",
+    "Confirmed gap and unchanged old end, existing successor, open-end prerequisite, positive/negative/zero actual results and immediate overview update",
+    "Mobile gas, long names and full numeric precision, 320px/200% text plus text spacing, reachable actions and reduced motion"
+  ],
+  "screenshots": [
+    "desktop-period-dates",
+    "desktop-period-conditions",
+    "desktop-period-review",
+    "desktop-future-conditions",
+    "desktop-period-pending",
+    "desktop-period-error",
+    "desktop-period-success",
+    "desktop-gap-review",
+    "desktop-existing-successor",
+    "desktop-settlement-open-end",
+    "desktop-settlement-Erstattung",
+    "desktop-outcome-Erstattung",
+    "desktop-settlement-Nachzahlung",
+    "desktop-outcome-Nachzahlung",
+    "desktop-settlement-Ausgeglichen",
+    "desktop-outcome-Ausgeglichen",
+    "desktop-settlement-conflict",
+    "mobile-gas-conditions",
+    "mobile-gas-review",
+    "mobile-settlement",
+    "mobile-200percent-conditions-top",
+    "mobile-200percent-conditions-bottom",
+    "mobile-200percent-review-top",
+    "mobile-200percent-review-bottom",
+    "mobile-200percent-settlement-top",
+    "mobile-200percent-settlement-bottom",
+    "mobile-reduced-motion"
+  ]
+}

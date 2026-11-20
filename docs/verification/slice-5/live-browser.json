@@ -1,0 +1,13 @@
+{
+  "source": "Real local Next app + Auth + Supabase; one committed HTTP response deliberately discarded",
+  "checked_at": "2026-11-19T12:33:20.848Z",
+  "checks": [
+    "Real login and continuation without settlement; exact-boundary rate prefilled at 31ct; later June rate shown and copied; committed response lost; reload repeats identical request; exactly two periods and three meter readings, boundary reading retained once",
+    "Product settlement create/correct: refund +125.50, due -42.25, explicit zero; actual banner and date survive real reload each time",
+    "Gas remains an independent period with precise factor and its own actual refund; older period continuation links to existing successor and period navigation works"
+  ],
+  "screenshots": [],
+  "errors": [],
+  "passed": true,
+  "cleanup": true
+}

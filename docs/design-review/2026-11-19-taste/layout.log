@@ -1,0 +1,11 @@
+check: Cannot read properties of undefined (reading 'map')
+
+1440x900  lines x undefined and undefined, nav undefinedpx, one screen undefinedpx
+file:///Users/martin/git/parity/.agents/skills/design-taste-frontend/assets/layout/check.mjs:193
+  for (const s of r.sections) console.log(`  section ${s.where.slice(0, 60).padEnd(60)} y ${String(s.top).padStart(5)}  h ${String(s.height).padStart(5)}  content ${s.content}`);
+                    ^
+
+TypeError: r.sections is not iterable
+    at file:///Users/martin/git/parity/.agents/skills/design-taste-frontend/assets/layout/check.mjs:193:21
+
+Node.js v24.21.0

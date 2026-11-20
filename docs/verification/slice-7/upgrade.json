@@ -1,0 +1,10 @@
+{
+  "source": "Real existing local Slice-6 schema upgraded with old synthetic receipts",
+  "checks": [
+    "All three pre-upgrade receipts replay after later mutations; changed payload rejected; old payload retained, created_at NULL and real recorded_at",
+    "Legacy continuation receipt survives result-only deletion; retry cannot recreate result",
+    "Meter deletion and all three legacy late replays never resurrect objects"
+  ],
+  "passed": true,
+  "cleanup": true
+}

@@ -1,0 +1,29 @@
+{
+  "source": "Real local app, synthetic accounts only; explicitly labelled response fault injection",
+  "checks": [
+    "New details RPC: real committed response discarded, input preserved, identical absolute retry confirmed, provider persists after actual reload",
+    "Deep link without session → real password login preserves meter/period; selected period URL, reload and browser back; explicit return goes to overview",
+    "Rename HTTP failure preserves input; pending locks controls/Escape; real retry persists after reload; detail rename persists and updates overview with long name",
+    "Opening delete and default Enter only cancel; injected HTTP failure retains meter, no false success; Desktop/Mobile/320px 200% text long names and email, scrollable actions and document bounds",
+    "Real committed DELETE response discarded → no success; identical target retry verifies absence; empty overview and heading focus; deleted meter remains absent after reload",
+    "Deleted/invalid meter and legacy links show safe return; account isolation checked separately through real API roles. Auth scenarios outside changed write paths excluded from this focused regression."
+  ],
+  "screenshots": [
+    "screenshots/desktop-session-required.png",
+    "screenshots/desktop-rename-error.png",
+    "screenshots/desktop-rename-pending.png",
+    "screenshots/desktop-delete-confirmation.png",
+    "screenshots/desktop-delete-error.png",
+    "screenshots/mobile-rename.png",
+    "screenshots/mobile-delete.png",
+    "screenshots/mobile-200percent-rename.png",
+    "screenshots/mobile-200percent-delete-top.png",
+    "screenshots/mobile-200percent-delete-consequences.png",
+    "screenshots/mobile-200percent-delete-actions.png",
+    "screenshots/desktop-delete-lost-response.png",
+    "screenshots/desktop-delete-success.png"
+  ],
+  "errors": [],
+  "passed": true,
+  "cleanup": true
+}

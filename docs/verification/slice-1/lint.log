@@ -1,0 +1,14 @@
+npm notice run parity@0.1.0 lint
+npm notice run eslint
+
+/Users/martin/git/parity/src/components/__tests__/contract-interactions.test.tsx
+  3:8  warning  'userEvent' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/martin/git/parity/src/components/header.tsx
+  38:8  warning  React Hook useEffect has a missing dependency: 'supabase.auth'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/martin/git/parity/src/lib/calculations.test.ts
+  3:42  warning  'GAS_WEIGHTS' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 3 problems (0 errors, 3 warnings)
+

@@ -1,159 +1,107 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useEffect, useRef, useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 
-export function AuthScreen() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [otp, setOtp] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState("")
-  const [showOtpInput, setShowOtpInput] = useState(false)
-  const supabase = createClient()
-  const router = useRouter()
+export function AuthScreen({ notice }: { notice?: string }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [otp, setOtp] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [showOtpInput, setShowOtpInput] = useState(false);
+  const codeInput = useRef<HTMLInputElement>(null);
+  useEffect(() => { if (showOtpInput) codeInput.current?.focus(); }, [showOtpInput]);
+  const busy = useRef(false);
+  const supabase = createClient();
 
-  const handleMagicLink = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setMessage("")
-
-    if (showOtpInput) {
-      const { error } = await supabase.auth.verifyOtp({
-        email,
-        token: otp,
-        type: "email",
-      })
-
-      if (error) {
-        setMessage(error.message)
+  const submit = async (event: React.FormEvent, method: 'code' | 'password') => {
+    event.preventDefault();
+    if (busy.current) return;
+    busy.current = true;
+    setLoading(true);
+    setMessage('');
+    setError('');
+    try {
+      const { error: authError } = method === 'password'
+        ? await supabase.auth.signInWithPassword({ email, password })
+        : showOtpInput
+          ? await supabase.auth.verifyOtp({ email, token: otp, type: 'email' })
+          : await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } });
+      if (authError) {
+        setError(authError.code === 'over_email_send_rate_limit' || authError.status === 429
+          ? 'Zu viele Versuche. Bitte warte einen Moment und versuche es erneut.'
+          : method === 'password'
+            ? 'Anmeldung nicht möglich. Prüfe E-Mail-Adresse und Passwort und versuche es erneut.'
+            : showOtpInput
+              ? 'Der Code konnte nicht bestätigt werden. Prüfe den Code und versuche es erneut. Für einen neuen Code wähle „Andere E-Mail verwenden“.'
+              : 'Der Code konnte nicht angefordert werden. Prüfe die E-Mail-Adresse und versuche es erneut.');
+      } else if (method === 'code' && !showOtpInput) {
+        setMessage('Code angefordert. Schau in dein E-Mail-Postfach und prüfe auch den Spamordner.');
+        setShowOtpInput(true);
       } else {
-        router.refresh()
+        setMessage('Angemeldet. Deine Zähler werden geladen …');
+        // AccountBoundary owns the session transition and full server reload.
       }
-    } else {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
-        },
-      })
-
-      if (error) {
-        setMessage(error.message)
-      } else {
-        setMessage("Check your email for the code!")
-        setShowOtpInput(true)
-      }
+    } catch {
+      setError('Keine Verbindung möglich. Deine Eingaben bleiben erhalten. Bitte versuche es erneut.');
+    } finally {
+      busy.current = false;
+      setLoading(false);
     }
-    setLoading(false)
-  }
-
-  const handlePasswordLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setMessage("")
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-
-    if (error) {
-      setMessage(error.message)
-    } else {
-      router.refresh()
-    }
-    setLoading(false)
-  }
-
+  };
+  const description = error ? 'auth-error' : undefined;
   return (
-    <div className="flex items-center justify-center min-h-screen bg-neutral-50 dark:bg-slate-950 p-4">
-      <Card className="w-full max-w-sm">
+    <main className="auth-screen">
+      <Card className="auth-card">
         <CardHeader>
-          <CardTitle>Welcome back</CardTitle>
-          <CardDescription>Sign in to your account</CardDescription>
+          <CardTitle>Bei Parity anmelden</CardTitle>
+          <CardDescription>Deine Zähler und Ablesungen im Blick.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="magic-link" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4">
-              <TabsTrigger value="magic-link">Magic Link</TabsTrigger>
-              <TabsTrigger value="password">Password</TabsTrigger>
+          {notice && <p className="mb-4 text-sm" role="status">{notice}</p>}
+          <Tabs defaultValue="code" onValueChange={() => { setError(''); setMessage(''); }}>
+            <TabsList className="mb-4" aria-label="Anmeldeverfahren">
+              <TabsTrigger value="code" disabled={loading}>E-Mail-Code</TabsTrigger>
+              <TabsTrigger value="password" disabled={loading}>Passwort</TabsTrigger>
             </TabsList>
-
-            <TabsContent value="magic-link">
-              <form onSubmit={handleMagicLink} className="space-y-4">
-                <div className="space-y-2">
-                  <Input
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    required
-                    disabled={showOtpInput}
-                  />
-                  {showOtpInput && (
-                    <Input
-                      type="text"
-                      placeholder="6-digit code"
-                      value={otp}
-                      onChange={e => setOtp(e.target.value)}
-                      required
-                    />
-                  )}
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Loading..." : (showOtpInput ? "Verify Code" : "Send Magic Link")}
-                </Button>
-                {showOtpInput && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="w-full"
-                    onClick={() => {
-                      setShowOtpInput(false)
-                      setOtp("")
-                      setMessage("")
-                    }}
-                    disabled={loading}
-                  >
-                    Use a different email
-                  </Button>
-                )}
+            <TabsContent value="code">
+              <form className="parity-form" onSubmit={event => submit(event, 'code')} aria-busy={loading}>
+                <fieldset disabled={loading}>
+                  <div className="form-field">
+                    <Label htmlFor="code-email">E-Mail-Adresse</Label>
+                    <Input id="code-email" type="email" autoComplete="email" value={email} onChange={event => setEmail(event.target.value)} required readOnly={showOtpInput} aria-describedby={description} />
+                  </div>
+                  {showOtpInput && <div className="form-field">
+                    <Label htmlFor="email-code">Anmeldecode</Label>
+                    <Input ref={codeInput} id="email-code" type="text" inputMode="numeric" autoComplete="one-time-code" value={otp} onChange={event => setOtp(event.target.value)} required aria-invalid={!!error} aria-describedby={description} />
+                  </div>}
+                  <p className="text-sm text-muted-foreground">{showOtpInput ? `Gib den Code aus der E-Mail an ${email} ein.` : 'Du erhältst einen Anmeldecode per E-Mail.'}</p>
+                  <Button type="submit">{loading ? 'Bitte warten …' : showOtpInput ? 'Code bestätigen' : 'Code anfordern'}</Button>
+                  {showOtpInput && <Button type="button" variant="ghost" onClick={() => { setShowOtpInput(false); setOtp(''); setMessage(''); setError(''); }}>Andere E-Mail verwenden</Button>}
+                </fieldset>
               </form>
             </TabsContent>
-
             <TabsContent value="password">
-              <form onSubmit={handlePasswordLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Input
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    required
-                  />
-                  <Input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Logging in..." : "Sign In"}
-                </Button>
+              <form className="parity-form" onSubmit={event => submit(event, 'password')} aria-busy={loading}>
+                <fieldset disabled={loading}>
+                  <div className="form-field"><Label htmlFor="password-email">E-Mail-Adresse</Label><Input id="password-email" type="email" autoComplete="email" value={email} onChange={event => setEmail(event.target.value)} required aria-describedby={description} /></div>
+                  <div className="form-field"><Label htmlFor="login-password">Passwort</Label><Input id="login-password" type="password" autoComplete="current-password" value={password} onChange={event => setPassword(event.target.value)} required aria-describedby={description} /></div>
+                  <Button type="submit">{loading ? 'Wird angemeldet …' : 'Anmelden'}</Button>
+                </fieldset>
               </form>
             </TabsContent>
           </Tabs>
-          {message && <p className="text-sm text-center text-muted-foreground mt-4">{message}</p>}
+          {error && <p id="auth-error" className="form-error mt-4" role="alert">{error}</p>}
+          <p className="form-success mt-4" role="status">{message}</p>
         </CardContent>
       </Card>
-    </div>
-  )
+    </main>
+  );
 }

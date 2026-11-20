@@ -1,0 +1,163 @@
+// Real local app/Auth/PostgREST. The only interception discards one real committed
+// RPC response to reproduce a transport failure. No data responses are mocked.
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { execFileSync, spawn } from 'node:child_process';
+import { createRequire } from 'node:module';
+import { createClient } from '@supabase/supabase-js';
+const require = createRequire(import.meta.url);
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || '/Users/martin/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const config = JSON.parse(execFileSync('supabase', ['status', '-o', 'json'], { encoding:'utf8', stdio:['ignore','pipe','ignore'] }));
+assert.equal(config.API_URL, 'http://127.0.0.1:54321');
+const out = path.dirname(new URL(import.meta.url).pathname), capture = fs.mkdtempSync('/private/tmp/parity-live-4-');
+const admin = createClient(config.API_URL, config.SERVICE_ROLE_KEY, { auth:{persistSession:false} });
+const email = `slice4-browser-${Date.now()}@example.test`, password=crypto.randomUUID();
+const created = await admin.auth.admin.createUser({email,password,email_confirm:true}); assert.ifError(created.error);
+const account = created.data.user.id;
+const client = createClient(config.API_URL,config.ANON_KEY,{auth:{persistSession:false}});
+assert.ifError((await client.auth.signInWithPassword({email,password})).error);
+const report={source:'Real local Next app + Auth + Supabase; one committed HTTP response deliberately discarded',checks:[],screenshots:[],errors:[],cleanup:false};
+const serverLog=fs.openSync(path.join(capture,'server.log'),'w');
+const appCopy=fs.mkdtempSync('/private/tmp/parity-live-app-');
+for (const entry of ['src','public','next.config.ts','tsconfig.json','postcss.config.mjs','package.json','next-env.d.ts']) fs.cpSync(path.resolve(entry),path.join(appCopy,entry),{recursive:true});
+fs.symlinkSync(path.resolve('node_modules'),path.join(appCopy,'node_modules'),'dir');
+const server=spawn('npm',['run','dev','--','--webpack','--hostname','127.0.0.1','--port','3004'],{cwd:appCopy,env:{...process.env,NEXT_PUBLIC_SUPABASE_URL:config.API_URL,NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY:config.ANON_KEY},stdio:['ignore',serverLog,serverLog],detached:true});
+
+
+const rateSnapshot=rows=>rows.map(({id,effective_from,grundpreis,arbeitspreis,abschlag,umrechnungsfaktor})=>({id,effective_from,grundpreis,arbeitspreis,abschlag,umrechnungsfaktor})).sort((a,b)=>a.id.localeCompare(b.id));
+async function addReadings(client, rows) {
+ for(const row of (Array.isArray(rows)?rows:[rows]))assert.ifError((await client.rpc('record_reading',{p_request_id:crypto.randomUUID(),p_payload:row})).error);return {error:null};
+}
+async function addRates(client, rows) {
+ for(const row of rows){
+  const p=(await client.from('contracts').select('*,rates(*)').eq('id',row.contract_id).single()).data;
+  const r=await client.rpc('change_conditions',{p_request_id:crypto.randomUUID(),p_payload:{...row,operation:'create',rate_id:null,expected_period:{period_start:p.period_start,period_end:p.period_end},expected_rates:rateSnapshot(p.rates)}});assert.ifError(r.error);
+ }
+ return {error:null};
+}
+
+let browser;
+try {
+  let ready=false;
+  for(let i=0;i<60;i++){try{if((await fetch('http://127.0.0.1:3004')).ok){ready=true;break}}catch{} await new Promise(r=>setTimeout(r,500));}
+  assert(ready,'Dev server starts');
+  const setup={name:'Prüfzähler Strom Slice 4',type:'electricity',provider:'Synthetisch',period_start:'2025-01-01',period_end:'2025-02-01',grundpreis:10,arbeitspreis:30,abschlag:100,umrechnungsfaktor:1,reading_date:'2025-01-01',reading_value:0};
+  const seeded=await client.rpc('setup_meter',{p_request_id:crypto.randomUUID(),p_payload:setup}); assert.ifError(seeded.error);
+  let period=(await client.from('contracts').select('*,rates(*)').eq('meter_id',seeded.data).single()).data;
+  assert.ifError((await addReadings(client, {meter_id:seeded.data,date:'2025-02-01',value:310})).error);
+  assert.ifError((await addRates(client, [{contract_id:period.id,effective_from:'2025-01-25',grundpreis:10,arbeitspreis:50,abschlag:100,umrechnungsfaktor:1}])).error);
+  browser=await chromium.launch({executablePath:process.env.BROWSER_PATH||'/Applications/Brave Browser.app/Contents/MacOS/Brave Browser',headless:true});
+  const page=await browser.newPage({viewport:{width:1280,height:960},locale:'de-DE',timezoneId:'Europe/Berlin'});
+  page.on('pageerror',error=>report.errors.push(error.message)); page.on('dialog',dialog=>dialog.accept());
+  async function shot(name){await page.waitForTimeout(180);await page.screenshot({path:path.join(capture,`${name}.png`),fullPage:!(await page.getByRole('dialog').count())});report.screenshots.push(name);}
+  await page.goto('http://127.0.0.1:3004');
+  await page.getByRole('tab',{name:'Passwort',exact:true}).click();
+  await page.getByLabel('E-Mail-Adresse',{exact:true}).fill(email); await page.locator('#login-password').fill(password);
+  await page.getByRole('button',{name:'Anmelden',exact:true}).click();
+  await page.getByRole('heading',{name:'Deine Zähler',exact:true}).waitFor();
+  await page.goto(`http://127.0.0.1:3004/meter/${seeded.data}?period=${period.id}`);
+  await page.getByRole('heading',{name:'Voraussichtlich 15,27 € Nachzahlung',exact:true}).waitFor();
+  await page.getByRole('tab',{name:'Konditionen',exact:true}).click();
+  await page.getByRole('button',{name:'Konditionen ändern',exact:true}).click();
+  await page.getByLabel('Gültig ab',{exact:true}).fill('2025-01-16');
+  assert.equal(await page.getByLabel('Arbeitspreis',{exact:true}).inputValue(),'30');
+  await page.getByLabel('Arbeitspreis',{exact:true}).fill('40');
+  await page.getByRole('button',{name:'Änderung prüfen',exact:true}).click();
+  let discarded=false;
+  await page.route('**/rest/v1/rpc/change_conditions',async route=>{const response=await route.fetch();assert.equal(response.status(),200);discarded=true;await route.abort('failed');},{times:1});
+  await page.getByRole('button',{name:'Neue Konditionen speichern',exact:true}).click();
+  await page.getByRole('button',{name:'Speicherung prüfen',exact:true}).waitFor(); assert(discarded);
+  assert.equal((await client.from('rates').select('*').eq('contract_id',period.id)).data.length,3);
+  await shot('live-committed-response-lost');
+  await page.reload();
+  await page.getByRole('tab',{name:'Konditionen',exact:true}).click();
+  await page.getByRole('button',{name:'Konditionen ändern',exact:true}).click();
+  await page.getByRole('button',{name:'Speicherung prüfen',exact:true}).click();
+  await page.getByRole('heading',{name:'Konditionen gespeichert',exact:true}).waitFor();
+  assert.equal((await client.from('rates').select('*').eq('contract_id',period.id)).data.length,3);
+  await shot('live-retry-confirmed');
+  await page.getByRole('button',{name:'Aktualisierte Einschätzung ansehen',exact:true}).click();
+  await page.getByRole('heading',{name:'Voraussichtlich 24,27 € Nachzahlung',exact:true}).waitFor();
+  await page.getByText('Kosten und Abschlag',{exact:true}).click();
+  await page.getByText('126,19 €',{exact:true}).first().waitFor();
+  await shot('live-updated-fixed-cost');
+  await page.reload();
+  await page.getByRole('heading',{name:'Voraussichtlich 24,27 € Nachzahlung',exact:true}).waitFor();
+  report.checks.push('Real login; backdate selects 30ct not later 50ct; lost response after actual commit; real reload/retry yields exactly 3 rates; fixed 15/9/7 day costs 126.19 EUR and balance -24.27 EUR survive reload');
+  await page.getByRole('tab',{name:'Konditionen',exact:true}).click();
+  await page.getByText('Konditionshistorie (3)',{exact:true}).click(); await page.getByText('Ab 1. Jan. 2025',{exact:true}).click();
+  await page.getByRole('button',{name:'Korrigieren',exact:true}).first().click();
+  await page.getByLabel('Abschlag',{exact:true}).fill('0'); await page.getByRole('button',{name:'Änderung prüfen',exact:true}).click();
+  await page.getByRole('button',{name:'Korrektur speichern',exact:true}).click();
+  await page.getByRole('heading',{name:'Konditionen gespeichert',exact:true}).waitFor();
+  await page.getByRole('button',{name:'Aktualisierte Einschätzung ansehen',exact:true}).click();
+  await page.getByRole('tab',{name:'Konditionen',exact:true}).click(); await page.getByText('Konditionshistorie (3)',{exact:true}).click();
+  await page.getByText('Frühere Fassungen und Löschungen',{exact:true}).click();
+  await page.getByText(/Korrigiert · gültig ab/).waitFor(); await shot('live-correction-archive');
+  const revisions=await client.from('condition_revisions').select('*').eq('contract_id',period.id);assert.ifError(revisions.error);assert.equal(revisions.data[0].previous.abschlag,100);
+  await page.getByText('Ab 1. Jan. 2025',{exact:true}).click();
+  await page.getByRole('button',{name:'Löschen',exact:true}).first().click(); await shot('live-delete-gap-confirmation');
+  await page.getByRole('button',{name:'Folgen bestätigen und löschen',exact:true}).click();
+  await page.getByRole('heading',{name:'Konditionen gelöscht',exact:true}).waitFor();
+  await page.getByRole('button',{name:'Aktualisierte Einschätzung ansehen',exact:true}).click();
+  await page.getByText('Preise fehlen. Die Kosten sind noch nicht schätzbar.',{exact:true}).waitFor();
+  await page.reload(); await page.getByText('Preise fehlen. Die Kosten sind noch nicht schätzbar.',{exact:true}).waitFor();
+  report.checks.push('Explicit zero correction persists and archive displays previous 100 EUR; confirmed deletion leaves visible real gap after reload');
+  const gs=await client.rpc('setup_meter',{p_request_id:crypto.randomUUID(),p_payload:{...setup,name:'Prüfzähler Gas Slice 4',type:'gas',period_end:'2026-01-01',arbeitspreis:10,abschlag:130,umrechnungsfaktor:10}});assert.ifError(gs.error);
+  const gp=(await client.from('contracts').select('*').eq('meter_id',gs.data).single()).data;
+  assert.ifError((await addReadings(client, [{meter_id:gs.data,date:'2025-04-01',value:440},{meter_id:gs.data,date:'2026-01-01',value:1000}])).error);
+  assert.ifError((await addRates(client, [{contract_id:gp.id,effective_from:'2025-04-01',grundpreis:10,arbeitspreis:12,abschlag:130,umrechnungsfaktor:10}])).error);
+  assert.ifError((await client.rpc('save_billing_settlement',{p_period_id:gp.id,p_expected_period:{period_start:gp.period_start,period_end:gp.period_end},p_expected_amount:null,p_expected_date:null,p_amount:328,p_date:'2026-02-12'})).error);
+  await page.goto(`http://127.0.0.1:3004/meter/${gs.data}?period=${gp.id}`);
+  await page.getByRole('heading',{name:'328,00 € Erstattung',exact:true}).waitFor(); await page.getByText('Kosten und Abschlag',{exact:true}).click(); await page.getByText('1.232,00 €',{exact:true}).first().waitFor();
+  await page.getByRole('tab',{name:'Konditionen',exact:true}).click(); await page.getByRole('button',{name:'Konditionen ändern',exact:true}).click();
+  await page.getByLabel('Gültig ab',{exact:true}).fill('2025-06-01'); await page.getByLabel('Umrechnungsfaktor',{exact:true}).fill('10,71234567');
+  await page.getByRole('button',{name:'Änderung prüfen',exact:true}).click(); await page.getByRole('button',{name:'Neue Konditionen speichern',exact:true}).click();
+  await page.getByRole('heading',{name:'Konditionen gespeichert',exact:true}).waitFor(); await page.getByRole('button',{name:'Aktualisierte Einschätzung ansehen',exact:true}).click();
+  await page.reload(); await page.getByRole('heading',{name:'328,00 € Erstattung',exact:true}).waitFor();
+  await page.getByRole('tab',{name:'Konditionen',exact:true}).click(); assert(await page.getByText('10,71234567 kWh/m³',{exact:true}).count());
+  assert.equal((await client.from('rates').select('*').eq('contract_id',period.id)).data.length,2);
+  await shot('live-gas-precision-reloaded');
+  report.checks.push('Gas regression 1000m³, 4400*.10 + 5600*.12 + 120 = 1232 EUR and 328 EUR refund; gas-factor change retains precise value and actual settlement after reload; electricity independent');
+
+  const os=await client.rpc('setup_meter',{p_request_id:crypto.randomUUID(),p_payload:{...setup,name:'Offener Prüfzähler',period_start:'2025-11-01',period_end:null,reading_date:'2025-11-01'}}); assert.ifError(os.error);
+  const op=(await client.from('contracts').select('*').eq('meter_id',os.data).single()).data;
+  await page.goto(`http://127.0.0.1:3004/meter/${os.data}?period=${op.id}`);
+  await page.getByRole('button',{name:'Ende festlegen',exact:true}).waitFor();
+  assert(await page.getByText('(ab 01.11.2025 · offen)',{exact:true}).count());
+  await page.getByRole('tab',{name:'Konditionen',exact:true}).click();
+  await page.getByRole('heading',{name:'Aktuell gültig',exact:true}).waitFor(); await shot('open-current');
+  await page.getByRole('button',{name:'Konditionen ändern',exact:true}).click();
+  await page.getByLabel('Gültig ab',{exact:true}).fill('2026-12-01');
+  await page.getByLabel('Abschlag',{exact:true}).fill('115');
+  await page.getByRole('button',{name:'Änderung prüfen',exact:true}).click();
+  await page.getByRole('heading',{name:/Neue Konditionen ab/}).waitFor(); await shot('open-new-conditions-review');
+  await page.getByRole('button',{name:'Neue Konditionen speichern',exact:true}).click();
+  await page.getByRole('heading',{name:'Konditionen gespeichert',exact:true}).waitFor();
+  await page.getByRole('button',{name:'Aktualisierte Einschätzung ansehen',exact:true}).click();
+  await page.getByRole('button',{name:'Ende festlegen',exact:true}).click();
+  await page.getByLabel('Bis einschließlich (optional)',{exact:true}).fill('2026-12-31'); await shot('open-end-edit');
+  await page.getByRole('button',{name:'Zeitraumende speichern',exact:true}).click();
+  await page.getByRole('dialog').waitFor({state:'hidden'});
+  assert(await page.getByText('(01.11.2025 – 31.12.2026)',{exact:true}).count());
+  await page.reload(); await page.getByRole('button',{name:'Ende ändern',exact:true}).click();
+  assert.equal(await page.getByLabel('Bis einschließlich (optional)',{exact:true}).inputValue(),'2026-12-31');
+  await page.getByLabel('Bis einschließlich (optional)',{exact:true}).fill('');
+  await page.getByRole('button',{name:'Zeitraumende speichern',exact:true}).click();
+  await page.getByRole('dialog').waitFor({state:'hidden'}); await page.reload();
+  await page.getByText('(ab 01.11.2025 · offen)',{exact:true}).waitFor();
+  const stored=(await client.from('contracts').select('*,rates(*)').eq('id',op.id).single()).data;
+  assert.equal(stored.period_end,null);assert.equal(stored.rates.find(r=>r.effective_from==='2026-12-01').abschlag,115);
+  report.checks.push('Real open period beyond one year: normal new-condition save for next month, direct inclusive end edit, reload, reopening, unchanged stored future condition');
+  assert.deepEqual(report.errors,[]);
+} finally {
+  await browser?.close(); try{process.kill(-server.pid,'SIGTERM')}catch{}
+  const meters=await client.from('meters').select('id');
+  for(const meter of meters.data||[])assert.ifError((await client.from('meters').delete().eq('id',meter.id)).error);
+  assert.ifError((await admin.auth.admin.deleteUser(account)).error); report.cleanup=true;
+  fs.mkdirSync(path.join(out,'screenshots'),{recursive:true});
+  for(const name of report.screenshots)fs.copyFileSync(path.join(capture,`${name}.png`),path.join(out,'screenshots',`${name}.png`));
+  fs.writeFileSync(path.join(out,'live-browser.json'),JSON.stringify(report,null,2)+'\n');
+}
+console.log(JSON.stringify(report,null,2));

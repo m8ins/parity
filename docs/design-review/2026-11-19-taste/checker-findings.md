@@ -1,0 +1,58 @@
+# Vollständige offene FAIL-Meldungen des Skill-Checkers
+
+Unveränderte Rohmeldungen aus report.json. Keine Meldung wurde durch einen Waiver als bestanden umgedeutet. Einordnung im README; der Review ändert keine Anwendung. Die Zahl im Gesamtlog kann zusätzliche Narrow-/Sonderläufe enthalten.
+
+- **1440px · shader-lint** · app/error.js — a shader uses "__webpack_require__" as a name (line 1: __webpack_require__.r(__webpack_exports__);): GLSL ES reserves it, so a strict GPU rejects the whole shader and the picture stays empty
+- **1440px · shader-lint** · app/error.js — a shader uses "__webpack_exports__" as a name (line 1: __webpack_require__.r(__webpack_exports__);): GLSL ES reserves it, so a strict GPU rejects the whole shader and the picture stays empty
+- **1440px · shader-lint** · app/error.js — a shader uses "__proto__" as a name (line 568: __proto__: null,): GLSL ES reserves it, so a strict GPU rejects the whole shader and the picture stays empty
+- **1440px · shader-lint** · app/error.js — a shader uses "double" as a name (line 665: const scaleLineStyle = () => ['solid', 'dashed', 'dotted', 'double'];): GLSL ES reserves it, so a strict GPU rejects the whole shader and the picture stays empty
+- **1440px · shader-lint** · app/error.js — a shader uses "inline" as a name (line 761: display: ['block', 'inline-block', 'inline', 'flex', 'inline-flex', 'table', 'inline-table): GLSL ES reserves it, so a strict GPU rejects the whole shader and the picture stays empty
+- **1440px · shader-lint** · app/error.js — a shader uses "static" as a name (line 846: position: ['static', 'fixed', 'absolute', 'relative', 'sticky'],): GLSL ES reserves it, so a strict GPU rejects the whole shader and the picture stays empty
+- **1440px · shader-lint** · app/error.js — a shader uses "fixed" as a name (line 846: position: ['static', 'fixed', 'absolute', 'relative', 'sticky'],): GLSL ES reserves it, so a strict GPU rejects the whole shader and the picture stays empty
+- **1440px · shader-lint** · app/error.js — a shader uses "filter" as a name (line 2320: filter: [{): GLSL ES reserves it, so a strict GPU rejects the whole shader and the picture stays empty
+- **1440px · hero-fill** · main.parity-page > details.design-panel.mt-8 — the next section shows on the first screen: it starts at 799px on a 900px screen (the hero ends at 767px)
+- **1440px · flush** · main.parity-page > div.grid.grid-cols-1 > div.bg-card.text-card-foreground:nth-of-type(1) — its last line sits 0px above the lower edge of div.grid.grid-cols-1, where the ground changes to details.design-panel.mt-8
+- **1440px · no-visual** · main.parity-page > div.grid.grid-cols-1 — no picture, effect or mock in this section; a feature section needs a visual
+- **1440px · cta** · main.parity-page > details.design-panel.mt-8 — the last section before the footer ends with no button
+- **1440px · heading-scale** · div.bg-card.text-card-foreground:nth-of-type(1) > div.px-6.flex-1 > div.meter-reading-summary > strong.meter-reading-number.numeric — the figure "24.398,2 kWh" is set at 36px, larger than the h1 (32px) (and 1 more like it: "8.412,365 m³")
+- **1440px · off-grid** · main.parity-page > details.design-panel.mt-8 > summary.cursor-pointer.py-3 — left edge at 129px, 17px off the page margin at 112px (4 elements, like div.bg-card.text-card-foreground:nth-of-type(1))
+- **1440px · heading-order** · div.bg-card.text-card-foreground:nth-of-type(1) > div.auto-rows-min.gap-2:nth-of-type(1) > div.flex.min-w-0 > h3.leading-none.min-w-0 — "Strom · Keller" is an h3 after an h1: a level is skipped
+- **1440px · focus-ring** · .parity-input-group .parity-input:focus-visible — ".parity-input-group .parity-input:focus-visible" in layout.css?v=1795100474002 removes the focus outline and sets nothing in its place
+- **1440px · focus-visible** · div.bg-card.text-card-foreground:nth-of-type(1) > div.px-6.flex-1:nth-of-type(2) > div.meter-reading-summary > strong.meter-reading-number.numeric — Tab stop 4, strong "Letzter Zählerstand 24.398,2 kWh": its focus change is faint: 2.5:1 against the ground, 3:1 needed
+- **1440px · hero-screen** · main.parity-page > h1 — the hero ends at 234px on a 900px screen, 666px above the fold: it ends at the fold, 1px either way (SR-1)
+- **1440px · hero-screen** · main.parity-page > p.page-intro — 658px of the next section shows on the first screen (from 242px on a 900px screen): nothing below the hero shows at load (SR-1)
+- **1440px · section-height** · main.parity-page > p.page-intro — the section is 27px tall (0 screens), 873px short of one screen (900px): every section after the hero is one screen or two, 2px either way (SR-2)
+- **1440px · section-height** · main.parity-page > details.design-panel.mt-8 — the section is 47px tall (0.1 screens), 853px short of one screen (900px): every section after the hero is one screen or two, 2px either way (SR-2)
+- **1440px · section-height** · main.parity-page > div.grid.grid-cols-1 — the section is 466px tall (0.5 screens), 434px short of one screen (900px): every section after the hero is one screen or two, 2px either way (SR-2)
+- **1440px · section-height** · main.parity-page > div.grid.grid-cols-1 — the section starts at 301px, 301px below the screen grid (0 x 900px): sections start on whole screens (SR-2)
+- **1440px · section-height** · main.parity-page > p.page-intro — the section starts at 242px, 242px below the screen grid (0 x 900px): sections start on whole screens (SR-2)
+- **1440px · section-height** · main.parity-page > h1 — the section starts at 196px, 196px below the screen grid (0 x 900px): sections start on whole screens (and 1 more like it: "Designvorschau (Entwickl") (SR-2)
+- **1440px · section-height** · main.parity-page > div.grid.grid-cols-1 — the section's content does not fit it: its lowest content ends 466px below its top, past 394px (the section less 72px of bottom padding) (SR-2)
+- **1440px · section-height** · main.parity-page > details.design-panel.mt-8 — the section's content does not fit it: its lowest content ends 33px below its top, past -25px (the section less 72px of bottom padding) (SR-2)
+- **1440px · section-air** · main.parity-page > div.grid.grid-cols-1 / main.parity-page > details.design-panel.mt-8 — 44px of air between the content of these two sections: 128-480px (64-600px WARN) (SR-3)
+- **1440px · section-air** · main.parity-page > p.page-intro — the section shows no content: its content fills 0% of its 27px (55% or more) (SR-3)
+- **1440px · one-section** · main.parity-page > details.design-panel.mt-8 — the screen at scroll 0px (stride 0) shows 47px of section 4 beside section 3: a screen shows one section (another may peek 8px, 24px WARN) (SR-4)
+- **1440px · one-section** · main.parity-page > h1 — a <h1> sits directly in <main>: every part of <main> is a <section> (SR-4)
+- **1440px · one-section** · main.parity-page > p.page-intro — a <p> sits directly in <main>: every part of <main> is a <section> (SR-4)
+- **1440px · one-section** · main.parity-page > div.grid.grid-cols-1 — a <div> sits directly in <main>: every part of <main> is a <section> (and 1 more like it: "Designvorschau (Entwickl") (SR-4)
+- **1440px · container-edges** · header.parity-header — the nav's content runs 32px from the left and 1347px from the right (read from its outermost blocks: no .wrap): the page's container starts at 112px; 32 and 1347px are not one margin; the margin is 64-120px at 1440px (one container, equal margins, 2px either way) (SR-6)
+- **1440px · container-edges** · header.parity-header — a <header> at the top of the page, outside header.nav, main, footer.closing and nav.actionbar (SR-6)
+- **1440px · container-edges** · p.parity-page.text-sm — a <p> at the top of the page, outside header.nav, main, footer.closing and nav.actionbar (SR-6)
+- **1440px · container-edges** · main.parity-page > h1 — the section needs exactly one in-flow child .wrap (it has 0 in-flow children, 0 .wrap) (and 3 more like it: "Zähler finden, Stand erf", "Strom · KellerLetzter Zä", "Designvorschau (Entwickl") (SR-6)
+- **1440px · container-edges** · header.parity-header > div > div.flex.items-center > a — "Parity" runs 32-93px, outside the container lines of the nav at 112-1328px: full width is for background layers and grounds only (SR-6)
+- **1440px · container-edges** · div.px-6.flex-1 > section.understand.understand-compact > div.understand-result.understand-result-due > h2.numeric — the h2 starts 26px right of the container's left: every h1 and h2 starts on it, 2px either way (SR-6)
+- **1024px · flush** · main.parity-page > div.grid.grid-cols-1 > div.bg-card.text-card-foreground:nth-of-type(1) — its last line sits 0px above the lower edge of div.grid.grid-cols-1, where the ground changes to details.design-panel.mt-8
+- **1024px · no-visual** · main.parity-page > div.grid.grid-cols-1 — no picture, effect or mock in this section; a feature section needs a visual
+- **1024px · cta** · main.parity-page > details.design-panel.mt-8 — the last section before the footer ends with no button
+- **1024px · heading-scale** · div.bg-card.text-card-foreground:nth-of-type(1) > div.px-6.flex-1 > div.meter-reading-summary > strong.meter-reading-number.numeric — the figure "24.398,2 kWh" is set at 36px, larger than the h1 (31px) (and 1 more like it: "8.412,365 m³")
+- **1024px · off-grid** · main.parity-page > details.design-panel.mt-8 > summary.cursor-pointer.py-3 — left edge at 45px, 17px off the page margin at 28px (5 elements)
+- **768px · no-visual** · main.parity-page > div.grid.grid-cols-1 — no picture, effect or mock in this section; a feature section needs a visual
+- **768px · cta** · main.parity-page > details.design-panel.mt-8 — the last section before the footer ends with no button
+- **768px · heading-scale** · div.bg-card.text-card-foreground:nth-of-type(1) > div.px-6.flex-1 > div.meter-reading-summary > strong.meter-reading-number.numeric — the figure "24.398,2 kWh" is set at 36px, larger than the h1 (29.9px) (and 1 more like it: "8.412,365 m³")
+- **768px · off-grid** · main.parity-page > details.design-panel.mt-8 > summary.cursor-pointer.py-3 — left edge at 40.5px, 16.5px off the page margin at 24px (6 elements, like button.add-meter)
+- **390px · hero-fill** · main.parity-page > div.grid.grid-cols-1 — the next section shows on the first screen: it starts at 288px on a 844px screen (the hero ends at 256px)
+- **390px · no-visual** · main.parity-page > div.grid.grid-cols-1 — no picture, effect or mock in this section; a feature section needs a visual
+- **390px · cta** · main.parity-page > p.page-intro — the hero has no button (the nav's does not count)
+- **390px · cta** · main.parity-page > details.design-panel.mt-8 — the last section before the footer ends with no button
+- **390px · heading-scale** · div.bg-card.text-card-foreground:nth-of-type(1) > div.px-6.flex-1 > div.meter-reading-summary > strong.meter-reading-number.numeric — the figure "24.398,2 kWh" is set at 32px, larger than the h1 (28.1px) (and 1 more like it: "8.412,365 m³")
+- **390px · off-grid** · main.parity-page > details.design-panel.mt-8 > summary.cursor-pointer.py-3 — left edge at 33.5px, 16.5px off the page margin at 17px (7 elements, like button.add-meter)

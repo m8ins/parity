@@ -1,0 +1,13 @@
+npm notice run parity@0.1.0 test
+npm notice run vitest --run src/lib/calculations.test.ts src/lib/understanding.test.ts
+
+ RUN  v4.0.16 /Users/martin/git/parity
+
+ ✓ src/lib/calculations.test.ts (9 tests) 22ms
+ ✓ src/lib/understanding.test.ts (8 tests) 20ms
+
+ Test Files  2 passed (2)
+      Tests  17 passed (17)
+   Start at  08:22:09
+   Duration  489ms (transform 62ms, setup 111ms, import 51ms, tests 41ms, environment 625ms)
+

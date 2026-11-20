@@ -1,0 +1,70 @@
+{
+ "url": "http://127.0.0.1:3010/design/integration?view=overview",
+ "views": {
+  "desktop": {
+   "width": 1440,
+   "height": 900,
+   "navH": 0,
+   "scrollHeight": 900,
+   "screens": 1,
+   "sections": [
+    {
+     "n": 1,
+     "tag": "div",
+     "id": "",
+     "cls": "grid grid-cols-1 gap-6 md:grid-cols-2 ",
+     "top": 242,
+     "h": 438,
+     "hScreens": 0.49,
+     "offGrid": 438,
+     "tiles": [
+      {
+       "file": "desktop-sec-01-a.jpg",
+       "scrollY": 0,
+       "cutTop": 242,
+       "height": 438
+      }
+     ]
+    },
+    {
+     "n": 2,
+     "tag": "div",
+     "id": "",
+     "cls": "meter-add-action",
+     "top": 713,
+     "h": 56,
+     "hScreens": 0.06,
+     "offGrid": 56,
+     "tiles": [
+      {
+       "file": "desktop-sec-02-a.jpg",
+       "scrollY": 0,
+       "cutTop": 713,
+       "height": 56
+      }
+     ]
+    },
+    {
+     "n": 3,
+     "tag": "details",
+     "id": "",
+     "cls": "design-panel mt-8 text-sm",
+     "top": 801,
+     "h": 47,
+     "hScreens": 0.05,
+     "offGrid": 47,
+     "tiles": [
+      {
+       "file": "desktop-sec-03-a.jpg",
+       "scrollY": 0,
+       "cutTop": 801,
+       "height": 47
+      }
+     ]
+    }
+   ],
+   "consoleErrors": []
+  }
+ },
+ "at": "2026-11-19T15:19:16.818Z"
+}

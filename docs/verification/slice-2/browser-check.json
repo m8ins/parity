@@ -1,0 +1,65 @@
+{
+  "checks": [
+    "Saved setup with failed overview response: explicit recovery message, setup CTA hidden, successful list retry restores overview",
+    "Desktop: empty entry, step validation/focus, arbitrary period, explicit zero, full decimal precision, pending double click lock, retained retry after reload, stable request and explicit success dismissal",
+    "Mobile gas: explicit factor, m³, preserved back/continue, Escape discard confirmation, 320px + 200% text, reduced-height viewport, reduced motion"
+  ],
+  "screenshots": [
+    "desktop-empty",
+    "desktop-identity",
+    "desktop-validation",
+    "desktop-period-top",
+    "desktop-period-bottom",
+    "desktop-review",
+    "desktop-pending",
+    "desktop-retry",
+    "desktop-success",
+    "desktop-overview-reload-error",
+    "mobile-gas-period-top",
+    "mobile-gas-period-bottom",
+    "mobile-gas-review",
+    "mobile-discard",
+    "mobile-gas-200percent",
+    "mobile-gas-200percent-bottom",
+    "mobile-review-200percent",
+    "mobile-review-200percent-bottom",
+    "mobile-reduced-height"
+  ],
+  "errors": [],
+  "requests": [
+    {
+      "p_request_id": "c680f64c-068a-480d-bdb0-9fce161f70ef",
+      "p_payload": {
+        "name": "Wohnung Strom",
+        "type": "electricity",
+        "provider": "Stadtwerke Beispiel",
+        "period_start": "2025-03-01",
+        "period_end": "2025-07-01",
+        "grundpreis": 12.5,
+        "arbeitspreis": 32.456,
+        "abschlag": 0,
+        "umrechnungsfaktor": 1,
+        "reading_date": "2025-03-01",
+        "reading_value": 12345.6789
+      }
+    },
+    {
+      "p_request_id": "c680f64c-068a-480d-bdb0-9fce161f70ef",
+      "p_payload": {
+        "name": "Wohnung Strom",
+        "type": "electricity",
+        "provider": "Stadtwerke Beispiel",
+        "period_start": "2025-03-01",
+        "period_end": "2025-07-01",
+        "grundpreis": 12.5,
+        "arbeitspreis": 32.456,
+        "abschlag": 0,
+        "umrechnungsfaktor": 1,
+        "reading_date": "2025-03-01",
+        "reading_value": 12345.6789
+      }
+    }
+  ],
+  "limitations": "Synthetic HTTP responses; live persistence, RLS and lost-response verification in separate live-integration/live-browser reports. Chromium, no physical mobile keyboard or screen reader.",
+  "passed": true
+}

@@ -10,6 +10,7 @@ export interface Meter {
   updated_at: string;
 }
 
+// Historical storage name: this is a billing period, not a separate contract entity.
 export interface Contract {
   id: string;
   meter_id: string;

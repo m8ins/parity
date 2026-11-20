@@ -1,0 +1,237 @@
+{
+  "viewportChecks": [
+    {
+      "width": 320,
+      "meter": "electricity",
+      "view": "a",
+      "longAndShortValuesFit": true
+    },
+    {
+      "width": 320,
+      "meter": "electricity",
+      "view": "b",
+      "longAndShortValuesFit": true
+    },
+    {
+      "width": 320,
+      "meter": "gas",
+      "view": "a",
+      "longAndShortValuesFit": true
+    },
+    {
+      "width": 320,
+      "meter": "gas",
+      "view": "b",
+      "longAndShortValuesFit": true
+    },
+    {
+      "width": 390,
+      "meter": "electricity",
+      "view": "a",
+      "longAndShortValuesFit": true
+    },
+    {
+      "width": 390,
+      "meter": "electricity",
+      "view": "b",
+      "longAndShortValuesFit": true
+    },
+    {
+      "width": 390,
+      "meter": "gas",
+      "view": "a",
+      "longAndShortValuesFit": true
+    },
+    {
+      "width": 390,
+      "meter": "gas",
+      "view": "b",
+      "longAndShortValuesFit": true
+    },
+    {
+      "width": 768,
+      "meter": "electricity",
+      "view": "a",
+      "longAndShortValuesFit": true
+    },
+    {
+      "width": 768,
+      "meter": "electricity",
+      "view": "b",
+      "longAndShortValuesFit": true
+    },
+    {
+      "width": 768,
+      "meter": "gas",
+      "view": "a",
+      "longAndShortValuesFit": true
+    },
+    {
+      "width": 768,
+      "meter": "gas",
+      "view": "b",
+      "longAndShortValuesFit": true
+    },
+    {
+      "width": 1280,
+      "meter": "electricity",
+      "view": "a",
+      "longAndShortValuesFit": true
+    },
+    {
+      "width": 1280,
+      "meter": "electricity",
+      "view": "b",
+      "longAndShortValuesFit": true
+    },
+    {
+      "width": 1280,
+      "meter": "gas",
+      "view": "a",
+      "longAndShortValuesFit": true
+    },
+    {
+      "width": 1280,
+      "meter": "gas",
+      "view": "b",
+      "longAndShortValuesFit": true
+    }
+  ],
+  "interactions": [
+    "No redundant default hint in either variant",
+    "Both error outlines are solid 3px red with linked error text",
+    "Saving buttons are disabled with muted text and solid outlines",
+    "Both fields: pointer focus white without ring; typing keeps pointer styling; Tab adds ring; red errors remain, at 390/1280 in A/B",
+    "Keyboard: date → reading → save; visible focus",
+    "Variant A uses 70ms press, 110ms release, pronounced ease-out",
+    "During save both inputs are read-only; typing cannot replace the validated value",
+    "Actual press → saving → saved",
+    "Gas independent; German decimal precision; reload resets",
+    "Empty, repeated comma, negative, incorrect grouping and excess precision rejected",
+    "Future and invalid dates rejected against fixed demo date",
+    "Storage failure → retry → simulated success",
+    "Reduced motion removes transitions; static pressed state remains visible"
+  ],
+  "fontChecks": [
+    {
+      "family": "Atkinson",
+      "weight": 400,
+      "loaded": true,
+      "widths": [
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125
+      ],
+      "tabular": true
+    },
+    {
+      "family": "Atkinson",
+      "weight": 600,
+      "loaded": true,
+      "widths": [
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125
+      ],
+      "tabular": true
+    },
+    {
+      "family": "Atkinson",
+      "weight": 700,
+      "loaded": true,
+      "widths": [
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125
+      ],
+      "tabular": true
+    },
+    {
+      "family": "Nunito",
+      "weight": 400,
+      "loaded": true,
+      "widths": [
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24
+      ],
+      "tabular": true
+    },
+    {
+      "family": "Nunito",
+      "weight": 600,
+      "loaded": true,
+      "widths": [
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24
+      ],
+      "tabular": true
+    },
+    {
+      "family": "Nunito",
+      "weight": 700,
+      "loaded": true,
+      "widths": [
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24
+      ],
+      "tabular": true
+    }
+  ],
+  "errors": [],
+  "external": [],
+  "contrasts": {
+    "textOnCream": 7.640009930030389,
+    "secondaryOnWorkbench": 4.665611348050133,
+    "secondaryOnCream": 5.506869314209512,
+    "button": 5.831562607731589,
+    "textOnDevice": 8.191185414969548,
+    "errorOnDevice": 6.739479545143985,
+    "errorOnInput": 6.774094047817239,
+    "savingButton": 5.386005580080372
+  }
+}

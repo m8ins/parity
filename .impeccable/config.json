@@ -1,0 +1,35 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "design-explorations/meter-reading/tokens.html"
+        ],
+        "createdAt": "2026-11-15T15:37:25.553Z",
+        "reason": "Agent verified: the isolated typography specimen uses semantic CSS font shorthands; tokens-check.json measures title 28px, section 22px and body 18px, while the static detector incorrectly reports 16px for all roles."
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "design-explorations/meter-reading/tokens.html"
+        ],
+        "createdAt": "2026-11-15T15:37:25.623Z",
+        "reason": "User confirmed: Dad’s old wallet palette with #3B465C and #E9E8D4 is the explicitly requested and approved visual direction; this isolated specimen documents that palette."
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "design-explorations/meter-reading/tokens.html"
+        ],
+        "createdAt": "2026-11-15T15:44:29.556Z",
+        "reason": "Agent verified in rendered browser: both .samples panels have token-based padding on all four sides of 16px at 320px, 24px at 390px and 32px at 768/1280px. Child insets including border are 18/26/34px. Evidence: design-explorations/meter-reading/padding-check.json; static token resolution falsely reports no inset."
+      }
+    ]
+  }
+}

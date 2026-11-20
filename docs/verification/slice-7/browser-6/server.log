@@ -1,0 +1,29 @@
+npm notice run parity@0.1.0 dev
+npm notice run next dev --webpack --hostname 127.0.0.1 --port 3008
+▲ Next.js 16.1.1 (webpack)
+- Local:         http://127.0.0.1:3008
+- Network:       http://127.0.0.1:3008
+
+✓ Starting...
+✓ Ready in 995ms
+ GET / 200 in 2.9s (compile: 2.7s, render: 126ms)
+ GET /meter/344784d8-6839-4498-92e6-6ec5d996b760?period=c41704a8-dc8f-42b2-b97f-6caee0ae5658 200 in 1446ms (compile: 1352ms, render: 94ms)
+ GET /meter/344784d8-6839-4498-92e6-6ec5d996b760?period=c41704a8-dc8f-42b2-b97f-6caee0ae5658 200 in 179ms (compile: 4ms, render: 175ms)
+ GET /meter/344784d8-6839-4498-92e6-6ec5d996b760?period=c41704a8-dc8f-42b2-b97f-6caee0ae5658 200 in 90ms (compile: 3ms, render: 87ms)
+ GET /meter/344784d8-6839-4498-92e6-6ec5d996b760?period=c41704a8-dc8f-42b2-b97f-6caee0ae5658 200 in 97ms (compile: 11ms, render: 86ms)
+ GET /meter/344784d8-6839-4498-92e6-6ec5d996b760?period=c37ad849-e889-41be-819e-2762cd5c2918 200 in 60ms (compile: 5ms, render: 55ms)
+ GET /meter/344784d8-6839-4498-92e6-6ec5d996b760?period=c37ad849-e889-41be-819e-2762cd5c2918 200 in 64ms (compile: 1491µs, render: 62ms)
+ GET /meter/344784d8-6839-4498-92e6-6ec5d996b760?period=c41704a8-dc8f-42b2-b97f-6caee0ae5658 200 in 47ms (compile: 4ms, render: 43ms)
+ GET / 200 in 45ms (compile: 8ms, render: 37ms)
+ GET / 200 in 84ms (compile: 2ms, render: 82ms)
+ GET / 200 in 76ms (compile: 2ms, render: 74ms)
+ GET /meter/344784d8-6839-4498-92e6-6ec5d996b760 200 in 43ms (compile: 2ms, render: 40ms)
+ GET /meter/344784d8-6839-4498-92e6-6ec5d996b760 200 in 100ms (compile: 6ms, render: 94ms)
+ GET /meter/344784d8-6839-4498-92e6-6ec5d996b760 200 in 96ms (compile: 13ms, render: 83ms)
+ GET / 200 in 41ms (compile: 1354µs, render: 40ms)
+ GET / 200 in 76ms (compile: 1677µs, render: 74ms)
+ GET / 200 in 37ms (compile: 1634µs, render: 35ms)
+ GET / 200 in 39ms (compile: 1454µs, render: 38ms)
+ GET /meter/344784d8-6839-4498-92e6-6ec5d996b760 200 in 37ms (compile: 3ms, render: 33ms)
+ GET /meter/ungueltig 200 in 35ms (compile: 3ms, render: 32ms)
+ GET /contract/c41704a8-dc8f-42b2-b97f-6caee0ae5658 200 in 570ms (compile: 458ms, render: 112ms)

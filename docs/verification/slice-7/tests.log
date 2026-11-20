@@ -1,0 +1,486 @@
+npm notice run parity@0.1.0 test
+npm notice run vitest --run
+
+ RUN  v4.0.16 /Users/martin/git/parity
+
+stderr | src/components/__tests__/period-details.test.tsx > Period details writes > confirms the server row through the account-checked RPC with an expected snapshot
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+
+stderr | src/components/__tests__/period-details.test.tsx > Period details writes > confirms the server row through the account-checked RPC with an expected snapshot
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+
+ ✓ src/components/__tests__/period-understanding.test.tsx (9 tests) 1470ms
+     ✓ names the observation interval, assumption and payment basis without claiming actual payments  436ms
+     ✓ switches periods independently of all-meter reading history and preserves management access  670ms
+ ✓ src/components/__tests__/reading-flow.test.tsx (2 tests) 1391ms
+     ✓ writes only meter 0, displays the returned reading and reloads through the existing loader  918ms
+     ✓ writes only meter 1, displays the returned reading and reloads through the existing loader  470ms
+stderr | src/components/__tests__/period-details.test.tsx > Period details writes > keeps edits after a conflict and retries the same absolute target and snapshot
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+
+stderr | src/components/__tests__/period-details.test.tsx > Period details writes > keeps edits after a conflict and retries the same absolute target and snapshot
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+
+ ✓ src/components/__tests__/period-end.test.tsx (4 tests) 1846ms
+     ✓ shows a truly open period with an obvious end action and permits a future condition  1095ms
+     ✓ prevents duplicate sends and protects cancelling edited input  316ms
+ ✓ src/components/__tests__/meter-management.test.tsx (6 tests) 1900ms
+     ✓ gibt nach Menü → Entfernen → Abbrechen den Fokus zurück und erlaubt erneutes Öffnen  1079ms
+     ✓ erhält den Namen nach Fehler, sperrt während Retry und bestätigt nur gespeicherten Namen  338ms
+ ✓ src/components/__tests__/contract-form.test.tsx (7 tests) 2244ms
+     ✓ tabs from name to meter type and keeps cancel quieter than back  712ms
+     ✓ supports gas and requires a deliberate conversion factor  418ms
+ ✓ src/components/__tests__/period-details.test.tsx (2 tests) 2217ms
+     ✓ confirms the server row through the account-checked RPC with an expected snapshot  1360ms
+     ✓ keeps edits after a conflict and retries the same absolute target and snapshot  856ms
+ ✓ src/components/__tests__/setup-overview.test.tsx (1 test) 529ms
+     ✓ shows a concrete reload action and prevents another setup while the saved meter list cannot be confirmed  527ms
+ ✓ src/components/__tests__/design-followup.test.tsx (5 tests) 1186ms
+     ✓ führt aus dem sichtbaren Ergebnis zum tatsächlichen Zähler und Zeitraum, vor dem letzten Stand  366ms
+     ✓ öffnet aus der kompakten Hinzufügen-Aktion weiterhin die geschützte Einrichtung  386ms
+ ✓ src/components/__tests__/card-chart.test.tsx (5 tests) 574ms
+     ✓ zeigt die Kurve vor dem finanziellen Ergebnis und hält die Grafik außerhalb des Links bedienbar  441ms
+stderr | src/components/__tests__/reading-dialog.test.tsx > ReadingDialog > protects changed inputs on Escape and allows continuing or discarding
+An update to FocusScope inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to Presence inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to Presence inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to DismissableLayer inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to Presence inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ForwardRef inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to Presence inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to Presence inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to FocusScope inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to Presence inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to Presence inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to DismissableLayer inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to Presence inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to Presence inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to FocusScope inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to Presence inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to Presence inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to DismissableLayer inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to DismissableLayer inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to DismissableLayer inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to FocusScope inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to Presence inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to Presence inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to DismissableLayer inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to FocusScope inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to Presence inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to Presence inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to DismissableLayer inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to FocusScope inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to Presence inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to Presence inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to DismissableLayer inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to FocusScope inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to Presence inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to Presence inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to DismissableLayer inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/components/__tests__/reading-dialog.test.tsx > ReadingDialog > protects changed inputs on Escape and allows continuing or discarding
+A component suspended inside an `act` scope, but the `act` call was not awaited. When testing React components that depend on asynchronous data, you must await the result:
+
+await act(() => ...)
+
+Not implemented: navigation to another Document
+Not implemented: navigation to another Document
+ ✓ src/components/__tests__/account-session.test.tsx (5 tests) 1094ms
+     ✓ sperrt eine zweite Abmeldung während Pending  813ms
+ ✓ src/components/__tests__/setup-confirmation.test.tsx (2 tests) 914ms
+     ✓ only explains discarding unsaved input before any save attempt  716ms
+ ✓ src/components/__tests__/auth-screen.test.tsx (8 tests) 3990ms
+     ✓ fordert einen Code an und bestätigt ihn mit derselben E-Mail  763ms
+     ✓ behält Passwort-Eingaben nach einem Fehler und erlaubt Wiederholen  553ms
+     ✓ sperrt Felder, Wechsel und Mehrfachübermittlung während der Anmeldung  334ms
+     ✓ prüft Passwortbestätigung und erhält Fehler bei fehlgeschlagener Speicherung  820ms
+     ✓ erklärt eine abgelaufene Sitzung ohne Erfolg und erhält die Passworteingaben  627ms
+     ✓ entfernt Passwortentwürfe auch beim expliziten Schließen  446ms
+ ✓ src/components/__tests__/billing-actions.test.tsx (15 tests) 4249ms
+     ✓ offers two native radio segments and a trailing currency addon  454ms
+     ✓ records Erstattung without typing a sign and preserves precision  425ms
+     ✓ records Nachzahlung without typing a sign and preserves precision  368ms
+     ✓ prefills a correction without marking it dirty; protects real changes  316ms
+     ✓ uses transition conditions and presents later dates without requiring settlement  317ms
+     ✓ blocks double submission and closing, then recovers the same request after remount  449ms
+ ✓ src/components/__tests__/management-routes.test.tsx (11 tests) 407ms
+ ✓ src/lib/understanding.test.ts (8 tests) 75ms
+ ✓ src/lib/calculations.test.ts (9 tests) 102ms
+ ✓ src/lib/contracts.test.ts (4 tests) 35ms
+ ✓ src/lib/billing-period.test.ts (3 tests) 17ms
+ ✓ src/lib/conditions.test.ts (15 tests) 23ms
+ ✓ src/lib/date-utils.test.ts (4 tests) 33ms
+ ✓ src/components/__tests__/forecast-empty.test.tsx (2 tests) 77ms
+ ✓ src/lib/readings.test.ts (4 tests) 22ms
+ ✓ src/lib/billing-actions.test.ts (7 tests) 16ms
+ ✓ src/lib/meter-management.test.ts (6 tests) 10ms
+ ✓ src/components/__tests__/contract-interactions.test.tsx (2 tests) 186ms
+ ✓ src/lib/meter-setup.test.ts (3 tests) 5ms
+ ✓ src/components/__tests__/reading-dialog.test.tsx (20 tests) 5393ms
+     ✓ prefills electricity with the last recorded value 24681.7 without marking it as an edit  761ms
+     ✓ prefills gas with the last recorded value 8412.365123 without marking it as an edit  342ms
+     ✓ prefills electricity with the last recorded value 0 without marking it as an edit  310ms
+     ✓ keeps values after a failed request and permits retry  304ms
+     ✓ protects changed inputs on Abbrechen and allows continuing or discarding  503ms
+     ✓ protects changed inputs on Escape and allows continuing or discarding  421ms
+     ✓ restores the identical locked reading request after remount and never changes its UUID  362ms
+ ✓ src/components/__tests__/rate-history.test.tsx (17 tests) 6127ms
+     ✓ starts with quiet current values and closed history  358ms
+     ✓ prefills real editable values from the selected past date, preserving the later rate  956ms
+     ✓ changes only Grundpreis and retains an explicit zero  328ms
+     ✓ changes only Arbeitspreis and retains an explicit zero  302ms
+     ✓ changes only Abschlag and retains an explicit zero  365ms
+     ✓ preserves precision for several gas values and does not confuse empty with zero  1062ms
+     ✓ requires an explicit date rebase or preserves changed inputs, and protects discard  439ms
+     ✓ blocks double submission, closing and field changes while pending  335ms
+     ✓ recovers the exact unconfirmed request after a real component remount  614ms
+
+ Test Files  28 passed (28)
+      Tests  186 passed (186)
+   Start at  22:05:57
+   Duration  7.15s (transform 1.52s, setup 1.45s, import 10.16s, tests 36.13s, environment 11.15s)
+

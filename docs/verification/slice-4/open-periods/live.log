@@ -1,0 +1,15 @@
+{
+  "source": "Real local Supabase Auth/PostgREST/PostgreSQL, no mocks",
+  "checks": [
+    "Eight parallel retries create exactly one backdated change and preserve the later snapshot",
+    "Changed request payload and stale expected history are rejected",
+    "Before/start duplicate/end/after boundaries checked; known future changes are permitted",
+    "Second account cannot read or change household rows; receipts and archive writes are private",
+    "Historical settled start correction retains original values and leaves recorded settlement unchanged",
+    "Delete archives original, permits an explicit gap, retries exactly once, and old replay returns current history",
+    "Fresh authenticated client reads electricity and gas independently with zero and full factor precision",
+    "Failed correction rolls back archive and receipt; anonymous execution denied",
+    "Open end stays NULL after a new condition beyond one year; inclusive-end boundary persists, identical end retry is a no-op, stale/invalid/foreign/overlapping edits are rejected, reopening persists"
+  ],
+  "cleanup": true
+}

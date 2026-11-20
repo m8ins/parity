@@ -1,0 +1,335 @@
+{
+  "checks": [
+    "Password and code paths: labels, pending lock, errors retain values, method/email switch; mocked HTTP only",
+    "desktop: header/account/profile, creation electricity/gas/popover/error, rename, chart/table, details/edit/error, period select, rollover/error, settlement/error, readings, rates/error/gas",
+    "mobile: header/account/profile, creation electricity/gas/popover/error, rename, chart/table, details/edit/error, period select, rollover/error, settlement/error, readings, rates/error/gas",
+    "320px 200%+spacing overview: no document overflow; action scrollable where applicable",
+    "320px 200%+spacing create: no document overflow; action scrollable where applicable",
+    "320px 200%+spacing profile: no document overflow; action scrollable where applicable",
+    "320px 200%+spacing rollover: no document overflow; action scrollable where applicable",
+    "320px 200%+spacing settlement: no document overflow; action scrollable where applicable",
+    "320px 200%+spacing rates: no document overflow; action scrollable where applicable",
+    "320px login/detail at 200% text and spacing; system dark retains supported light palette; reduced motion capture"
+  ],
+  "screenshots": [
+    "desktop-login-code",
+    "desktop-login-password",
+    "desktop-login-pending",
+    "desktop-login-error",
+    "desktop-login-code-entry",
+    "desktop-login-code-error",
+    "mobile-login",
+    "desktop-overview",
+    "desktop-account-menu",
+    "desktop-profile",
+    "desktop-profile-error",
+    "desktop-profile-pending",
+    "desktop-profile-save-error",
+    "desktop-profile-success",
+    "desktop-create-meter",
+    "desktop-create-gas",
+    "desktop-gas-distribution",
+    "desktop-create-pending",
+    "desktop-create-error",
+    "desktop-rename",
+    "desktop-monthly-table",
+    "desktop-detail",
+    "desktop-period-select",
+    "desktop-detail-edit",
+    "desktop-detail-error",
+    "desktop-rollover",
+    "desktop-rollover-pending",
+    "desktop-rollover-error",
+    "desktop-settlement",
+    "desktop-settlement-pending",
+    "desktop-settlement-error",
+    "desktop-readings",
+    "desktop-rates",
+    "desktop-rates-pending",
+    "desktop-rates-error",
+    "desktop-gas-rates",
+    "mobile-overview",
+    "mobile-account-menu",
+    "mobile-profile",
+    "mobile-profile-error",
+    "mobile-profile-save-error",
+    "mobile-profile-success",
+    "mobile-create-meter",
+    "mobile-create-gas",
+    "mobile-gas-distribution",
+    "mobile-create-error",
+    "mobile-rename",
+    "mobile-monthly-table",
+    "mobile-detail",
+    "mobile-period-select",
+    "mobile-detail-edit",
+    "mobile-detail-error",
+    "mobile-rollover",
+    "mobile-rollover-error",
+    "mobile-settlement",
+    "mobile-settlement-error",
+    "mobile-readings",
+    "mobile-rates",
+    "mobile-rates-error",
+    "mobile-gas-rates",
+    "mobile-login-200percent",
+    "mobile-detail-200percent",
+    "mobile-overview-200percent",
+    "mobile-create-200percent",
+    "mobile-profile-200percent",
+    "mobile-rollover-200percent",
+    "mobile-settlement-200percent",
+    "mobile-rates-200percent",
+    "desktop-system-dark-reduced-motion"
+  ],
+  "errors": [],
+  "contrasts": [
+    {
+      "fg": "text",
+      "bg": "canvas",
+      "ratio": 8.39,
+      "min": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "text-secondary",
+      "bg": "canvas",
+      "ratio": 5.97,
+      "min": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "focus",
+      "bg": "canvas",
+      "ratio": 8.39,
+      "min": 3,
+      "pass": true
+    },
+    {
+      "fg": "border",
+      "bg": "canvas",
+      "ratio": 8.39,
+      "min": 3,
+      "pass": true
+    },
+    {
+      "fg": "error",
+      "bg": "canvas",
+      "ratio": 6.9,
+      "min": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "text",
+      "bg": "surface",
+      "ratio": 8.69,
+      "min": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "text-secondary",
+      "bg": "surface",
+      "ratio": 6.18,
+      "min": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "focus",
+      "bg": "surface",
+      "ratio": 8.69,
+      "min": 3,
+      "pass": true
+    },
+    {
+      "fg": "border",
+      "bg": "surface",
+      "ratio": 8.69,
+      "min": 3,
+      "pass": true
+    },
+    {
+      "fg": "error",
+      "bg": "surface",
+      "ratio": 7.15,
+      "min": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "text",
+      "bg": "field",
+      "ratio": 8.81,
+      "min": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "text-secondary",
+      "bg": "field",
+      "ratio": 6.27,
+      "min": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "focus",
+      "bg": "field",
+      "ratio": 8.81,
+      "min": 3,
+      "pass": true
+    },
+    {
+      "fg": "border",
+      "bg": "field",
+      "ratio": 8.81,
+      "min": 3,
+      "pass": true
+    },
+    {
+      "fg": "error",
+      "bg": "field",
+      "ratio": 7.25,
+      "min": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "text",
+      "bg": "field-active",
+      "ratio": 9.39,
+      "min": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "text-secondary",
+      "bg": "field-active",
+      "ratio": 6.68,
+      "min": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "focus",
+      "bg": "field-active",
+      "ratio": 9.39,
+      "min": 3,
+      "pass": true
+    },
+    {
+      "fg": "border",
+      "bg": "field-active",
+      "ratio": 9.39,
+      "min": 3,
+      "pass": true
+    },
+    {
+      "fg": "error",
+      "bg": "field-active",
+      "ratio": 7.73,
+      "min": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "action-text",
+      "bg": "action",
+      "ratio": 4.96,
+      "min": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "action-text",
+      "bg": "action-hover",
+      "ratio": 5.38,
+      "min": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "error",
+      "bg": "error-surface",
+      "ratio": 6.58,
+      "min": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "success",
+      "bg": "success-surface",
+      "ratio": 7.92,
+      "min": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "disabled-text",
+      "bg": "disabled",
+      "ratio": 5.71,
+      "min": 4.5,
+      "pass": true
+    }
+  ],
+  "requests": [
+    {
+      "method": "POST",
+      "url": "/auth/v1/token?grant_type=password"
+    },
+    {
+      "method": "POST",
+      "url": "/auth/v1/otp?redirect_to=http%3A%2F%2F127.0.0.1%3A3000"
+    },
+    {
+      "method": "POST",
+      "url": "/auth/v1/verify"
+    },
+    {
+      "method": "PUT",
+      "url": "/auth/v1/user"
+    },
+    {
+      "method": "PUT",
+      "url": "/auth/v1/user"
+    },
+    {
+      "method": "POST",
+      "url": "/rest/v1/meters?select=*"
+    },
+    {
+      "method": "PATCH",
+      "url": "/rest/v1/contracts?id=eq.40000000-0000-4000-8000-000000000001"
+    },
+    {
+      "method": "POST",
+      "url": "/rest/v1/contracts?select=*"
+    },
+    {
+      "method": "PATCH",
+      "url": "/rest/v1/contracts?id=eq.40000000-0000-4000-8000-000000000001"
+    },
+    {
+      "method": "POST",
+      "url": "/rest/v1/rates?select=*"
+    },
+    {
+      "method": "PUT",
+      "url": "/auth/v1/user"
+    },
+    {
+      "method": "PUT",
+      "url": "/auth/v1/user"
+    },
+    {
+      "method": "POST",
+      "url": "/rest/v1/meters?select=*"
+    },
+    {
+      "method": "PATCH",
+      "url": "/rest/v1/contracts?id=eq.40000000-0000-4000-8000-000000000001"
+    },
+    {
+      "method": "POST",
+      "url": "/rest/v1/contracts?select=*"
+    },
+    {
+      "method": "PATCH",
+      "url": "/rest/v1/contracts?id=eq.40000000-0000-4000-8000-000000000001"
+    },
+    {
+      "method": "POST",
+      "url": "/rest/v1/rates?select=*"
+    }
+  ],
+  "limitations": "Synthetic HTTP mocks only. No live authentication, persistence, RLS, physical keyboard or screen reader proof.",
+  "status": "pass"
+}

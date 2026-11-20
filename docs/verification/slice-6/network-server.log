@@ -1,0 +1,46 @@
+npm notice run parity@0.1.0 dev
+npm notice run next dev --webpack --hostname 127.0.0.1 --port 3009
+▲ Next.js 16.1.1 (webpack)
+- Local:         http://127.0.0.1:3009
+- Network:       http://127.0.0.1:3009
+
+✓ Starting...
+✓ Ready in 904ms
+ GET / 200 in 3.1s (compile: 2.9s, render: 195ms)
+ GET / 200 in 54ms (compile: 6ms, render: 48ms)
+ GET / 200 in 234ms (compile: 4ms, render: 230ms)
+ GET / 200 in 66ms (compile: 8ms, render: 58ms)
+ GET /contract/51a51dd2-9ce5-458e-843c-3cd69d4e854d 200 in 754ms (compile: 661ms, render: 92ms)
+ GET /meter/fee8e7a9-6051-468a-8e4d-2ea24ba7a302?period=51a51dd2-9ce5-458e-843c-3cd69d4e854d 200 in 1007ms (compile: 645ms, render: 362ms)
+ GET /meter/c2c30bd1-35fe-4628-8c1d-76f0ebf40485 200 in 40ms (compile: 3ms, render: 37ms)
+ GET /meter/fee8e7a9-6051-468a-8e4d-2ea24ba7a302?period=97b8af8f-9db3-4a81-86c9-5329b0c8733d 200 in 60ms (compile: 3ms, render: 57ms)
+ GET /meter/fee8e7a9-6051-468a-8e4d-2ea24ba7a302?period=invalid 200 in 62ms (compile: 3ms, render: 60ms)
+ GET /contract/97b8af8f-9db3-4a81-86c9-5329b0c8733d 200 in 47ms (compile: 8ms, render: 39ms)
+⨯ Error: {"message":"Synthetic fetch failure"}
+    at ignore-listed frames {
+  digest: '2382052737@E394'
+}
+ GET / 200 in 161ms (compile: 8ms, render: 152ms)
+ GET / 200 in 50ms (compile: 1205µs, render: 48ms)
+⨯ Error: {"message":"Synthetic fetch failure"}
+    at ignore-listed frames {
+  digest: '2382052737@E394'
+}
+ GET /meter/fee8e7a9-6051-468a-8e4d-2ea24ba7a302 200 in 173ms (compile: 5ms, render: 168ms)
+ GET /meter/fee8e7a9-6051-468a-8e4d-2ea24ba7a302 200 in 49ms (compile: 2ms, render: 46ms)
+⨯ Error: {"message":"Synthetic fetch failure"}
+    at ignore-listed frames {
+  digest: '2382052737@E394'
+}
+ GET /meter/fee8e7a9-6051-468a-8e4d-2ea24ba7a302 200 in 155ms (compile: 5ms, render: 150ms)
+ GET /meter/fee8e7a9-6051-468a-8e4d-2ea24ba7a302 200 in 50ms (compile: 3ms, render: 48ms)
+⨯ Error [AuthRetryableFetchError]: {"url":"http://127.0.0.1:54329/auth/v1/user"}
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 503,
+  code: undefined,
+  digest: '2674925989'
+}
+ GET /meter/fee8e7a9-6051-468a-8e4d-2ea24ba7a302 200 in 49ms (compile: 15ms, render: 34ms)
+ GET /meter/fee8e7a9-6051-468a-8e4d-2ea24ba7a302 200 in 44ms (compile: 2ms, render: 42ms)
+ GET / 200 in 151ms (compile: 3ms, render: 149ms)

@@ -1,0 +1,151 @@
+// Synthetic visual/interaction matrix. HTTP responses here are not persistence evidence.
+import { createRequire } from 'node:module';
+import fs from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+const require = createRequire(import.meta.url);
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || '/Users/martin/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const browser = await chromium.launch({ executablePath: process.env.BROWSER_PATH || '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser', headless: true });
+const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, locale: 'de-DE', timezoneId: 'Europe/Berlin' });
+const page = await context.newPage();
+const out = path.dirname(new URL(import.meta.url).pathname), captures = fs.mkdtempSync('/private/tmp/parity-conditions-');
+const report = { synthetic: true, errors: [], checks: [], screenshots: [] };
+page.on('pageerror', error => report.errors.push(error.message));
+page.on('dialog', dialog => dialog.accept());
+const base = process.env.PREVIEW_URL || 'http://127.0.0.1:3000';
+let responseMode = 'success', calls = [], resolvePending;
+await page.route('**/rest/v1/**', async route => {
+  if (route.request().url().includes('/rpc/set_billing_period_end')) {
+    const body = route.request().postDataJSON();
+    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ id: body.p_period_id, meter_id: 'synthetic', period_start: body.p_expected_start, period_end: body.p_end, created_at: '', updated_at: '' }) });
+  }
+  if (route.request().url().includes('/rpc/change_conditions')) {
+    const body = route.request().postDataJSON(); calls.push(body);
+    if (responseMode === 'pending') await new Promise(resolve => { resolvePending = resolve; });
+    if (responseMode === 'error') return route.abort('failed');
+    const p = body.p_payload;
+    const rates = p.expected_rates.filter(rate => p.operation === 'create' || rate.id !== p.rate_id).map(rate => ({ ...rate, contract_id: p.contract_id, created_at: '' }));
+    if (p.operation !== 'delete') rates.push({ id: p.rate_id || 'synthetic-new', contract_id: p.contract_id, created_at: '', effective_from: p.effective_from, grundpreis: p.grundpreis, arbeitspreis: p.arbeitspreis, abschlag: p.abschlag, umrechnungsfaktor: p.umrechnungsfaktor });
+    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ confirmed: true, rates }) });
+  }
+  if (route.request().url().includes('condition_revisions')) return route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
+  throw new Error(`Unexpected synthetic data access: ${route.request().url()}`);
+});
+async function open(scenario = 'electricity', period) {
+  await page.goto(`${base}/design/integration?view=understand&scenario=${scenario}${period ? `&period=${period}` : ''}`);
+  await page.evaluate(() => document.fonts.ready);
+  await page.addStyleTag({ content: 'nextjs-portal{display:none}' });
+  await page.getByRole('tab', { name: 'Konditionen', exact: true }).click();
+}
+async function shot(name, scrollBottom = false) {
+  const dialog = page.getByRole('dialog');
+  if (await dialog.count()) await dialog.evaluate((el, bottom) => { el.scrollTop = bottom ? el.scrollHeight : 0; }, scrollBottom);
+  await page.waitForTimeout(180);
+  assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${name}: document overflow`);
+  const bad = await page.locator((await dialog.count()) ? '[role=dialog]' : '.conditions').evaluateAll(roots => roots.flatMap(root => [...root.querySelectorAll('p,h2,dt,dd,summary,button,label,[data-slot=input-group]')].filter(el => {
+    if (el.closest('details:not([open])') && el.tagName !== 'SUMMARY') return false;
+    const r = el.getBoundingClientRect(); const parent = root.getBoundingClientRect();
+    return r.width && (r.left < parent.left - 1 || r.right > parent.right + 1 || el.scrollWidth > el.clientWidth + 2);
+  }).map(el => el.textContent)));
+  assert.deepEqual(bad, [], `${name}: clipped text/controls`);
+  await page.screenshot({ path: path.join(captures, `${name}.png`), fullPage: !(await dialog.count()) });
+  report.screenshots.push(name);
+}
+try {
+  await open(); await shot('desktop-current');
+  await page.getByRole('button', { name: 'Konditionen ändern', exact: true }).focus(); await page.keyboard.press('Enter');
+  await page.getByRole('heading', { name: 'Konditionen ändern', exact: true }).waitFor();
+  assert(await page.getByRole('heading', { name: 'Konditionen ändern', exact: true }).evaluate(el => el === document.activeElement));
+  await page.keyboard.press('Tab'); assert(await page.getByLabel('Gültig ab', { exact: true }).evaluate(el => el === document.activeElement));
+  await shot('desktop-edit-keyboard');
+  await page.getByLabel('Gültig ab', { exact: true }).fill('2026-02-01');
+  assert.equal(await page.getByLabel('Arbeitspreis', { exact: true }).inputValue(), '30');
+  await page.getByLabel('Arbeitspreis', { exact: true }).fill('31,23456');
+  await page.getByLabel('Gültig ab', { exact: true }).fill('2026-03-01');
+  await page.getByRole('heading', { name: 'Gültigkeitsdatum ändern?', exact: true }).waitFor(); await shot('desktop-date-protection');
+  await page.getByRole('button', { name: 'Datum beibehalten', exact: true }).click();
+  assert.equal(await page.getByLabel('Arbeitspreis', { exact: true }).inputValue(), '31,23456');
+  await page.getByRole('button', { name: 'Abbrechen', exact: true }).click(); await shot('desktop-discard');
+  await page.getByRole('button', { name: 'Weiter bearbeiten', exact: true }).click();
+  await page.getByRole('button', { name: 'Änderung prüfen', exact: true }).click(); await shot('desktop-review');
+  responseMode = 'pending'; await page.getByRole('button', { name: 'Neue Konditionen speichern', exact: true }).dblclick();
+  await page.getByRole('button', { name: 'Wird gespeichert …', exact: true }).waitFor(); await shot('desktop-pending');
+  await page.keyboard.press('Escape'); assert(await page.getByRole('dialog').count());
+  assert.equal(calls.length, 1); responseMode = 'error'; resolvePending();
+  await page.getByRole('button', { name: 'Speicherung prüfen', exact: true }).waitFor(); await shot('desktop-uncertain');
+  const sent = calls[0]; await page.reload();
+  await page.getByRole('tab', { name: 'Konditionen', exact: true }).click();
+  await page.getByRole('button', { name: 'Konditionen ändern', exact: true }).click();
+  responseMode = 'success'; await page.getByRole('button', { name: 'Speicherung prüfen', exact: true }).click();
+  await page.getByRole('heading', { name: 'Konditionen gespeichert', exact: true }).waitFor();
+  assert.deepEqual(calls[1], sent); await shot('desktop-success');
+  await page.getByRole('button', { name: 'Aktualisierte Einschätzung ansehen', exact: true }).click();
+  await page.getByRole('tab', { name: 'Verstehen', exact: true }).waitFor(); await shot('desktop-updated-estimate');
+  report.checks.push('Keyboard/focus, date-specific baseline, date/discard protection, exact double-submit guard, pending close protection, error, reload and identical retry, same-period estimate return');
+  await open('gas', 'period-previous'); await page.getByText('Konditionshistorie (2)', { exact: true }).click();
+  await page.getByText('Ab 1. Jan. 2025', { exact: true }).click(); await shot('desktop-history');
+  await page.getByRole('button', { name: 'Korrigieren', exact: true }).first().click();
+  assert(await page.getByLabel('Gültig ab', { exact: true }).getAttribute('readonly') !== null);
+  await page.getByLabel('Umrechnungsfaktor', { exact: true }).fill('10,71234567');
+  await page.getByRole('button', { name: 'Änderung prüfen', exact: true }).click(); await shot('desktop-historical-correction');
+  await page.getByRole('button', { name: 'Korrektur speichern', exact: true }).click();
+  await page.getByRole('heading', { name: 'Konditionen gespeichert', exact: true }).waitFor();
+  await page.getByRole('button', { name: 'Aktualisierte Einschätzung ansehen', exact: true }).click();
+  await page.getByText(/Erfasste Schlussabrechnung/).waitFor();
+  assert(await page.getByRole('heading', { name: '328,00 € Erstattung', exact: true }).count());
+  await page.getByRole('tab', { name: 'Konditionen', exact: true }).click(); await page.getByText('Konditionshistorie (2)', { exact: true }).click();
+  await page.getByText('Ab 1. Jan. 2025', { exact: true }).click();
+  await page.getByRole('button', { name: 'Löschen', exact: true }).first().click(); await shot('desktop-delete-gap');
+  await page.getByRole('button', { name: 'Abbrechen', exact: true }).click();
+  report.checks.push('Explicit correction at same date; historical settled period is editable; actual refund retained; delete explains gap');
+  await page.setViewportSize({ width: 390, height: 844 }); await open('gas');
+  await page.getByRole('button', { name: 'Konditionen ändern', exact: true }).click(); await shot('mobile-gas-edit');
+  await page.getByLabel('Abschlag', { exact: true }).fill(''); await page.getByRole('button', { name: 'Änderung prüfen', exact: true }).click(); await shot('mobile-validation');
+  await page.getByLabel('Abschlag', { exact: true }).fill('0'); await page.getByLabel('Umrechnungsfaktor', { exact: true }).fill('10,71234567');
+  await page.getByRole('button', { name: 'Änderung prüfen', exact: true }).click(); await shot('mobile-review');
+  await page.getByRole('button', { name: 'Abbrechen', exact: true }).click(); await page.getByRole('button', { name: 'Verwerfen', exact: true }).click();
+  await page.setViewportSize({ width: 320, height: 568 }); await page.emulateMedia({ reducedMotion: 'reduce' }); await open('large');
+  await page.addStyleTag({ content: 'html{font-size:200%}*{letter-spacing:.12em!important;word-spacing:.16em!important;line-height:1.5!important}' });
+  await shot('mobile-large-200percent-current');
+  await page.getByRole('button', { name: 'Konditionen ändern', exact: true }).click();
+  await page.getByLabel('Grundpreis', { exact: true }).fill('1.234.567,123456'); await page.getByLabel('Abschlag', { exact: true }).fill('0');
+  await shot('mobile-200percent-edit-top'); await shot('mobile-200percent-edit-bottom', true);
+  await page.getByRole('button', { name: 'Änderung prüfen', exact: true }).click();
+  await shot('mobile-200percent-review-top'); await shot('mobile-200percent-review-bottom', true);
+  const motion = await page.getByRole('dialog').evaluate(el => ({ animation: getComputedStyle(el).animationName, transition: getComputedStyle(el).transitionDuration }));
+  assert.equal(motion.animation, 'none');
+  report.checks.push('390px gas, validation/zero/factor precision, 320px/200% plus text spacing and long values, accessible scroll/actions, reduced motion');
+  responseMode = 'pending';
+  await page.getByRole('button', { name: 'Neue Konditionen speichern', exact: true }).click();
+  await page.getByRole('button', { name: 'Wird gespeichert …', exact: true }).waitFor();
+  await shot('mobile-200percent-pending-bottom', true);
+  responseMode = 'error'; resolvePending();
+  await page.getByRole('button', { name: 'Speicherung prüfen', exact: true }).waitFor();
+  await shot('mobile-200percent-error-bottom', true);
+  responseMode = 'success';
+  await page.getByRole('button', { name: 'Speicherung prüfen', exact: true }).click();
+  await page.getByRole('heading', { name: 'Konditionen gespeichert', exact: true }).waitFor();
+  await shot('mobile-200percent-success');
+  report.checks.push('Pending, unconfirmed response, safe retry and success also at 320px/200%');
+  await page.setViewportSize({ width: 1440, height: 1000 }); await open('gas-open');
+  await shot('open-desktop-current');
+  await page.getByRole('button', { name: 'Ende festlegen', exact: true }).focus(); await page.keyboard.press('Enter');
+  await page.getByLabel('Bis einschließlich (optional)', { exact: true }).fill('2026-12-31'); await shot('open-desktop-end');
+  await page.getByRole('button', { name: 'Zeitraumende speichern', exact: true }).click();
+  await page.getByRole('dialog').waitFor({ state: 'hidden' });
+  assert(await page.getByRole('button', { name: 'Ende ändern', exact: true }).evaluate(el => el === document.activeElement));
+  assert(await page.getByText('(01.11.2025 – 31.12.2026)', { exact: true }).count());
+  await page.setViewportSize({ width: 390, height: 844 }); await open('gas-open'); await shot('open-mobile-current');
+  await page.getByRole('button', { name: 'Ende festlegen', exact: true }).click(); await shot('open-mobile-end');
+  await page.getByRole('button', { name: 'Abbrechen', exact: true }).click();
+  await page.setViewportSize({ width: 320, height: 568 }); await page.addStyleTag({ content: 'html{font-size:200%}*{letter-spacing:.12em!important;word-spacing:.16em!important;line-height:1.5!important}' });
+  await page.getByRole('button', { name: 'Ende festlegen', exact: true }).click(); await shot('open-200percent-end-top'); await shot('open-200percent-end-bottom', true);
+  report.checks.push('Open period beyond one year, direct inclusive end editing, confirmed header update, keyboard focus return, mobile and 200% end dialog');
+  report.status = 'pass';
+  assert.deepEqual(report.errors, []);
+} finally {
+  await browser.close(); fs.mkdirSync(path.join(out, 'screenshots'), { recursive: true });
+  for (const name of report.screenshots) fs.copyFileSync(path.join(captures, `${name}.png`), path.join(out, 'screenshots', `${name}.png`));
+  fs.writeFileSync(path.join(out, 'browser-check.json'), JSON.stringify(report, null, 2) + '\n');
+}
+console.log(JSON.stringify(report, null, 2));

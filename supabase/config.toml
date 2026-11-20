@@ -90,7 +90,7 @@ openai_api_key = "env(OPENAI_API_KEY)"
 
 # Email testing server. Emails sent with the local dev setup are not actually sent - rather, they
 # are monitored, and you can view the emails that would have been sent from the web interface.
-[inbucket]
+[local_smtp]
 enabled = true
 # Port to use for the email testing server web interface.
 port = 54324
@@ -219,6 +219,11 @@ otp_expiry = 3600
 # pass = "env(SENDGRID_API_KEY)"
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
+
+# The existing email-code UI requires a visible OTP, not a magic-link-only email.
+[auth.email.template.magic_link]
+subject = "Dein Anmeldecode für Parity"
+content_path = "./supabase/templates/sign-in-code.html"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]

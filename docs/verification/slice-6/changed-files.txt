@@ -1,0 +1,39 @@
+Slice-6-eigene Änderungen gegenüber dem in starting-status.txt festgehaltenen Arbeitsstand:
+
+src/app/page.tsx
+src/app/layout.tsx
+src/app/loading.tsx (neu)
+src/app/error.tsx (neu)
+src/app/not-found.tsx (neu)
+src/app/meter/[id]/page.tsx
+src/app/contract/[id]/page.tsx
+src/components/AccountBoundary.tsx (neu)
+src/components/RouteState.tsx (neu)
+src/components/RenameMeterDialog.tsx (neu)
+src/components/DeleteMeterDialog.tsx (neu)
+src/components/contract-card.tsx
+src/components/contract-detail.tsx (auf vollständigem Slice-5-Arbeitsstand)
+src/components/dashboard.tsx
+src/components/header.tsx
+src/components/auth-screen.tsx
+src/components/profile-dialog.tsx
+src/lib/access.ts (neu)
+src/lib/meter-management.ts (neu)
+src/lib/meter-management.test.ts (neu)
+src/components/__tests__/meter-management.test.tsx (neu)
+src/components/__tests__/management-routes.test.tsx (neu)
+src/components/__tests__/account-session.test.tsx (neu)
+src/components/__tests__/auth-screen.test.tsx
+src/components/__tests__/period-understanding.test.tsx (Routeradapter)
+src/components/__tests__/reading-flow.test.tsx (Routeradapter)
+src/components/__tests__/setup-confirmation.test.tsx (Routeradapter)
+src/components/__tests__/setup-overview.test.tsx (Routeradapter)
+supabase/config.toml
+supabase/templates/sign-in-code.html (neu)
+supabase/migrations/20261119000001_protect_migration_backups.sql (neu)
+DESIGN.md (ergänzend zum vorhandenen Slice-5-Stand)
+docs/frontend-redesign-plan.md (ergänzend zum vorhandenen Slice-5-Stand)
+docs/verification/slice-6/ (neu: Inventar, Scripts, Bilder, Berichte, Übergabe)
+
+Alle übrigen im Ausgangsstatus gelisteten Dateien bleiben übernommener Ausgangsstand.
+Keine neuen Abhängigkeiten, kein Lockfile-Update durch Slice 6.

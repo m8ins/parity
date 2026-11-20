@@ -1,0 +1,31 @@
+[
+  {
+    "width": 1440,
+    "baseline": [
+      690.078125,
+      690.078125
+    ],
+    "overflow": false
+  },
+  {
+    "width": 390,
+    "baseline": [
+      662.890625,
+      662.890625
+    ],
+    "overflow": false
+  },
+  {
+    "width": 320,
+    "baseline": [
+      661.125,
+      661.125
+    ],
+    "overflow": false
+  },
+  {
+    "width": 320,
+    "text": "200%",
+    "overflow": false
+  }
+]

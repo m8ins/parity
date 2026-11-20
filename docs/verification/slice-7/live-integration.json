@@ -1,0 +1,20 @@
+{
+  "source": "Real local Supabase Auth/PostgREST; synthetic accounts only",
+  "checked_at": "2026-11-19T21:01:28.859Z",
+  "checks": [
+    "Setup: 8 concurrent identical calls = one four-row setup; changed payload denied; committed result discarded and fresh client retry finds same ID; numeric scale/key ordering equivalent; unknown/null keys significant; new minimal receipt timestamped",
+    "Conditions: parallel create/correct mutate once; correction/delete archive once; older replay returns current history without restoring deleted rate",
+    "Different concurrent condition requests cannot duplicate date; two database sessions bypassing triggers independently prove unique constraint rejects one competing insert",
+    "Real owner/foreign/anonymous API calls cannot write rates/contracts or private receipts/archive/backups; meter creation/reassignment/type bypass denied; valid name and reading work, invalid/future/nonfinite reading and reassignment denied",
+    "Failure injected after receipt insert rolls back rate, archive and receipt together; exact same-key retry succeeds after removing injection",
+    "Details RPC preserves legit editing, confirms target replay, rejects stale and newly excluded rates; end and explicit-zero settlement remain absolute/retry-safe and account-scoped",
+    "Old-format continuation without surviving receipt fails closed, including potential pre-upgrade cascaded receipts; no result created",
+    "Continuation: 8 same-key calls create one result; changed payload denied; discarded successful result recovered; new minimal receipt survives result deletion and blocks recreation",
+    "Four actual races between conditions, continuation, end and details: serialized valid state or explicit conflict, no deadlock accepted",
+    "Object deletion retains consumed keys; all three late replays reject without resurrection",
+    "Recursive canonicalization preserves jsonb equality for nested numeric scale/key order, distinguishes array order, missing/null and string/number; no client TRUNCATE privileges",
+    "Gas setup precision preserved; existing account-delete NO ACTION with live meters preserved"
+  ],
+  "passed": true,
+  "cleanup": true
+}

@@ -1,0 +1,88 @@
+{
+ "url": "http://127.0.0.1:3010/design/integration?view=empty",
+ "views": {
+  "mobile": {
+   "width": 390,
+   "height": 844,
+   "navH": 0,
+   "scrollHeight": 861,
+   "screens": 1.02,
+   "sections": [
+    {
+     "n": 1,
+     "tag": "p",
+     "id": "",
+     "cls": "page-intro",
+     "top": 202,
+     "h": 54,
+     "hScreens": 0.06,
+     "offGrid": 54,
+     "tiles": [
+      {
+       "file": "mobile-sec-01-a.jpg",
+       "scrollY": 17,
+       "cutTop": 185,
+       "height": 54
+      }
+     ]
+    },
+    {
+     "n": 2,
+     "tag": "section",
+     "id": "",
+     "cls": "setup-empty",
+     "top": 288,
+     "h": 190,
+     "hScreens": 0.23,
+     "offGrid": 190,
+     "tiles": [
+      {
+       "file": "mobile-sec-02-a.jpg",
+       "scrollY": 17,
+       "cutTop": 271,
+       "height": 190
+      }
+     ]
+    },
+    {
+     "n": 3,
+     "tag": "div",
+     "id": "",
+     "cls": "grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3",
+     "top": 510,
+     "h": 256,
+     "hScreens": 0.3,
+     "offGrid": 256,
+     "tiles": [
+      {
+       "file": "mobile-sec-03-a.jpg",
+       "scrollY": 17,
+       "cutTop": 493,
+       "height": 256
+      }
+     ]
+    },
+    {
+     "n": 4,
+     "tag": "details",
+     "id": "",
+     "cls": "design-panel mt-8 text-sm",
+     "top": 798,
+     "h": 47,
+     "hScreens": 0.06,
+     "offGrid": 47,
+     "tiles": [
+      {
+       "file": "mobile-sec-04-a.jpg",
+       "scrollY": 17,
+       "cutTop": 781,
+       "height": 47
+      }
+     ]
+    }
+   ],
+   "consoleErrors": []
+  }
+ },
+ "at": "2026-11-19T15:00:27.262Z"
+}

@@ -1,0 +1,162 @@
+{
+  "navigations": [
+    "http://127.0.0.1:3000/design/reading",
+    "http://127.0.0.1:3000/design/reading",
+    "http://127.0.0.1:3000/design/reading",
+    "http://127.0.0.1:3000/design/reading",
+    "http://127.0.0.1:3000/design/reading",
+    "http://127.0.0.1:3000/design/reading",
+    "http://127.0.0.1:3000/design/reading",
+    "http://127.0.0.1:3000/design/reading",
+    "http://127.0.0.1:3000/design/reading",
+    "http://127.0.0.1:3000/design/reading",
+    "http://127.0.0.1:3000/design/reading",
+    "http://127.0.0.1:3000/design/reading",
+    "http://127.0.0.1:3000/design/reading",
+    "http://127.0.0.1:3000/design/reading",
+    "http://127.0.0.1:3000/design/reading",
+    "http://127.0.0.1:3000/design/reading",
+    "http://127.0.0.1:3000/design/reading",
+    "http://127.0.0.1:3000/design/reading"
+  ],
+  "console": [
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  ],
+  "persistence": "NOT VERIFIED: mocked HTTP responses; no Supabase daemon/config",
+  "checks": [
+    "actual pointer press: 4px depth, 70ms press / 110ms release",
+    "desktop compact modal, fixed title, backdrop retains input, Escape protects dirty inputs, errors linked and focused",
+    "HTTP failure retains input, retry, pending immutable snapshot, correct meter updates, status, trigger focus restoration (HTTP mocked)",
+    "real CDP touch swipe on handle: dirty protection, continue retains input, clean dismiss; horizontal swipe and form scroll do not dismiss; gas independent",
+    "320px no document overflow, gas long value",
+    "390px no document overflow, gas long value",
+    "768px no document overflow, gas long value",
+    "1280px no document overflow, gas long value",
+    "keyboard Tab focus remains inside Radix dialog",
+    "200% text + text spacing at 320px; scrollable actions with short viewport; reduced motion animation disabled (physical keyboard not verified)"
+  ],
+  "errors": [],
+  "requests": [
+    {
+      "meter_id": "20000000-0000-4000-8000-000000000001",
+      "date": "2026-11-15",
+      "value": 24681.7
+    },
+    {
+      "meter_id": "20000000-0000-4000-8000-000000000001",
+      "date": "2026-11-15",
+      "value": 24681.7
+    },
+    {
+      "meter_id": "20000000-0000-4000-8000-000000000002",
+      "date": "2026-11-15",
+      "value": 999999.999
+    }
+  ],
+  "gestures": [
+    {
+      "type": "pointerdown",
+      "pointerType": "touch",
+      "trusted": true,
+      "y": 222.515625
+    },
+    {
+      "type": "pointerup",
+      "pointerType": "touch",
+      "trusted": true,
+      "y": 312.515625
+    },
+    {
+      "type": "pointerdown",
+      "pointerType": "touch",
+      "trusted": true,
+      "y": 222.515625
+    },
+    {
+      "type": "pointerup",
+      "pointerType": "touch",
+      "trusted": true,
+      "y": 232.515625
+    },
+    {
+      "type": "pointerdown",
+      "pointerType": "touch",
+      "trusted": true,
+      "y": 222.515625
+    },
+    {
+      "type": "pointerup",
+      "pointerType": "touch",
+      "trusted": true,
+      "y": 312.515625
+    }
+  ],
+  "enlargedActionWords": [
+    {
+      "word": "Zählerstand",
+      "lineFragments": 1
+    },
+    {
+      "word": "speichern",
+      "lineFragments": 1
+    },
+    {
+      "word": "Abbrechen",
+      "lineFragments": 1
+    }
+  ],
+  "font": [
+    {
+      "weight": 400,
+      "family": "\"Atkinson Hyperlegible Next\"",
+      "loaded": true,
+      "widths": [
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125
+      ]
+    },
+    {
+      "weight": 600,
+      "family": "\"Atkinson Hyperlegible Next\"",
+      "loaded": true,
+      "widths": [
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125
+      ]
+    },
+    {
+      "weight": 700,
+      "family": "\"Atkinson Hyperlegible Next\"",
+      "loaded": true,
+      "widths": [
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125,
+        25.28125
+      ]
+    }
+  ],
+  "status": "pass"
+}
