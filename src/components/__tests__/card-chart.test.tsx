@@ -36,6 +36,19 @@ describe('Verbrauchsverlauf auf der Zählerkarte', () => {
     expect(preview.data.some((point: ChartDataPoint) => typeof point.actual === 'number')).toBe(true);
     expect(preview.data.at(-1).date).toBe('2027-01-01T00:00:00.000Z');
   });
+  it.each([true, false])('shows observed usage without an initial reading (compact=%s)', compact => {
+    const { meter, data } = understandingFixture('electricity');
+    const contract = { ...data.contracts[0], period_start: '2026-11-01', period_end: '2027-11-01' };
+    const readings = [['2026-11-05', 100], ['2026-11-20', 190]].map(([date, value]) => ({ id: String(date), meter_id: meter.id, date: String(date), value: Number(value), created_at: '' }));
+    render(<PeriodUnderstanding meter={meter} contract={contract} readings={readings} rates={data.ratesByContract[contract.id]} compact={compact} asOf="2026-11-20" />);
+    expect(screen.getByText(/Verbrauch seit.*Davor unbekannt/)).toBeVisible();
+    expect(screen.queryByText(/nur die Hochrechnung sichtbar/)).toBeNull();
+    const points: ChartDataPoint[] = chart.mock.calls.at(-1)![0].data;
+    expect(points[0].actual).toBeNull();
+    expect(points.find(p => p.date.startsWith('2026-11-05'))?.actual).toBe(0);
+    expect(points.find(p => p.date.startsWith('2026-11-20'))?.actual).toBeCloseTo(90);
+    expect(points.at(-1)?.actual).toBeNull();
+  });
   it.each(['none', 'one'])('erfindet bei %s keine Kurve und behält den konkreten nächsten Schritt', scenario => {
     show(scenario);
     expect(screen.queryByRole('img')).toBeNull();

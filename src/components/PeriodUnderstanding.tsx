@@ -46,7 +46,7 @@ export function PeriodUnderstanding({ meter, contract, readings, rates, compact 
     {compact && <p className="text-sm text-muted-foreground">{contract.period_end ? `${date(contract.period_start)} – ${date(lastDay)}` : `Ab ${date(contract.period_start)} · offen`}</p>}
     {compact && result && <section className="meter-card-chart" aria-label="Verbrauchsverlauf">
       <div className="understand-legend meter-chart-legend"><span>Aus Ablesungen</span><span>Hochrechnung</span></div>
-      {first.date !== contract.period_start && <p className="text-sm text-muted-foreground">Ohne Anfangsablesung ist nur die Hochrechnung sichtbar.</p>}
+      {first.date !== contract.period_start && <p className="text-sm text-muted-foreground">Aus Ablesungen: Verbrauch seit {date(first.date)}. Davor unbekannt; die Hochrechnung gilt ab Zeitraumstart.</p>}
       <ContractChart data={result.chartData} unit="kWh" isGood compact />
     </section>}
     {summaryLink(<>
@@ -61,7 +61,7 @@ export function PeriodUnderstanding({ meter, contract, readings, rates, compact 
     {!compact && <>
       {result && <section className="understand-chart" aria-label="Verbrauchsverlauf">
         <div className="understand-legend text-sm"><span>Aus Ablesungen</span><span>Hochrechnung</span></div>
-        {first.date !== contract.period_start && <p className="text-sm text-muted-foreground">Ohne Anfangsablesung ist nur die Hochrechnung sichtbar.</p>}
+        {first.date !== contract.period_start && <p className="text-sm text-muted-foreground">Aus Ablesungen: Verbrauch seit {date(first.date)}. Davor unbekannt; die Hochrechnung gilt ab Zeitraumstart.</p>}
         <ContractChart data={result.chartData} unit="kWh" isGood />
       </section>}
       {result && <details className="understand-section"><summary>Kosten und Abschlag</summary>

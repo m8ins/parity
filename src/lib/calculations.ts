@@ -94,9 +94,9 @@ export function calculateProjection(meter: Meter, contract: Contract, readings: 
   let costsKnown = true, paymentsKnown = true;
   const chartData: ChartDataPoint[] = [];
   const monthlyBreakdown: MonthlyBreakdown[] = [];
-  const baselineKnown = firstTime === start;
+  // Observed consumption starts at the first reading, never at an invented baseline.
   const emit = (day: number) => chartData.push({ date: new Date(day).toISOString(), projected: consumption,
-    actual: baselineKnown && day <= lastTime ? observed : null });
+    actual: day >= firstTime && day <= lastTime ? observed : null });
   emit(start);
   let bucket: MonthlyBreakdown | undefined;
   for (let day = start; day < end; day += DAY) {
