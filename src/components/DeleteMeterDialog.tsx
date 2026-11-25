@@ -21,7 +21,7 @@ export function DeleteMeterDialog({ meter, open, onOpenChange, onDeleted, return
     finally { busy.current = false; setPending(false); }
   };
   return <Dialog open={open} onOpenChange={value => { if (!busy.current) onOpenChange(value); }}>
-    <DialogContent ref={content} className="max-h-[90dvh] overflow-y-auto" showCloseButton={!pending} onOpenAutoFocus={event => { event.preventDefault();
+    <DialogContent ref={content} showCloseButton={!pending} onOpenAutoFocus={event => { event.preventDefault();
       if (content.current && content.current.scrollHeight > content.current.clientHeight + 1) title.current?.focus();
       else cancel.current?.focus(); }} onCloseAutoFocus={event => { if (returnFocus) { event.preventDefault();
         // A rapid next action may already have moved focus into another menu.

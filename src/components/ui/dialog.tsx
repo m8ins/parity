@@ -59,10 +59,11 @@ function DialogContent({
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay />
-      <DialogPrimitive.Content
+      <DialogSurface
         data-slot="dialog-content"
         className={cn(
-          presentation === "reading" ? "fixed z-50 outline-none" : "parity-dialog fixed top-1/2 left-1/2 z-50 grid w-full -translate-x-1/2 -translate-y-1/2 gap-6 outline-none",
+          "parity-dialog fixed z-50 w-full outline-none",
+          presentation !== "reading" && "grid gap-6",
           className
         )}
         {...props}
@@ -77,9 +78,32 @@ function DialogContent({
             <span className="sr-only">Schließen</span>
           </DialogPrimitive.Close>
         )}
-      </DialogPrimitive.Content>
+      </DialogSurface>
     </DialogPortal>
   )
+}
+
+// Mounted inside the portal so only visible dialogs subscribe to viewport changes.
+function DialogSurface({ style, ...props }: React.ComponentProps<typeof DialogPrimitive.Content>) {
+  const [viewport, setViewport] = React.useState<React.CSSProperties>({})
+
+  React.useEffect(() => {
+    const visualViewport = window.visualViewport
+    if (!visualViewport) return
+    const updateViewport = () => setViewport({
+      "--dialog-viewport-height": `${visualViewport.height}px`,
+      "--dialog-keyboard-inset": `${Math.max(0, window.innerHeight - visualViewport.height - visualViewport.offsetTop)}px`,
+    } as React.CSSProperties)
+    updateViewport()
+    visualViewport.addEventListener("resize", updateViewport)
+    visualViewport.addEventListener("scroll", updateViewport)
+    return () => {
+      visualViewport.removeEventListener("resize", updateViewport)
+      visualViewport.removeEventListener("scroll", updateViewport)
+    }
+  }, [])
+
+  return <DialogPrimitive.Content {...props} style={{ ...viewport, ...style }} />
 }
 
 function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {

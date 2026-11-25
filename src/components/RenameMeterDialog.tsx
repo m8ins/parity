@@ -24,7 +24,7 @@ export function RenameMeterDialog({ meter, open, onOpenChange, onSaved, returnFo
     finally { busy.current = false; setPending(false); }
   };
   return <Dialog open={open} onOpenChange={value => { if (!busy.current) onOpenChange(value); }}>
-    <DialogContent className="max-h-[90dvh] overflow-y-auto" showCloseButton={!pending} onCloseAutoFocus={event => { if (returnFocus) { event.preventDefault();
+    <DialogContent showCloseButton={!pending} onCloseAutoFocus={event => { if (returnFocus) { event.preventDefault();
         // A rapid next action may already have moved focus into another menu.
         if (document.activeElement === document.body || document.activeElement?.closest('[role="dialog"]')) returnFocus(); } }}>
       <DialogHeader><DialogTitle>Zähler umbenennen</DialogTitle><DialogDescription>Neuer Name für „{meter.name}“.</DialogDescription></DialogHeader>
