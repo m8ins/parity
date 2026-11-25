@@ -30,7 +30,6 @@ export function ReadingDialog({
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ date?: string; value?: string; save?: string }>({});
   const [keyboard, setKeyboard] = useState(false);
-  const [viewport, setViewport] = useState<CSSProperties>({});
   const saving = useRef(false);
   const [uncertain, setUncertain] = useState(false);
   const [needsReview, setNeedsReview] = useState(false);
@@ -51,23 +50,11 @@ export function ReadingDialog({
     if (!open) return;
     const onKey = (event: KeyboardEvent) => { if (event.key === 'Tab') setKeyboard(true); };
     const onPointer = () => setKeyboard(false);
-    const updateViewport = () => {
-      const vv = window.visualViewport;
-      if (vv) setViewport({
-        '--reading-viewport-height': `${vv.height}px`,
-        '--reading-keyboard-inset': `${Math.max(0, window.innerHeight - vv.height - vv.offsetTop)}px`,
-      } as CSSProperties);
-    };
     document.addEventListener('keydown', onKey, true);
     document.addEventListener('pointerdown', onPointer, true);
-    window.visualViewport?.addEventListener('resize', updateViewport);
-    window.visualViewport?.addEventListener('scroll', updateViewport);
-    updateViewport();
     return () => {
       document.removeEventListener('keydown', onKey, true);
       document.removeEventListener('pointerdown', onPointer, true);
-      window.visualViewport?.removeEventListener('resize', updateViewport);
-      window.visualViewport?.removeEventListener('scroll', updateViewport);
     };
   }, [open]);
 
@@ -174,7 +161,7 @@ export function ReadingDialog({
   return (
     <Dialog open={open} onOpenChange={changeOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent presentation="reading" className="reading-dialog" aria-describedby={undefined} data-keyboard={keyboard} style={{ ...viewport, "--sheet-drag-offset": `${dragOffset}px` } as CSSProperties} showCloseButton={false}
+      <DialogContent presentation="reading" className="reading-dialog" aria-describedby={undefined} data-keyboard={keyboard} style={{ "--sheet-drag-offset": `${dragOffset}px` } as CSSProperties} showCloseButton={false}
         onPointerDownOutside={event => event.preventDefault()}
         onInteractOutside={event => event.preventDefault()}
         onEscapeKeyDown={event => { event.preventDefault(); requestClose(); }}

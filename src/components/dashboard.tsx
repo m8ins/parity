@@ -134,7 +134,7 @@ export function Dashboard({
                             <span className="text-sm">Strom oder Gas erfassen</span>
                         </button> : <Button type="button" variant="outline"><Plus aria-hidden="true" />Zähler hinzufügen</Button>}
                     </DialogTrigger>
-                    <DialogContent className="meter-setup-dialog max-h-[90dvh] overflow-y-auto" showCloseButton={!setupPending} onEscapeKeyDown={event => { event.preventDefault(); closeSetup() }} onPointerDownOutside={event => { event.preventDefault(); closeSetup() }}>
+                    <DialogContent className="meter-setup-dialog" showCloseButton={!setupPending} onEscapeKeyDown={event => { event.preventDefault(); closeSetup() }} onPointerDownOutside={event => { event.preventDefault(); closeSetup() }}>
                         <DialogHeader>
                             <DialogTitle>Zähler einrichten</DialogTitle>
                             <DialogDescription>Strom oder Gas mit Anfangsdaten in drei Schritten einrichten.</DialogDescription>

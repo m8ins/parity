@@ -145,7 +145,22 @@ html[data-keyboard=true] .parity-input-group:focus-within { outline: var(--sys-f
 .parity-input-group:has([aria-invalid=true]) { border-color: var(--cmp-form-border-error); border-width: var(--sys-error-width); }
 .parity-surface { border: var(--sys-border-width) solid var(--sys-color-border-default); border-radius: var(--sys-radius-surface); box-shadow: none; }
 .parity-popup { background: var(--sys-color-background-surface-1); color: var(--sys-color-content-primary); border: var(--sys-border-width) solid var(--sys-color-border-default); border-radius: var(--sys-radius-control); box-shadow: var(--sys-shadow-popover); max-width: calc(100vw - 2rem); }
-.parity-dialog { background: var(--sys-color-background-surface-1); border: var(--sys-border-width) solid var(--sys-color-border-default); border-radius: var(--sys-radius-surface); max-width: min(36rem, calc(100% - 2rem)); padding: var(--sys-inset-surface); max-height: 90dvh; overflow-y: auto; overscroll-behavior: contain; }
+/* One positioning recipe: centered on desktop, bottom sheet on mobile. */
+.parity-dialog { top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--sys-color-background-surface-1); border: var(--sys-border-width) solid var(--sys-color-border-default); border-radius: var(--sys-radius-surface); max-width: min(36rem, calc(100% - 2rem)); padding: var(--sys-inset-surface); max-height: min(90dvh, calc(var(--dialog-viewport-height, 100dvh) - 1rem)); overflow-y: auto; overscroll-behavior: contain; }
+@keyframes sheet-enter { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@media (max-width: 639px) {
+  .parity-dialog[data-slot=dialog-content] {
+    top: auto; bottom: var(--dialog-keyboard-inset, 0px); left: 0;
+    transform: translateY(var(--sheet-drag-offset, 0px)); translate: none;
+    width: 100%; max-width: 100%; max-height: min(92dvh, calc(var(--dialog-viewport-height, 100dvh) - 1rem));
+    border-radius: var(--sys-radius-surface) var(--sys-radius-surface) 0 0;
+    padding-bottom: max(var(--sys-inset-surface), env(safe-area-inset-bottom));
+    animation: sheet-enter 180ms var(--sys-ease-action);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .parity-dialog[data-slot=dialog-content] { animation: none; }
+}
 .parity-dialog-title { font: var(--sys-font-title); padding-right: var(--sys-gap-field); overflow-wrap: anywhere; }
 .parity-close { min-width: var(--sys-size-target-min); min-height: var(--sys-size-target-min); color: var(--sys-color-content-primary); border-radius: var(--sys-radius-control); cursor: pointer; }
 .parity-close:hover { background: var(--sys-color-background-surface-2-hover); }

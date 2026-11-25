@@ -111,12 +111,10 @@ input { caret-color: var(--sys-color-content-primary); }
 .parity-page h1 { font: var(--sys-font-page-title); margin-block-end: var(--sys-gap-label); }
 .page-intro { font: var(--sys-font-body); margin-block-end: var(--sys-gap-section); }
 .reading-dialog[data-slot=dialog-content] {
-  top: 50%; left: 50%; transform: translate(-50%, -50%);
-  width: min(32rem, calc(100% - 2rem)); max-width: none; display: block;
-  padding: var(--sys-inset-surface); border: var(--sys-border-width) solid var(--sys-color-border-default);
-  border-radius: var(--sys-radius-surface); background: var(--sys-color-background-surface-1);
-  max-height: min(90dvh, var(--reading-viewport-height, 90dvh)); overflow-y: auto;
-  overscroll-behavior: contain; animation: none;
+  display: block;
+}
+@media (min-width: 640px) {
+  .reading-dialog[data-slot=dialog-content] { max-width: min(32rem, calc(100% - 2rem)); }
 }
 .reading-dialog h2 { font: var(--sys-font-title); text-align: left; overflow-wrap: anywhere; }
 .reading-dialog > [data-slot=dialog-header] { margin-block-end: var(--sys-gap-field); }
@@ -138,14 +136,9 @@ input { caret-color: var(--sys-color-content-primary); }
 .meter-reading-number { display: block; font: var(--sys-font-reading); white-space: nowrap; overflow-x: auto; padding-block: var(--sys-gap-inline); }
 .meter-reading-number small { font: var(--sys-font-control); }
 .meter-confirmation { font: var(--sys-font-support); margin-top: var(--sys-gap-group); overflow-wrap: anywhere; }
-@keyframes sheet-enter { from { transform: translateY(100%); } to { transform: translateY(0); } }
 @media (max-width: 639px) {
   .reading-dialog[data-slot=dialog-content] {
-    width: 100%; max-height: calc(var(--reading-viewport-height, 100dvh) - 1rem);
-    top: auto; bottom: var(--reading-keyboard-inset, 0px); left: 0; transform: translateY(var(--sheet-drag-offset, 0px));
-    border-radius: var(--sys-radius-surface) var(--sys-radius-surface) 0 0;
-    padding-top: 0; padding-bottom: max(var(--sys-inset-surface), env(safe-area-inset-bottom));
-    animation: sheet-enter 180ms var(--sys-ease-action);
+    padding-top: 0;
   }
   .sheet-handle { display: flex; width: 100%; min-height: var(--sys-size-target-min); align-items: center; justify-content: center; touch-action: none; user-select: none; cursor: grab; }
   .sheet-handle::after { content: ''; width: 3rem; height: .25rem; background: var(--sys-color-content-secondary); border-radius: var(--sys-radius-control); }
@@ -153,8 +146,6 @@ input { caret-color: var(--sys-color-content-primary); }
 @media (prefers-reduced-motion: reduce) {
   .reading-dialog[data-slot=dialog-content], .parity-button { animation: none; transition: none; }
 }
-
-.reading-discard { max-height: 90dvh; overflow-y: auto; }
 
 [data-meter-id] [data-slot=card-header] { min-width: 0; }
 [data-meter-id] [data-slot=card-title] { overflow-wrap: anywhere; }
@@ -266,9 +257,6 @@ html[data-keyboard=true] .understand-chart-scroll:focus-within { outline: var(--
 .condition-dialog .form-actions { margin-top: var(--sys-gap-group); }
 .condition-dialog .parity-form, .condition-dialog dd { min-width: 0; }
 .condition-dialog summary:focus-visible, .conditions summary:focus-visible { outline: var(--sys-focus-width) solid var(--sys-color-focus); outline-offset: var(--sys-focus-offset); }
-@media (max-width: 639px) {
-  .condition-dialog[data-slot=dialog-content] { top: auto; bottom: 0; left: 0; transform: none; translate: none; width: 100%; max-width: 100%; max-height: 92dvh; border-radius: var(--sys-radius-surface) var(--sys-radius-surface) 0 0; padding-bottom: max(var(--sys-gap-group), env(safe-area-inset-bottom)); }
-}
 
 .period-end-action { white-space: normal; height: auto; max-width: 100%; overflow-wrap: anywhere; text-decoration: underline; text-underline-offset: .2em; }
 .period-end-dialog { overflow-wrap: anywhere; }
